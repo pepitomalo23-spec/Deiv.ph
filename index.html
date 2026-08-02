@@ -43,11 +43,10 @@
           Database" y "Storage", y crear ahí tu único usuario admin.
        2) Pegar los datos de tu proyecto en firebaseConfig, aquí abajo.
 
-     El acceso se abre con un botón invisible en la esquina inferior
-     izquierda de la pantalla: tres toques/clics seguidos ahí abren la
-     ventana de acceso, donde inicias sesión con el correo y la contraseña
-     de tu cuenta. Como ahora es una cuenta real en la nube, te sirve para
-     entrar desde cualquier dispositivo, no solo desde uno. -->
+     El acceso de administrador ahora es una página aparte: admin.html.
+     Inicias sesión ahí con el correo y la contraseña de tu cuenta y te
+     lleva directo a Ajustes. Como es una cuenta real en la nube, te
+     sirve para entrar desde cualquier dispositivo, no solo desde uno. -->
 <!-- Utilidades compartidas (escapeHtml, escapeAttr, flashMsg) usadas por varios
      módulos de abajo: siempre debe cargarse antes que ellos. -->
 <script src="js/utils.js"></script>
@@ -59,31 +58,11 @@
 
 <script src="js/cloud-db.js"></script>
 
-<!-- ---------- Ventana de acceso (inicio de sesión con tu cuenta) ---------- -->
-<div class="admin-login-overlay" id="adminLoginOverlay">
-  <div class="admin-login-card">
-    <p class="admin-login-title">Acceso de administrador</p>
-    <p class="admin-login-sub">Inicia sesión con tu cuenta para entrar a Ajustes.</p>
-    <p class="admin-login-error" id="adminLoginError">Correo o contraseña incorrectos.</p>
-    <input type="text" id="adminLoginEmail" placeholder="Correo electrónico" autocomplete="username">
-    <input type="password" id="adminLoginPass" placeholder="Contraseña" autocomplete="current-password">
-    <div class="admin-login-actions">
-      <button type="button" class="admin-login-cancel" id="adminLoginCancel">Cancelar</button>
-      <button type="button" class="admin-login-primary" id="adminLoginSubmit">Entrar</button>
-    </div>
-    <p style="text-align:center;margin-top:14px;">
-      <a href="#" id="adminLoginForgot" style="font-size:0.78rem;color:var(--dim);">¿Olvidaste tu contraseña?</a>
-    </p>
-  </div>
-</div>
-
-<!-- ---------- Botón oculto de acceso ----------
-     No se ve nada en pantalla: es una zona táctil invisible en la esquina
-     inferior izquierda. Tres toques/clics seguidos ahí (en menos de 1,2
-     segundos) abren la ventana de acceso de administrador. Así no hace
-     falta ningún enlace especial ni parámetro en la URL. -->
-<button type="button" class="secret-access" id="secretAccessBtn" aria-hidden="true" tabindex="-1"></button>
-<script src="js/secret-access.js"></script>
+<!-- ---------- Vuelta desde admin.html ----------
+     Tras iniciar sesión en admin.html, redirige aquí con ?ajustes=1 en la
+     URL; este script espera a que Firebase confirme la sesión y abre
+     Ajustes automáticamente (ver js/admin-redirect.js). -->
+<script src="js/admin-redirect.js"></script>
 
   <div class="loader" id="loader">
     <div class="loader-video-wrap">
@@ -98,9 +77,6 @@
     </div>
     <div class="loader-bar" style="display:none"><div class="loader-fill" id="loaderFill"></div></div>
   </div>
-
-<!-- ---------- Lógica de la ventana de acceso (Cuenta) ---------- -->
-<script src="js/auth-account.js"></script>
 
   <!-- ---------- Fondo gris oscuro tras la última parada ----------
        Vive DETRÁS de la escena (que es opaca y cubre toda la pantalla).

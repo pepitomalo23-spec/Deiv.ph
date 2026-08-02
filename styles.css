@@ -2448,19 +2448,9 @@
     .camera-carousel .marquee-caption{ display:none; }
   }
 
-  /* ---------- Acceso de administrador (cuenta con contraseña) ---------- */
-  .admin-login-overlay{
-    position:fixed;
-    inset:0;
-    z-index:200;
-    background:rgba(17,17,17,0.55);
-    backdrop-filter:blur(6px);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    padding:20px;
-  }
-  .admin-login-overlay.open{ display:flex; }
+  /* ---------- Acceso de administrador (cuenta con contraseña) ----------
+     .admin-login-card y las clases de dentro las reutiliza admin.html,
+     como página independiente en vez de overlay flotante sobre el sitio. */
   .admin-login-card{
     width:100%;
     max-width:360px;
@@ -2512,7 +2502,6 @@
   }
   .admin-login-primary{ background:var(--accent); color:#fff; }
   .admin-login-primary:hover{ opacity:0.9; }
-  .admin-login-cancel{ background:transparent; color:var(--dim); border:1px solid rgba(0,0,0,0.12) !important; }
   .admin-login-error{
     color:#c0392b;
     font-size:0.8rem;
@@ -2520,25 +2509,6 @@
     display:none;
   }
   .admin-login-error.visible{ display:block; }
-
-  /* Botón de acceso oculto: invisible, sin ningún rastro visual, en la
-     esquina inferior izquierda de la pantalla. Tres toques/clics seguidos
-     ahí abren la ventana de acceso de administrador. */
-  .secret-access{
-    position:fixed;
-    left:0;
-    bottom:0;
-    width:64px;
-    height:64px;
-    z-index:150;
-    background:transparent;
-    border:none;
-    padding:0;
-    margin:0;
-    -webkit-tap-highlight-color:transparent;
-    outline:none;
-    cursor:default;
-  }
 
   /* ---------- Ajustes: pestaña "Cuenta" (historial + copia de seguridad) ---------- */
   .cuenta-status{
