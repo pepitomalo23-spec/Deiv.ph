@@ -2,7 +2,7 @@ window.CloudDB = (function(){
   const contentRef = () => window.fb.db.collection('site').doc('main');
   const historyCol = () => window.fb.db.collection('historial');
 
-  let cache = { bodyCaption:'', about1:'', about2:'', about3:'', carouselImages:[], collageImages:[], categoryButtons:[] };
+  let cache = { bodyCaption:'', about1:'', about2:'', about3:'', carouselImages:[], collageImages:[] };
   let historyCache = [];
   const contentListeners = [];
   const historyListeners = [];

@@ -298,20 +298,6 @@
     </div>
   </section>
 
-  <!-- ---------- Sección: Categoría (pantalla nueva a la que llevan los
-       botones de categorías de la portada). Es una única sección genérica
-       que se rellena con el nombre de la categoría en la que se ha
-       pulsado, así funciona igual sin importar cuántos botones haya. ---------- -->
-  <section class="subview" id="view-categoria">
-    <div class="subview-inner">
-      <p class="subview-eyebrow" id="categoriaEyebrow">Categoría</p>
-      <h1 id="categoriaTitulo">Bodas</h1>
-      <p class="lead" id="categoriaLead">Una selección de trabajos de esta categoría.</p>
-      <p id="categoriaTexto">De momento esto es una pantalla de ejemplo. Dime qué fotos o vídeos quieres mostrar aquí y los dejamos a tu medida.</p>
-      <p style="color:var(--dim); font-style:italic; margin-top:30px;">— Puedes añadir, renombrar o quitar estos botones desde Ajustes → Categorías.</p>
-    </div>
-  </section>
-
   <!-- ---------- Sección: Ajustes ---------- -->
   <section class="subview" id="view-ajustes">
     <div class="subview-inner">
@@ -324,7 +310,6 @@
         <button class="ajustes-tab active" type="button" role="tab" aria-selected="true" data-tab="carrusel">Carrusel</button>
         <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="collage">Collage "Sobre mí"</button>
         <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="textos">Textos</button>
-        <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="categorias">Categorías</button>
         <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="misediciones">Mis ediciones</button>
         <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="cuenta">Cuenta</button>
       </div>
@@ -450,41 +435,6 @@
               <button type="button" class="cuenta-btn" id="textosGuardar">Guardar cambios</button>
               <button type="button" class="cuenta-btn" id="textosReset">Restablecer originales</button>
             </div>
-          </div>
-        </div>
-
-        <!-- Panel: botones de categorías de la portada -->
-        <div class="ajustes-panel ajustes-section" data-panel="categorias">
-          <div class="ajustes-section-head">
-            <span class="ajustes-section-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="6" width="18" height="4" rx="2"/>
-                <rect x="3" y="14" width="18" height="4" rx="2"/>
-              </svg>
-            </span>
-            <div>
-              <p class="ajustes-section-title">Botones de categorías</p>
-              <p class="ajustes-section-desc">Son los botones que aparecen sobre la foto de portada (Bodas, Festivales...). Añade, renombra o quita los que quieras.</p>
-            </div>
-          </div>
-
-          <div class="ajustes-note">
-            <p>Cada botón lleva a una pantalla nueva propia. Puedes añadir tantos como necesites: la lista se ajusta sola al tamaño de la pantalla (si hay muchos, aparece scroll en vez de desbordarse).</p>
-            <p>Los cambios se guardan en la nube y se ven igual para todos los visitantes.</p>
-          </div>
-
-          <div class="cat-editor-list" id="catEditorList"></div>
-          <p class="cat-editor-empty" id="catEditorEmpty" style="display:none;">No hay ningún botón. Añade el primero.</p>
-
-          <div class="ajustes-section-footer">
-            <button class="ajustes-clear" id="catAddBtn" type="button">+ Añadir botón</button>
-          </div>
-
-          <p class="cuenta-msg" id="catMsg"></p>
-
-          <div class="cuenta-row" style="margin-top:14px;">
-            <button type="button" class="cuenta-btn" id="catGuardarBtn">Guardar cambios</button>
-            <button type="button" class="cuenta-btn" id="catResetBtn">Restablecer originales</button>
           </div>
         </div>
 
@@ -633,16 +583,6 @@
 
 <!-- ---------- Textos editables ("Sobre mí" y frase de la pantalla de inicio) ---------- -->
 <script src="js/editable-texts.js"></script>
-
-<!-- ---------- Botones de categorías (portada) + editor en Ajustes ----------
-     Antes eran 4 botones fijos escritos a mano en el HTML (Bodas,
-     Festivales, Deportivos, Retratos). Ahora se generan por JS a partir de
-     una lista (en la nube, igual que los textos), así se pueden añadir,
-     renombrar o quitar botones desde Ajustes → Categorías sin tocar código,
-     y la web sigue mostrando los 4 de ejemplo si no se ha guardado nada
-     todavía. Al pulsar un botón se abre una pantalla nueva (ver la sección
-     "view-categoria" del HTML), igual que "Sobre mí" o "Ediciones". ---------- -->
-<script src="js/category-view.js"></script>
 
 <!-- ---------- "Mis ediciones": categorías con foto + parejas antes/después
      (Ajustes → Mis ediciones). Antes el panel existía en el HTML pero no

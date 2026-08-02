@@ -1,7 +1,7 @@
 // ---------- Utilidades compartidas ----------
 // Antes vivían copiadas (y ligeramente desincronizadas) dentro de
-// camera-carousel.js, category-view.js, comparison-pairs.js,
-// about-collage.js, account-panel.js y editable-texts.js.
+// camera-carousel.js, comparison-pairs.js, about-collage.js,
+// account-panel.js y editable-texts.js.
 // Se cargan aquí una sola vez, antes que el resto de módulos.
 
 /**

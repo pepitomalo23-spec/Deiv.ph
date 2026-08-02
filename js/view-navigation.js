@@ -15,10 +15,8 @@
   });
   const viewSobreMi = document.getElementById('view-sobre-mi');
   const viewEdiciones = document.getElementById('view-ediciones');
-  const viewCategoria = document.getElementById('view-categoria');
   const viewAjustes = document.getElementById('view-ajustes');
   const sceneWrap = document.getElementById('sceneWrap');
-  const categoryButtons = document.getElementById('categoryButtons');
   const sceneTitle = document.getElementById('sceneTitle');
   const sceneHint = document.getElementById('sceneHint');
   const sceneProgress = document.getElementById('sceneProgress');
@@ -77,14 +75,12 @@
 
     const showingResumen = view === 'resumen';
     sceneWrap.style.display = showingResumen ? '' : 'none';
-    if (categoryButtons) categoryButtons.style.display = showingResumen ? '' : 'none';
     sceneTitle.style.display = showingResumen ? '' : 'none';
     sceneHint.style.display = showingResumen ? '' : 'none';
     if (sceneProgress) sceneProgress.style.display = showingResumen ? '' : 'none';
 
     viewSobreMi.classList.toggle('active', view === 'sobre-mi');
     viewEdiciones.classList.toggle('active', view === 'ediciones');
-    if (viewCategoria) viewCategoria.classList.toggle('active', view === 'categoria');
     viewAjustes.classList.toggle('active', view === 'ajustes');
 
     if (!showingResumen) window.scrollTo(0, 0);

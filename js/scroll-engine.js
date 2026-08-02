@@ -9,7 +9,6 @@
   const themeColorMeta = document.getElementById('themeColorMeta');
   const sceneTitle = document.getElementById('sceneTitle');
   const bodyCaption = document.getElementById('bodyCaption');
-  const categoryButtons = document.getElementById('categoryButtons');
 
   // ---- FIX franjas/cortes blancos: variable --vh con el alto REAL del
   // viewport ----
@@ -998,19 +997,6 @@
       : Math.min(1, Math.max(0, currentFrameExact / OLD_LAST_FRAME));
     const captionOpacity = captionOpacityForProgress(p);
     sceneTitle.style.opacity = captionOpacity;
-    if (categoryButtons){
-      categoryButtons.style.opacity = captionOpacity;
-      // FIX: los botones (Bodas, etc.) solo son visibles en la parada
-      // portada; según se avanza hacia la 1ª parada se desvanecen con
-      // opacity, pero opacity:0 NO desactiva el área clicable -el elemento
-      // sigue ahí, fijo (position:fixed), ocupando el mismo hueco de
-      // pantalla-. Antes de este fix, en cuanto el usuario tocaba esa zona
-      // durante o después del primer salto (con los botones ya invisibles)
-      // seguía "pulsando" el botón que quedó debajo sin querer. Se apaga el
-      // click (pointer-events:none) en cuanto la opacidad es
-      // prácticamente 0, y se reactiva en cuanto vuelve a ser visible.
-      categoryButtons.style.pointerEvents = captionOpacity > 0.05 ? 'auto' : 'none';
-    }
   }
 
   // ---- non-linear progress -> frame mapping para el tramo de la continuación ----
@@ -1499,8 +1485,6 @@
     'label',
     '[role="button"]',
     '[contenteditable]',
-    '#categoryButtons',
-    '.category-buttons',
     '#cameraCarousel',
     '.camera-carousel'
   ].join(', ');

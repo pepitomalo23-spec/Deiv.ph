@@ -607,163 +607,6 @@
      foto (la zona que marcaste en rojo como "correcta"). Ese hueco es
      fondo real en todos los frames de la secuencia, así el texto nunca
      invade cuerpo, brazo ni cámara. */
-  /* ---------- Botones de categorías animados ----------
-     Sustituyen al texto de presentación. Viven pegados a la pantalla,
-     igual que el texto anterior, en la zona segura (hueco a la
-     izquierda/abajo de la persona) y aparecen/desaparecen con la misma
-     lógica de opacidad ligada al scroll/gesto que tenía el texto. */
-  .category-buttons{
-    position:fixed;
-    top:60%;
-    left:5vw;
-    z-index:15;
-    display:flex;
-    flex-direction:column;
-    gap:0.55em;
-    width:min(30vw, 240px);
-    pointer-events:auto;
-    /* Si se añaden muchos botones desde Ajustes, la columna no debe salirse
-       de la pantalla: a partir de cierta altura empieza a desplazarse con
-       scroll vertical en vez de invadir el resto de la escena. */
-    max-height:min(58vh, 460px);
-    overflow-y:auto;
-    overscroll-behavior:contain;
-    -ms-overflow-style:none;
-    scrollbar-width:none;
-    padding:2px;
-    -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
-    mask-image:linear-gradient(to bottom, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
-  }
-  .category-buttons::-webkit-scrollbar{ display:none; }
-  .category-btn{
-    position:relative;
-    overflow:hidden;
-    display:flex;
-    align-items:center;
-    gap:0.6em;
-    font-family:'Fraunces','Georgia', serif;
-    font-style:italic;
-    font-weight:500;
-    font-size:clamp(0.85rem, 1.7vw, 1.05rem);
-    letter-spacing:0.02em;
-    color:var(--fg);
-    background:rgba(255,255,255,0.6);
-    border:1px solid rgba(17,17,17,0.18);
-    border-radius:999px;
-    padding:0.55em 1.1em;
-    cursor:pointer;
-    text-decoration:none;
-    backdrop-filter:blur(3px);
-    -webkit-backdrop-filter:blur(3px);
-    transition:transform .35s cubic-bezier(.2,.8,.2,1),
-               box-shadow .35s ease,
-               background .35s ease,
-               border-color .35s ease,
-               color .35s ease;
-    transform:translateX(0);
-    box-shadow:0 1px 2px rgba(17,17,17,0.05);
-  }
-  .category-btn .cat-icon{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    flex:0 0 auto;
-    transition:transform .5s cubic-bezier(.2,.8,.2,1);
-    font-style:normal;
-  }
-  .category-btn .cat-icon svg{
-    width:15px;
-    height:15px;
-    display:block;
-    stroke:currentColor;
-    fill:none;
-    stroke-width:1.4;
-    stroke-linecap:round;
-    stroke-linejoin:round;
-    transition:stroke .35s ease;
-  }
-  @media (min-width:768px){
-    .category-btn .cat-icon svg{ width:16px; height:16px; }
-  }
-  .category-btn .cat-arrow{
-    margin-left:auto;
-    opacity:0;
-    transform:translateX(-6px);
-    transition:opacity .3s ease, transform .3s ease;
-    font-style:normal;
-  }
-  .category-btn::before{
-    content:"";
-    position:absolute;
-    inset:0;
-    background:var(--accent);
-    transform:translateX(-100%);
-    transition:transform .35s cubic-bezier(.2,.8,.2,1);
-    z-index:-1;
-    border-radius:999px;
-  }
-  .category-btn:hover,
-  .category-btn:focus-visible{
-    color:#fff;
-    border-color:var(--accent);
-    transform:translateY(-2px);
-    box-shadow:0 6px 16px rgba(255,90,31,0.28);
-  }
-  .category-btn:hover::before,
-  .category-btn:focus-visible::before{
-    transform:translateX(0);
-  }
-  .category-btn:hover .cat-icon,
-  .category-btn:focus-visible .cat-icon{
-    transform:rotate(-8deg) scale(1.15);
-  }
-  .category-btn:hover .cat-arrow,
-  .category-btn:focus-visible .cat-arrow{
-    opacity:1;
-    transform:translateX(0);
-  }
-  .category-btn:active{
-    transform:translateY(0) scale(0.97);
-  }
-  /* Aparición escalonada al cargar la escena */
-  .category-btn{
-    opacity:0;
-    animation:catBtnIn .6s cubic-bezier(.2,.8,.2,1) forwards;
-  }
-  .category-btn:nth-child(1){ animation-delay:.15s; }
-  .category-btn:nth-child(2){ animation-delay:.30s; }
-  .category-btn:nth-child(3){ animation-delay:.45s; }
-  .category-btn:nth-child(4){ animation-delay:.60s; }
-  @keyframes catBtnIn{
-    from{ opacity:0; transform:translateY(10px); }
-    to{ opacity:1; transform:translateY(0); }
-  }
-  @media (max-width:480px){
-    .category-buttons{
-      top:66%;
-      left:4vw;
-      width:min(46vw, 190px);
-      gap:0.45em;
-      max-height:32vh;
-    }
-    .category-btn{
-      font-size:clamp(0.78rem, 3.4vw, 0.92rem);
-      padding:0.5em 0.9em;
-    }
-  }
-  @media (min-width:768px){
-    .category-buttons{
-      top:58%;
-      left:auto;
-      right:5vw;
-      align-items:flex-end;
-      width:min(24vw, 260px);
-      max-height:52vh;
-    }
-    .category-btn{
-      font-size:clamp(0.95rem, 1.3vw, 1.1rem);
-    }
-  }
   /* Móviles pequeños: título compacto en altura (vh) para no invadir hacia
      el centro donde suele estar la cara/cuerpo de la persona. */
   @media (max-width:480px){
@@ -2806,27 +2649,9 @@
   #view-ajustes .cuenta-msg--ok{ color:var(--adm-accent); }
   #view-ajustes .cuenta-msg--err{ color:var(--adm-danger); }
 
-  /* ---------- Editor de botones de categorías (pestaña "Categorías") ---------- */
-  .cat-editor-list{
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-    margin:16px 0;
-  }
-  .cat-editor-item{
-    display:flex;
-    align-items:center;
-    gap:10px;
-  }
-  .cat-editor-item input{
-    flex:1;
-    min-width:0;
-    padding:10px 13px;
-    border-radius:8px;
-    border:1px solid rgba(0,0,0,0.14);
-    font-family:inherit;
-    font-size:0.9rem;
-  }
+  /* ---------- Botón "×" de quitar fila y estado "vacío" en los editores
+     de Ajustes: los reutilizan varios paneles (comparaciones, galería que
+     se expande...), no son exclusivos de uno solo. ---------- */
   .cat-editor-remove{
     flex:0 0 auto;
     width:32px;
@@ -2845,17 +2670,6 @@
     font-size:0.85rem;
     color:var(--dim);
     font-style:italic;
-  }
-  #view-ajustes .cat-editor-item input{
-    background:var(--adm-surface-2) !important;
-    border:1px solid var(--adm-border) !important;
-    color:var(--adm-fg) !important;
-    font-family:inherit !important;
-  }
-  #view-ajustes .cat-editor-item input:focus{
-    outline:none;
-    border-color:var(--adm-accent) !important;
-    box-shadow:0 0 0 3px var(--adm-accent-dim);
   }
   #view-ajustes .cat-editor-remove{
     border-color:var(--adm-border);
