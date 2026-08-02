@@ -105,74 +105,82 @@
   const images = new Array(FRAME_COUNT);
   let loadedCount = 0;
 
-  // ---- espera a que el vídeo del preloader termine su reproducción (o,
-  // si algo falla, no bloquea más de unos segundos) antes de dar paso a
-  // la escena, para que la animación de inicio siempre se vea completa ----
-  const loaderVideo = document.getElementById('loaderVideo');
+  // ---- reproduce la animación de entrada (intro) y resuelve cuando
+  // termina, o si algo falla, no bloquea más de unos segundos ----
+  //
+  // IMPORTANTE: esto YA NO es un <video>. Es una secuencia de 95
+  // fotogramas (assets/loader-frames/f001.jpg ... f095.jpg, a 24fps,
+  // ~3.9s) que se precargan y se pintan a mano en un <canvas> con
+  // requestAnimationFrame, exactamente igual que la secuencia principal
+  // de fotos de más abajo (loadAll/render).
+  //
+  // Por qué: un <video>, por perfecto que esté exportado (faststart,
+  // muted, playsinline...), puede no arrancar solo si el dispositivo
+  // tiene el Modo de Bajo Consumo activado -iOS bloquea el autoplay de
+  // vídeo ahí sin excepciones- y en su lugar aparece el botón de play
+  // nativo de Safari, rompiendo la sensación de "esto no es un vídeo".
+  // Un <canvas> no es "un vídeo" para el sistema operativo: no hay
+  // autoplay que bloquear, así que se reproduce siempre, sin importar
+  // el modo de energía, el navegador o el dispositivo.
+  const loaderCanvas = document.getElementById('loaderCanvas');
+  const LOADER_FRAME_COUNT = 95;
+  const LOADER_FPS = 24;
   function waitForLoaderVideo(){
     return new Promise((resolve) => {
-      if (!loaderVideo){ resolve(); return; }
+      if (!loaderCanvas){ resolve(); return; }
+      const lctx = loaderCanvas.getContext('2d');
       let done = false;
       const finish = () => { if (done) return; done = true; resolve(); };
 
-      // Se fuerza "muted" también por propiedad (no solo por atributo HTML):
-      // en algunos navegadores/WebViews la propiedad es la que de verdad
-      // decide si el autoplay silencioso está permitido, y dejarlo solo en
-      // el atributo es lo que a veces hace que el navegador bloquee el
-      // arranque automático y muestre su propio control encima del vídeo.
-      loaderVideo.muted = true;
-      loaderVideo.defaultMuted = true;
-      loaderVideo.volume = 0;
+      const loaderImages = new Array(LOADER_FRAME_COUNT);
+      let loaderLoadedCount = 0;
 
-      // En cuanto el vídeo arranca de verdad, se revela con un fundido
-      // suave (entrada tipo Netflix) en vez de aparecer de golpe.
-      //
-      // FIX "se queda en blanco": antes solo se escuchaba 'playing', el
-      // evento más estricto (exige que ya haya un fotograma real en
-      // pantalla). En muchos móviles ese evento tarda o directamente no
-      // llega a tiempo -sobre todo si en paralelo el hilo principal está
-      // ocupado descodificando todos los fotogramas de la foto-secuencia
-      // en loadAll()-, así que el vídeo se quedaba invisible (opacity:0)
-      // durante toda la espera y solo se veía la escena final, de golpe,
-      // al cumplirse el timeout de seguridad de más abajo. Revelando
-      // también en 'loadeddata' (que se dispara en cuanto hay un primer
-      // fotograma decodificado, mucho antes y de forma más fiable) el
-      // vídeo aparece casi siempre, aunque 'playing' tarde en confirmar
-      // que ya está en marcha.
-      const revealLoaderVideo = () => {
-        loaderVideo.closest('.loader-video-wrap')?.classList.add('is-playing');
+      const reveal = () => {
+        loaderCanvas.closest('.loader-video-wrap')?.classList.add('is-playing');
       };
-      loaderVideo.addEventListener('loadeddata', revealLoaderVideo, { once:true });
-      loaderVideo.addEventListener('playing', revealLoaderVideo, { once:true });
 
-      loaderVideo.addEventListener('ended', finish, { once:true });
-      loaderVideo.addEventListener('error', finish, { once:true });
+      // Salvaguarda: si algo va mal cargando los fotogramas, nunca
+      // dejamos al usuario esperando de más ni con nada roto en pantalla.
+      const safety = setTimeout(finish, 6000);
 
-      // Salvaguarda: si el vídeo no puede reproducirse en absoluto
-      // (formato no soportado, fallo de red, etc.) nunca dejamos al
-      // usuario esperando de más ni con nada roto en pantalla.
-      setTimeout(finish, 6000);
+      function drawFrame(i){
+        const img = loaderImages[i];
+        if (!img) return;
+        lctx.clearRect(0, 0, loaderCanvas.width, loaderCanvas.height);
+        lctx.drawImage(img, 0, 0, loaderCanvas.width, loaderCanvas.height);
+      }
 
-      // Intento de reproducción silenciosa. Si el navegador lo bloquea
-      // (política de autoplay), NUNCA se muestra ningún botón: en vez de
-      // eso, se reintenta en silencio en cuanto se detecte el primer gesto
-      // del usuario en la página (toque, clic o tecla) -algo que, en la
-      // práctica, ocurre casi de inmediato- y mientras tanto se revela la
-      // escena igualmente pasado el tiempo de seguridad de arriba.
-      const tryPlay = () => {
-        const p = loaderVideo.play();
-        if (p && p.catch) p.catch(() => {});
-      };
-      tryPlay();
-      const retryOnGesture = () => {
-        if (loaderVideo.paused) tryPlay();
-      };
-      ['pointerdown', 'touchstart', 'keydown'].forEach(evt => {
-        document.addEventListener(evt, retryOnGesture, { passive:true });
-      });
-      document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) retryOnGesture();
-      });
+      function playSequence(){
+        reveal();
+        const startTime = performance.now();
+        function step(now){
+          const elapsed = (now - startTime) / 1000;
+          let frameIndex = Math.floor(elapsed * LOADER_FPS);
+          if (frameIndex >= LOADER_FRAME_COUNT){
+            drawFrame(LOADER_FRAME_COUNT - 1);
+            clearTimeout(safety);
+            finish();
+            return;
+          }
+          drawFrame(frameIndex);
+          requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      }
+
+      for (let i = 0; i < LOADER_FRAME_COUNT; i++){
+        const img = new Image();
+        const idx = i;
+        const onDone = () => {
+          loaderImages[idx] = img;
+          loaderLoadedCount++;
+          if (loaderLoadedCount === LOADER_FRAME_COUNT) playSequence();
+        };
+        img.onload = onDone;
+        img.onerror = onDone; // si falta un fotograma, no bloquea la intro
+        const n = String(idx + 1).padStart(3, '0');
+        img.src = 'assets/loader-frames/f' + n + '.jpg';
+      }
     });
   }
 

@@ -76,7 +76,14 @@
 
   <div class="loader" id="loader">
     <div class="loader-video-wrap">
-    <video class="loader-video" id="loaderVideo" autoplay muted defaultMuted playsinline webkit-playsinline="true" preload="auto" disablePictureInPicture disableRemotePlayback x-webkit-airplay="deny" controlsList="nodownload nofullscreen noremoteplayback noplaybackrate" tabindex="-1" src="assets/loader-v2.mp4"></video>
+    <!-- Ya no es un <video>: es una secuencia de fotogramas pintada en
+         canvas (igual que la escena principal con scroll). Así la intro
+         no depende del autoplay de vídeo, que iOS bloquea por completo en
+         Modo de Bajo Consumo -sin excepciones, ni con muted/playsinline-,
+         mostrando en su lugar el botón nativo de play. Un canvas nunca
+         entra en esa categoría para el sistema operativo: se reproduce
+         siempre, en cualquier circunstancia. -->
+    <canvas class="loader-video" id="loaderCanvas" width="640" height="640" tabindex="-1"></canvas>
     </div>
     <div class="loader-bar" style="display:none"><div class="loader-fill" id="loaderFill"></div></div>
   </div>
