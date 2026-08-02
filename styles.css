@@ -1,0 +1,2992 @@
+:root{
+    --bg:#ffffff;
+    --fg:#111111;
+    --accent:#ff5a1f;
+    --dim:#6b6b66;
+    /* Fuerza de la viñeta OSCURA y fuerte (.scene-wrap-fade, la que vira
+       hasta el gris casi negro sólido que empalma con el panel de detrás)
+       en el borde inferior de la escena. 0 = invisible, 1 = intensidad
+       completa.
+
+       OJO: esto es DISTINTO de la mezcla suave permanente de
+       .scene-pin::before/::after (el disolvido del propio borde de la
+       foto contra var(--bg), que SIEMPRE está activo, en las 3 posiciones,
+       tanto arriba como abajo -así nunca se nota un "corte" en el borde de
+       la foto-). Esta variable solo gobierna la viñeta fuerte adicional
+       que revela, sin corte, lo que hay debajo al llegar al final: se
+       mantiene en 0 durante toda la 1ª y 2ª parada (ahí no hace falta,
+       porque no hay nada oscuro debajo que revelar) y solo empieza a
+       crecer, de forma suave, según currentFrameExact se acerca al ÚLTIMO
+       fotograma de la continuación (el de la 3ª posición, tras el 2º
+       salto) -justo cuando aparecen el carrusel de cámaras y su título-,
+       llegando al 100% de intensidad exactamente en ese último fotograma
+       (ver bgT dentro de render(), en el JS). */
+    --fade-opacity:0;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    padding:0;
+    background:var(--bg);
+    color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    width:100%;
+    min-width:100%;
+    /* FIX franjas/cortes blancos: además de height:100% (que en <html>
+       normalmente ya sigue el viewport real), se fuerza también un
+       min-height con la misma cadena de fallback que .scene-wrap/
+       .after-story-bg -terminando en el valor JS exacto (--vh) y, donde
+       el navegador lo soporte, en dvh, el más preciso de todos-. Así, en
+       cualquier navegador o combinación de zoom/orientación en la que
+       height:100% se quedase corta por el motivo que sea, el propio fondo
+       de <html>/<body> (que ya se tiñe en JS del color exacto de la
+       escena, ver setPageBgColor) sigue cubriendo el 100% real de la
+       pantalla y de cualquier zona de overscroll, sin dejar nunca una
+       tira sin pintar. */
+    height:100%;
+    min-height:100vh;
+    min-height:calc(var(--vh, 1vh) * 100);
+    min-height:100svh;
+    min-height:100dvh;
+    /* SCROLL NATIVO REAL (v2): el documento vuelve a ser una página normal
+       que hace scroll de verdad. Esto es imprescindible para que Safari en
+       iPhone trate la página como "scroll real" y aplique su
+       comportamiento nativo de barra inferior translúcida (igual que en
+       Apple Maps / App Store): el contenido pasa por debajo de la barra
+       sin hueco ni corte. Con position:fixed + overflow:hidden (como
+       estaba antes) el documento nunca se mueve de verdad, así que Safari
+       nunca activa ese comportamiento -por eso ningún parche de
+       padding/safe-area podía arreglarlo-.
+
+       El "salto" animado entre fotos sigue existiendo exactamente igual
+       que antes (misma duración fija, mismo easing, mismo ritmo por
+       tramo): lo que cambia es que ahora, en vez de mover un
+       transform/--pe, mueve el scroll REAL de la página con esa misma
+       curva (ver jumpTo/settleSegment más abajo). Así el navegador ve
+       scroll genuino en todo momento, tanto durante los saltos como en
+       las zonas de scroll libre (antes de la 1ª parada y después de la
+       3ª), y aplica su física e interfaz nativas en todos los casos. */
+    overscroll-behavior-y: none; /* evita el rebote elástico en los extremos del documento, pero permite scroll normal dentro */
+    /* ---------- Bloqueo de zoom (pellizco y doble toque) ----------
+       touch-action:pan-y le dice al navegador que, en toda la página,
+       el ÚNICO gesto táctil permitido es el scroll vertical: así se
+       descarta de raíz tanto el pellizco (pinch-zoom) como el doble
+       toque para ampliar, sin tocar el scroll real que necesita el
+       resto de la página (ver el bloque de comentarios de más arriba).
+       Los elementos hijos que ya declaran su propio touch-action (p.ej.
+       el lienzo de fotogramas o los carruseles con arrastre horizontal)
+       siguen funcionando igual: el navegador combina el valor de cada
+       elemento con el de sus ancestros, así que esta regla general no
+       les quita nada de lo que ya tenían restringido o permitido.
+       El remate -por si algún navegador ignorase user-scalable=no del
+       viewport o touch-action- va en JS, más abajo (ver bloque
+       "Bloqueo de zoom" justo antes de </body>). */
+    touch-action: pan-y;
+  }
+
+  /* ---------- Contenedor de scroll real de las 3 paradas ---------- */
+  /* Alto = 3 pantallas (una por parada). Es scroll de VERDAD: al
+     desplazarse por aquí, .scene-wrap (sticky) se queda clavada en
+     pantalla mientras este contenedor pasa por debajo -el mismo patrón
+     que usa Apple en sus páginas de producto con imagen fija y contenido
+     scrolleable-. El salto animado entre paradas (ver jumpTo/goNext/
+     goPrev en el JS) mueve el scroll REAL con la misma curva de easing y
+     duración fija de siempre, en vez de un transform -así Safari trata
+     todo el recorrido como scroll genuino y aplica su barra inferior
+     nativa en todo momento, también durante el salto animado-. */
+  #storyTrack{
+    position:relative;
+    height:calc(var(--vh, 1vh) * 100 * 3);
+    height:300svh;
+    height:300dvh;
+  }
+  .scene-wrap{
+    position:sticky;
+    top:0;
+    height:100vh;
+    height:calc(var(--vh, 1vh) * 100);
+    height:100svh;
+    height:100dvh;
+    width:100%;
+    z-index:2;
+    /* A veces, al desplazar la escena con transform:translateY() (ver
+       applyPostEndOffset), aparecía una línea blanca fina justo en la
+       costura con el panel gris de detrás (.after-story-bg): el navegador
+       redondea la posición del transform a subpíxeles de forma distinta
+       en cada frame, y esa escena (opaca) y el panel de detrás (que no se
+       mueve) acaban en capas de composición GPU distintas que a veces no
+       encajan al pixel exacto. translateZ(0) fuerza a la escena a vivir
+       siempre en su propia capa GPU, estable, y backface-visibility
+       evita el "flicker" de repintado -es el arreglo estándar para este
+       tipo de costura intermitente entre capas animadas-. */
+    transform:translateZ(0);
+    backface-visibility:hidden;
+  }
+  .scene-pin{
+    position:absolute;
+    inset:0;
+    height:100%;
+    width:100%;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--bg);
+  }
+
+  /* Difuminado hacia el fondo (blanco, o el gris hacia el que va virando
+     var(--bg) al deslizar más allá del final) en los bordes SUPERIOR e
+     INFERIOR de la escena, para que la foto se disuelva suavemente en el
+     fondo en vez de cortarse de golpe -en cualquier posición (1ª, 2ª o
+     3ª), no solo cerca del final-. IMPORTANTE: el alto va en % (relativo
+     al alto real de .scene-pin) y NO en vh, porque vh en móvil no siempre
+     coincide con el alto real visible del contenedor sticky; en % siempre
+     queda pegado al borde de lo que de verdad se ve en pantalla.
+
+     Es una curva de easing (muchas paradas, concentradas al principio y
+     acelerando hacia el final -la misma familia de curva que
+     .after-story-bg usa para su propio degradado permanente-), para que
+     la mezcla se perciba continua y no como un escalón. color-mix()
+     permite aplicar esa misma curva de opacidad sobre var(--bg) aunque su
+     valor cambie en tiempo real (de blanco a gris) mientras se desliza.
+
+     NOTA: a diferencia de .scene-wrap-fade (la viñeta fuerte que sí vira
+     hasta un gris casi negro sólido, ver más abajo), esta mezcla es
+     siempre suave y siempre está activa -no depende de --fade-opacity-:
+     por eso nunca se nota un "corte" ni arriba ni abajo, en ninguna de
+     las 3 posiciones. Lo único que cambia según la posición es el propio
+     valor de var(--bg) (casi blanco en la 1ª y 2ª, virando a gris cámara
+     en la 3ª), así que el matiz de la mezcla ya se adapta solo. */
+  .scene-pin::before,
+  .scene-pin::after{
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    height:30%;
+    pointer-events:none;
+    z-index:5;
+  }
+  .scene-pin::before{
+    top:0;
+    background:linear-gradient(to top,
+      color-mix(in srgb, var(--bg) 0%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 1%, transparent) 8%,
+      color-mix(in srgb, var(--bg) 3%, transparent) 16%,
+      color-mix(in srgb, var(--bg) 6%, transparent) 24%,
+      color-mix(in srgb, var(--bg) 11%, transparent) 32%,
+      color-mix(in srgb, var(--bg) 18%, transparent) 40%,
+      color-mix(in srgb, var(--bg) 27%, transparent) 48%,
+      color-mix(in srgb, var(--bg) 38%, transparent) 55%,
+      color-mix(in srgb, var(--bg) 50%, transparent) 62%,
+      color-mix(in srgb, var(--bg) 63%, transparent) 69%,
+      color-mix(in srgb, var(--bg) 75%, transparent) 75%,
+      color-mix(in srgb, var(--bg) 85%, transparent) 81%,
+      color-mix(in srgb, var(--bg) 92%, transparent) 87%,
+      color-mix(in srgb, var(--bg) 97%, transparent) 93%,
+      var(--bg) 100%);
+  }
+  .scene-pin::after{
+    bottom:0;
+    background:linear-gradient(to bottom,
+      color-mix(in srgb, var(--bg) 0%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 1%, transparent) 8%,
+      color-mix(in srgb, var(--bg) 3%, transparent) 16%,
+      color-mix(in srgb, var(--bg) 6%, transparent) 24%,
+      color-mix(in srgb, var(--bg) 11%, transparent) 32%,
+      color-mix(in srgb, var(--bg) 18%, transparent) 40%,
+      color-mix(in srgb, var(--bg) 27%, transparent) 48%,
+      color-mix(in srgb, var(--bg) 38%, transparent) 55%,
+      color-mix(in srgb, var(--bg) 50%, transparent) 62%,
+      color-mix(in srgb, var(--bg) 63%, transparent) 69%,
+      color-mix(in srgb, var(--bg) 75%, transparent) 75%,
+      color-mix(in srgb, var(--bg) 85%, transparent) 81%,
+      color-mix(in srgb, var(--bg) 92%, transparent) 87%,
+      color-mix(in srgb, var(--bg) 97%, transparent) 93%,
+      var(--bg) 100%);
+  }
+
+  .frame-canvas{
+    height:100%;
+    width:100%;
+    object-fit:contain;
+    display:block;
+  }
+
+  /* ---------- Fondo gris oscuro tras la última parada ----------
+     Ocupa toda la pantalla pero vive DETRÁS de .scene-wrap (que es opaco),
+     así que en reposo no se ve nada de este panel: solo asoma por el hueco
+     que la propia escena va dejando al desplazarse hacia arriba (con
+     transform, ver applyPostEndOffset) tras la última parada.
+
+     Es sólido, sin degradado propio: la transición de blanco a oscuro ya
+     no vive aquí, sino de forma PERMANENTE en el propio borde inferior de
+     la escena (ver la viñeta en .scene-wrap-fade, más abajo), que remata
+     exactamente en este mismo gris sólido -por eso encajan sin costura,
+     se mire en el momento que se mire-. */
+  .after-story-bg{
+    position:fixed;
+    /* Un pelín más allá del viewport por los cuatro lados (en vez de
+       inset:0 exacto): un margen de seguridad invisible -es fondo sólido,
+       no se nota la diferencia- para que, si la costura con la escena de
+       delante (que sí se desplaza con transform) queda a un subpíxel de
+       redondeo distinto, nunca se cuele una línea del fondo real de la
+       página por debajo. Ampliado a 6px (antes 2px) para cubrir también
+       zoom del navegador y pantallas de muy alta densidad, donde un
+       redondeo de subpíxel puede ser algo mayor que en una pantalla normal. */
+    inset:-6px;
+    height:calc(100vh + 12px);
+    height:calc(var(--vh, 1vh) * 100 + 12px);
+    height:calc(100svh + 12px);
+    height:calc(100dvh + 12px);
+    /* IMPORTANTE: z-index positivo (no negativo). Con z-index negativo
+       algunos navegadores lo pintan por detrás del propio fondo blanco de
+       <body>, y el panel dejaba de verse. Con z-index:1, en cambio, queda
+       claramente por debajo de .scene-wrap (z-index:2) y por encima del
+       fondo de la página, que es justo el orden que necesitamos. */
+    z-index:1;
+    background:#ffffff;
+    /* Misma capa GPU estable que .scene-wrap (ver ahí el porqué): así la
+       costura entre ambas nunca se recompone con un subpíxel de más o de
+       menos de un frame a otro. */
+    transform:translateZ(0);
+    backface-visibility:hidden;
+  }
+
+  /* ---------- Viñeta permanente: el propio final del fondo blanco ----------
+     Detalle FIJO del diseño -no un efecto que "aparece" al hacer scroll-:
+     está siempre ahí, en cada foto, desde la primera vez que se pinta la
+     página, exactamente igual que un marco o una viñeta de una revista.
+     Es hija de .scene-wrap (sube y baja exactamente con la escena) y
+     ocupa siempre su borde inferior: el fondo blanco se queda blanco en
+     todo lo demás, y solo en este último tramo -bastante por debajo del
+     centro, donde ya no hay contenido/texto- empieza, de forma suave y
+     progresiva, a virar hacia gris claro, gris medio y finalmente gris
+     oscuro sólido, justo en su borde inferior.
+
+     Es clave que su ÚLTIMA parada sea exactamente el mismo gris sólido
+     que .after-story-bg (#1c1c1e): así, cuando el usuario desliza más
+     allá de la última foto y la escena descubre el panel oscuro de detrás,
+     ambos coinciden a la perfección sin importar cuánto se haya deslizado
+     -no hace falta calcular ni sincronizar nada por JavaScript, porque los
+     dos únicos colores que se tocan (el remate de esta viñeta y el panel
+     de detrás) son, literalmente, el mismo color fijo-.
+
+     La curva de opacidad (muchas paradas, un largo tramo inicial 0%-40%
+     totalmente transparente y solo después una curva de aceleración
+     suave) es la que hace que, mirando cualquier foto, la mayor parte de
+     ella se vea perfectamente blanca y solo el remate final, muy abajo,
+     insinúe el oscurecimiento -de forma tan gradual que no se percibe
+     ningún borde ni línea, solo una sensación de profundidad. */
+  .scene-wrap-fade{
+    position:absolute;
+    left:0;
+    right:0;
+    /* 1px de solape hacia abajo (en vez de bottom:0 exacto): su color
+       final ya es el mismo gris sólido de .after-story-bg, así que un
+       pelín de solape es invisible pero asegura que nunca quede, por
+       redondeo de subpíxel, una rendija sin cubrir justo en esa costura. */
+    bottom:-1px;
+    height:calc(28vh + 1px);
+    /* No es una viñeta permanente pintada siempre al 100% en cualquier
+       parada -eso oscurecía de más la 1ª y 2ª posición sin necesidad, ahí
+       no hay nada oscuro debajo que revelar-. Solo se hace visible cerca
+       del último fotograma (ver --fade-opacity en :root y render() en el
+       JS), justo cuando de verdad hace falta para la costura con el panel
+       oscuro. La mezcla suave permanente del borde de la foto (siempre
+       activa, arriba y abajo, en las 3 posiciones) vive aparte, en
+       .scene-pin::before/::after, más arriba. */
+    opacity:var(--fade-opacity);
+    background:linear-gradient(to bottom,
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0) 40%,
+      rgba(255,255,255,0.013) 44%,
+      rgba(255,255,255,0.049) 48%,
+      rgba(255,255,255,0.104) 52%,
+      rgba(255,255,255,0.175) 56%,
+      rgba(255,255,255,0.259) 60%,
+      rgba(255,255,255,0.352) 64%,
+      rgba(255,255,255,0.45) 68%,
+      rgba(255,255,255,0.55) 72%,
+      rgba(255,255,255,0.648) 76%,
+      rgba(255,255,255,0.741) 80%,
+      rgba(255,255,255,0.825) 84%,
+      rgba(255,255,255,0.896) 88%,
+      rgba(255,255,255,0.939) 91%,
+      rgba(255,255,255,0.972) 94%,
+      rgba(255,255,255,0.987) 96%,
+      rgba(255,255,255,0.997) 98%,
+      #ffffff 100%);
+    pointer-events:none;
+    z-index:6;
+    /* Sin clip-path, sin opacity dinámica, sin transición: siempre
+       pintada al 100%, siempre en el sitio. No hay nada que activar ni
+       desactivar por JavaScript -es, literalmente, parte fija del fondo. */
+    transform:translateZ(0);
+    backface-visibility:hidden;
+  }
+
+  .scene-hint{
+    position:fixed;
+    left:50%;
+    bottom:26px;
+    transform:translateX(-50%);
+    font-size:0.72rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--dim);
+    z-index:20;
+    opacity:0;
+    transition:opacity .4s ease;
+    pointer-events:none;
+  }
+  .scene-hint.visible{ opacity:1; }
+
+  /* ---------- Panel de Ajustes "Antes/Después" (subida de fotos): dos
+     ranuras ----------
+     Los dos recuadros cuadrados de subida (sin editar / editada) usan el
+     mismo patrón que otras miniaturas de Ajustes: por defecto invitan a
+     subir, y una vez hay foto se convierten en la miniatura con un aviso
+     de "Cambiar foto" al pasar el ratón. Estas mismas clases (.ba-slots,
+     .ba-slot, .ba-slot-box) las reutiliza también el editor de parejas
+     del comparador de "Mis ediciones" (ver más abajo). */
+  .ba-slots{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+    margin:16px 0 6px;
+  }
+  .ba-slot{ position:relative; flex:1; max-width:170px; display:flex; justify-content:center; }
+  .ba-slot-box{
+    position:relative;
+    width:100%;
+    aspect-ratio:3/4;
+    border:1.5px dashed rgba(17,17,17,0.32);
+    border-radius:10px;
+    background:rgba(0,0,0,0.02);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:6px;
+    cursor:pointer;
+    overflow:hidden;
+    transition:border-color .2s ease;
+  }
+  .ba-slot-box:hover{ border-color:var(--accent); }
+  .ba-slot-box svg{ width:22px; height:22px; color:var(--dim); flex:none; }
+  .ba-slot-box span{
+    font-size:0.62rem;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    color:var(--dim);
+    text-align:center;
+    padding:0 8px;
+  }
+  .ba-slot-box:hover svg, .ba-slot-box:hover span{ color:var(--accent); }
+  /* Con foto: el recuadro deja de ser un cuadrado 3/4 fijo que recorta la
+     imagen (object-fit:cover) y pasa a ajustarse a la forma real de la
+     foto -vertical, horizontal o cuadrada-, con un tamaño MÁXIMO (ancho:
+     el de la columna, 170px; alto: 230px) que nunca se supera, pero sin
+     forzar la imagen a rellenar ese máximo si es más pequeña o de otra
+     proporción: manda la imagen, el recuadro solo pone el límite. */
+  .ba-slot-box.has-image{
+    border-style:solid;
+    border-color:rgba(17,17,17,0.14);
+    background:#000;
+    width:auto;
+    max-width:100%;
+    aspect-ratio:auto;
+    height:auto;
+    max-height:230px;
+  }
+  .ba-slot-box.has-image img{
+    display:block;
+    width:auto;
+    height:auto;
+    max-width:100%;
+    max-height:230px;
+    object-fit:contain;
+  }
+  .ba-slot-box.is-uploading{ cursor:default; }
+
+  /* ---------- Puntos de progreso ----------
+     Indican en qué parada del recorrido está el usuario mientras desliza,
+     como los puntos de un carrusel, pero conectados por una raya vertical
+     (el "track") para que se lean como un único recorrido y no como
+     puntos sueltos. Fijos en el borde derecho, centrados en vertical,
+     fuera del área de la persona y del carrusel de cámaras. Solo visibles
+     en la vista "Resumen" (igual que .scene-hint, ver goToView).
+
+     Son 4 paradas, no 3: las 3 del recorrido de fotos (WAYPOINTS) más una
+     última que representa el tramo negro/gris final (.after-story-bg),
+     que es un apartado propio del recorrido y no una prolongación de la
+     última foto.
+
+     El relleno naranja (.scene-progress-line-fill) NO salta de punto en
+     punto: crece de forma continua, fotograma a fotograma, seguiiendo
+     exactamente el mismo progreso que se ve en pantalla (tanto durante el
+     salto animado entre paradas como durante el arrastre en tiempo real
+     del tramo final) -ver updateProgressTrack en el JS-, así el indicador
+     "acompaña" el gesto en vez de limitarse a marcar destinos. */
+  .scene-progress{
+    position:fixed;
+    right:18px;
+    top:50%;
+    transform:translateY(-50%);
+    z-index:20;
+    pointer-events:none;
+    display:block;
+  }
+  .scene-progress-track{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:20px;
+  }
+  .scene-progress-line,
+  .scene-progress-line-fill{
+    position:absolute;
+    left:50%;
+    width:2px;
+    transform:translateX(-50%);
+    border-radius:1px;
+  }
+  .scene-progress-line{
+    background:var(--dim);
+    opacity:0.28;
+  }
+  .scene-progress-line-fill{
+    top:0;
+    height:0;
+    background:var(--accent);
+    opacity:0.95;
+  }
+  .scene-progress .dot{
+    position:relative;
+    z-index:1;
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:var(--dim);
+    opacity:0.35;
+    transform:scale(1);
+    transition:opacity .35s ease, transform .35s ease, background-color .35s ease;
+  }
+  .scene-progress .dot.passed{
+    background:var(--accent);
+    opacity:0.6;
+  }
+  .scene-progress .dot.active{
+    background:var(--accent);
+    opacity:1;
+    transform:scale(1.35);
+  }
+
+  /* ---------- Continuación en blanco tras la última parada ----------
+     Al llegar al final del recorrido, en vez de quedar bloqueado, un
+     gesto más hacia adelante revela esta capa blanca deslizándose desde
+     abajo hasta cubrir toda la pantalla, dando la sensación de que la
+     historia "sigue avanzando" hacia un fondo en blanco. Un gesto hacia
+     atrás desde aquí la vuelve a ocultar y regresa a la última imagen. */
+  .white-end{
+    position:fixed;
+    inset:0;
+    background:#ffffff;
+    z-index:40;
+    transform:translateY(100%);
+    will-change:transform;
+  }
+
+  .scene-title{
+    /* Pegado a la pantalla (fixed): ya no se desplaza con nada. Aparece y
+       desaparece únicamente cambiando de opacidad, en sincronía con el
+       salto de imagen, nunca deslizándose ni subiendo. */
+    position:fixed;
+    left:3vw;
+    top:7vw;
+    /* Se agranda al máximo posible según el dispositivo, usando tanto el
+       ancho (vw) como el alto (vh) de la pantalla real -manda el más
+       restrictivo-, así en móviles muy altos y estrechos, o en landscape
+       muy bajo y ancho, siempre cabe en la esquina sin desbordar ni tapar
+       a la persona del vídeo, que queda centrada/abajo. */
+    width:min(48vw, 32vh, 400px);
+    z-index:20;
+    opacity:1;
+    pointer-events:none;
+    background:transparent;
+  }
+  .scene-title img{
+    display:block;
+    width:100%;
+    height:auto;
+    background:transparent;
+  }
+  /* Mini-texto de presentación debajo del título. Va dentro del mismo
+     contenedor que la imagen del título, así que se mueve, aparece y
+     desaparece exactamente junto con él (arriba, sin tocar nunca a la
+     persona, que queda centrada/abajo). Alineado a la izquierda por
+     defecto porque en móvil el título está a la izquierda.
+     Tipografía: serif elegante de aire místico/de cuento (estilo
+     "Bastelier"), en cursiva para reforzar ese tono narrativo/atemporal.
+     El tamaño usa clamp() -crece y encoge de forma fluida con la pantalla,
+     nunca a saltos- y max-width en ch (no en vw/px), así el bloque de
+     texto siempre cabe dentro del ancho reservado al título y jamás llega
+     a superponerse con la persona, sea cual sea el tamaño de pantalla. */
+  /* Texto de presentación "Soy fotógrafo...". Antes vivía pegado al
+     título (arriba), así que se movía y desaparecía con el scroll junto
+     con él. Ahora es un elemento independiente, hijo de .scene-pin (la
+     escena fijada con scroll), así que se queda siempre a la altura de
+     la cintura de la persona y NUNCA se mueve ni desaparece mientras
+     dura la escena. Se ancla por la derecha y su ancho se define en vw
+     (no en ch ni px fijos), así se estrecha en proporción directa al
+     ancho real de pantalla -clave para calibrar con precisión el punto
+     exacto donde termina y que jamás llegue a tocar el cuerpo ni la
+     cámara, sea cual sea el dispositivo. */
+  /* CAMBIO: el texto vivía anclado a la DERECHA (right:4vw), justo donde
+     cae el brazo que sujeta la cámara -> siempre acababa tocándolo o
+     montado encima. Lo movemos a la IZQUIERDA, abajo, a la zona blanca
+     vacía que queda entre la pierna/cadera y el borde izquierdo de la
+     foto (la zona que marcaste en rojo como "correcta"). Ese hueco es
+     fondo real en todos los frames de la secuencia, así el texto nunca
+     invade cuerpo, brazo ni cámara. */
+  /* ---------- Botones de categorías animados ----------
+     Sustituyen al texto de presentación. Viven pegados a la pantalla,
+     igual que el texto anterior, en la zona segura (hueco a la
+     izquierda/abajo de la persona) y aparecen/desaparecen con la misma
+     lógica de opacidad ligada al scroll/gesto que tenía el texto. */
+  .category-buttons{
+    position:fixed;
+    top:60%;
+    left:5vw;
+    z-index:15;
+    display:flex;
+    flex-direction:column;
+    gap:0.55em;
+    width:min(30vw, 240px);
+    pointer-events:auto;
+    /* Si se añaden muchos botones desde Ajustes, la columna no debe salirse
+       de la pantalla: a partir de cierta altura empieza a desplazarse con
+       scroll vertical en vez de invadir el resto de la escena. */
+    max-height:min(58vh, 460px);
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    -ms-overflow-style:none;
+    scrollbar-width:none;
+    padding:2px;
+    -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
+    mask-image:linear-gradient(to bottom, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
+  }
+  .category-buttons::-webkit-scrollbar{ display:none; }
+  .category-btn{
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    gap:0.6em;
+    font-family:'Fraunces','Georgia', serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:clamp(0.85rem, 1.7vw, 1.05rem);
+    letter-spacing:0.02em;
+    color:var(--fg);
+    background:rgba(255,255,255,0.6);
+    border:1px solid rgba(17,17,17,0.18);
+    border-radius:999px;
+    padding:0.55em 1.1em;
+    cursor:pointer;
+    text-decoration:none;
+    backdrop-filter:blur(3px);
+    -webkit-backdrop-filter:blur(3px);
+    transition:transform .35s cubic-bezier(.2,.8,.2,1),
+               box-shadow .35s ease,
+               background .35s ease,
+               border-color .35s ease,
+               color .35s ease;
+    transform:translateX(0);
+    box-shadow:0 1px 2px rgba(17,17,17,0.05);
+  }
+  .category-btn .cat-icon{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 auto;
+    transition:transform .5s cubic-bezier(.2,.8,.2,1);
+    font-style:normal;
+  }
+  .category-btn .cat-icon svg{
+    width:15px;
+    height:15px;
+    display:block;
+    stroke:currentColor;
+    fill:none;
+    stroke-width:1.4;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    transition:stroke .35s ease;
+  }
+  @media (min-width:768px){
+    .category-btn .cat-icon svg{ width:16px; height:16px; }
+  }
+  .category-btn .cat-arrow{
+    margin-left:auto;
+    opacity:0;
+    transform:translateX(-6px);
+    transition:opacity .3s ease, transform .3s ease;
+    font-style:normal;
+  }
+  .category-btn::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:var(--accent);
+    transform:translateX(-100%);
+    transition:transform .35s cubic-bezier(.2,.8,.2,1);
+    z-index:-1;
+    border-radius:999px;
+  }
+  .category-btn:hover,
+  .category-btn:focus-visible{
+    color:#fff;
+    border-color:var(--accent);
+    transform:translateY(-2px);
+    box-shadow:0 6px 16px rgba(255,90,31,0.28);
+  }
+  .category-btn:hover::before,
+  .category-btn:focus-visible::before{
+    transform:translateX(0);
+  }
+  .category-btn:hover .cat-icon,
+  .category-btn:focus-visible .cat-icon{
+    transform:rotate(-8deg) scale(1.15);
+  }
+  .category-btn:hover .cat-arrow,
+  .category-btn:focus-visible .cat-arrow{
+    opacity:1;
+    transform:translateX(0);
+  }
+  .category-btn:active{
+    transform:translateY(0) scale(0.97);
+  }
+  /* Aparición escalonada al cargar la escena */
+  .category-btn{
+    opacity:0;
+    animation:catBtnIn .6s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  .category-btn:nth-child(1){ animation-delay:.15s; }
+  .category-btn:nth-child(2){ animation-delay:.30s; }
+  .category-btn:nth-child(3){ animation-delay:.45s; }
+  .category-btn:nth-child(4){ animation-delay:.60s; }
+  @keyframes catBtnIn{
+    from{ opacity:0; transform:translateY(10px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  @media (max-width:480px){
+    .category-buttons{
+      top:66%;
+      left:4vw;
+      width:min(46vw, 190px);
+      gap:0.45em;
+      max-height:32vh;
+    }
+    .category-btn{
+      font-size:clamp(0.78rem, 3.4vw, 0.92rem);
+      padding:0.5em 0.9em;
+    }
+  }
+  @media (min-width:768px){
+    .category-buttons{
+      top:58%;
+      left:auto;
+      right:5vw;
+      align-items:flex-end;
+      width:min(24vw, 260px);
+      max-height:52vh;
+    }
+    .category-btn{
+      font-size:clamp(0.95rem, 1.3vw, 1.1rem);
+    }
+  }
+  /* Móviles pequeños: título compacto en altura (vh) para no invadir hacia
+     el centro donde suele estar la cara/cuerpo de la persona. */
+  @media (max-width:480px){
+    .scene-title{
+      left:3vw;
+      top:6vw;
+      width:min(56vw, 26vh, 300px);
+    }
+  }
+  /* Tablets tipo iPad en adelante: la imagen del cuerpo se pega a la
+     izquierda, así que el título se mueve a la derecha para no taparla.
+     A partir de aquí usamos un único cálculo continuo (sin más saltos de
+     breakpoint) que combina % de ancho y % de alto reales, así crece de
+     forma proporcional tanto en iPad como en portátil o monitor grande,
+     en vez de quedarse "a medias" en tamaños intermedios como una tablet. */
+  @media (min-width:768px){
+    .scene-title{
+      left:auto;
+      right:3vw;
+      top:7vw;
+      width:min(50vw, 50vh, 780px);
+    }
+  }
+  /* Pantallas grandes (portátiles/monitores anchos): al haber mucho más
+     ancho que alto disponible, dejamos que el alto (vh) sea quien más
+     mande, para que siga creciendo con pantallas más altas sin volverse
+     desproporcionadamente ancha. */
+  @media (min-width:1200px){
+    .scene-title{
+      width:min(34vw, 55vh, 900px);
+    }
+  }
+
+  .loader{
+    position:fixed;
+    inset:0;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    transition:opacity .5s ease;
+  }
+  .loader-bar{
+    width:160px;
+    height:2px;
+    background:rgba(0,0,0,0.12);
+    margin-top:18px;
+    overflow:hidden;
+    border-radius:2px;
+  }
+  .loader-fill{
+    height:100%;
+    width:0%;
+    background:var(--accent);
+    transition:width .15s ease-out;
+  }
+  .loader-label{
+    font-size:0.72rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--dim);
+  }
+
+  /* ---------- Vídeo de preloader (animación de inicio) ---------- */
+  /* Contenedor que fija el tamaño (igual que antes tenía el <video>) y
+     sobre el que se apoya el difuminado de los bordes: al <video> ya no
+     le hace falta más que rellenar este cuadro. */
+  .loader-video-wrap{
+    position:relative;
+    width:min(58vw, 58vh, 380px);
+    aspect-ratio:1/1;
+    display:block;
+    /* Entrada tipo Netflix: el vídeo nunca "aparece" de golpe, siempre
+       se funde suavemente en cuanto empieza a reproducirse de verdad
+       (ver clase .is-playing, activada por JS en el evento 'playing').
+       Así, si el arranque tarda una fracción de segundo, el usuario ve
+       un fundido limpio en vez de un primer fotograma congelado. */
+    opacity:0;
+    transition:opacity .45s ease;
+  }
+  .loader-video-wrap.is-playing{ opacity:1; }
+  .loader-video{
+    width:100%;
+    height:100%;
+    display:block;
+    object-fit:contain;
+    /* Nunca debe poder tocarse/pulsarse: así ningún gesto accidental
+       puede activar los controles nativos del navegador (el "botón"
+       de silenciar/reanudar con icono de onda que algunos navegadores
+       superponen a los vídeos) durante la animación de entrada. */
+    pointer-events:none;
+  }
+  /* Capa por encima del vídeo que funde sus CUATRO bordes (arriba, abajo,
+     izquierda y derecha) hacia var(--bg) -el mismo blanco/gris de fondo de
+     la escena en cada momento-, para que el vídeo no se vea nunca como un
+     cuadrado con un corte recto, sino que se disuelva de forma suave por
+     los cuatro lados.
+
+     Truco: se superponen dos degradados lineales -uno horizontal y otro
+     vertical-, cada uno opaco (color var(--bg)) en su par de bordes y
+     totalmente transparente en el centro. Al pintarse uno encima del otro,
+     donde el de arriba es transparente se ve el de abajo a través suyo:
+     así los cuatro bordes quedan cubiertos por igual (incluidas las
+     esquinas, donde ambos se solapan) y solo el centro del vídeo queda
+     limpio, sin que se note nunca la silueta cuadrada del clip. */
+  .loader-video-wrap::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:
+      linear-gradient(to right, var(--bg) 0%, transparent 22%, transparent 78%, var(--bg) 100%),
+      linear-gradient(to bottom, var(--bg) 0%, transparent 22%, transparent 78%, var(--bg) 100%);
+  }
+
+  /* ---------- Menú de navegación (3 rayitas) ---------- */
+  .menu-toggle{
+    position:fixed;
+    top:22px;
+    right:22px;
+    z-index:200;
+    width:44px;
+    height:44px;
+    border:none;
+    background:rgba(255,255,255,0.55);
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    border-radius:50%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    cursor:pointer;
+    padding:0;
+  }
+  .menu-toggle span{
+    display:block;
+    width:20px;
+    height:2px;
+    background:var(--fg);
+    border-radius:2px;
+    transition:transform .3s ease, opacity .3s ease;
+  }
+  .menu-toggle.open span:nth-child(1){ transform:translateY(7px) rotate(45deg); }
+  .menu-toggle.open span:nth-child(2){ opacity:0; }
+  .menu-toggle.open span:nth-child(3){ transform:translateY(-7px) rotate(-45deg); }
+
+  .menu-panel{
+    position:fixed;
+    top:74px;
+    right:22px;
+    z-index:199;
+    background:#ffffff;
+    border-radius:14px;
+    box-shadow:0 12px 40px rgba(0,0,0,0.12);
+    padding:10px;
+    min-width:180px;
+    opacity:0;
+    transform:translateY(-8px) scale(0.98);
+    pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+  }
+  .menu-panel.open{
+    opacity:1;
+    transform:translateY(0) scale(1);
+    pointer-events:auto;
+  }
+  .menu-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    width:100%;
+    background:transparent;
+    border:none;
+    text-align:left;
+    font-family:'Fraunces','Georgia',serif;
+    font-size:0.98rem;
+    color:var(--fg);
+    padding:11px 14px;
+    border-radius:9px;
+    cursor:pointer;
+    transition:background .2s ease, color .2s ease;
+  }
+  /* "Ajustes" es un panel de administración (sube fotos, etc.), no algo
+     pensado para cualquier visitante. Se queda oculto por defecto y solo
+     se muestra en el dispositivo del admin (ver el script de admin). */
+  .menu-item[data-view="ajustes"]{ display:none; }
+  .menu-item:hover{ background:rgba(0,0,0,0.045); }
+  .menu-item.active{
+    color:var(--accent);
+    background:rgba(255,90,31,0.08);
+    font-style:italic;
+  }
+  .menu-item .dot{
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:var(--accent);
+    opacity:0;
+    transition:opacity .2s ease;
+  }
+  .menu-item.active .dot{ opacity:1; }
+
+  /* Aviso suave: "estamos en esta sección" */
+  .menu-toast{
+    position:fixed;
+    top:74px;
+    right:22px;
+    z-index:198;
+    background:rgba(255,255,255,0.92);
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    color:var(--dim);
+    font-family:'Fraunces','Georgia',serif;
+    font-style:italic;
+    font-size:0.85rem;
+    padding:10px 16px;
+    border-radius:10px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.08);
+    opacity:0;
+    transform:translateY(-6px);
+    pointer-events:none;
+    transition:opacity .5s ease, transform .5s ease;
+  }
+  .menu-toast.visible{
+    opacity:1;
+    transform:translateY(0);
+  }
+
+  /* ---------- Vistas secundarias (Sobre mí / Ediciones) ---------- */
+  .subview{
+    position:fixed;
+    inset:0;
+    z-index:150;
+    background:var(--bg);
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    display:none;
+    padding:0 0 80px;
+  }
+  .subview.active{ display:block; }
+  .subview-inner{
+    max-width:720px;
+    margin:0 auto;
+    padding:120px 24px 40px;
+  }
+  .subview-eyebrow{
+    font-size:0.72rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 14px;
+  }
+  .subview h1{
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:600;
+    font-size:clamp(1.9rem, 5vw, 3rem);
+    margin:0 0 22px;
+    line-height:1.1;
+  }
+  .subview p{
+    font-family:'Fraunces','Georgia',serif;
+    font-size:1.05rem;
+    line-height:1.7;
+    color:var(--fg);
+    margin:0 0 18px;
+  }
+  .subview p.lead{
+    font-style:italic;
+    color:var(--dim);
+    font-size:1.2rem;
+  }
+
+  /* ---------- Sobre mí: collage animado de fotos ---------- */
+  .about-collage{
+    margin:6px 0 36px;
+  }
+  .about-collage-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+  }
+  .about-collage-item{
+    position:relative;
+    flex:0 0 auto;
+    width:calc(33.333% - 10px);
+    aspect-ratio:3/4;
+    border-radius:14px;
+    overflow:hidden;
+    background:linear-gradient(160deg, #f3f3f1, #e8e8e4);
+    box-shadow:0 10px 24px rgba(0,0,0,0.10);
+    opacity:0;
+    transform:translateY(20px) rotate(var(--tilt, 0deg)) scale(0.96);
+    animation:aboutCollageIn .65s cubic-bezier(.19,1,.22,1) forwards,
+              aboutCollagePulse 7s ease-in-out infinite;
+    transition:transform .32s ease, box-shadow .32s ease;
+  }
+  .about-collage-item:nth-child(6n+1){ --tilt:-2.2deg; animation-delay:0s, 0s; }
+  .about-collage-item:nth-child(6n+2){ --tilt:1.6deg;  animation-delay:.08s, .4s; }
+  .about-collage-item:nth-child(6n+3){ --tilt:-1deg;   animation-delay:.16s, .8s; }
+  .about-collage-item:nth-child(6n+4){ --tilt:2deg;    animation-delay:.24s, 1.2s; }
+  .about-collage-item:nth-child(6n+5){ --tilt:-1.6deg; animation-delay:.32s, 1.6s; }
+  .about-collage-item:nth-child(6n+6){ --tilt:1.2deg;  animation-delay:.4s, 2s; }
+  .about-collage-item:hover{
+    transform:translateY(-3px) rotate(0deg) scale(1.03);
+    box-shadow:0 18px 34px rgba(0,0,0,0.16);
+    z-index:2;
+  }
+  .about-collage-item img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .about-collage-item .about-collage-dot{
+    position:absolute;
+    top:10px;
+    right:10px;
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--accent);
+    opacity:0;
+    transition:opacity .25s ease;
+  }
+  .about-collage-item:hover .about-collage-dot{ opacity:1; }
+  @keyframes aboutCollageIn{
+    to{ opacity:1; transform:translateY(0) rotate(var(--tilt, 0deg)) scale(1); }
+  }
+  @keyframes aboutCollagePulse{
+    0%, 100%{ box-shadow:0 10px 24px rgba(0,0,0,0.10); }
+    50%{ box-shadow:0 15px 30px rgba(0,0,0,0.15); }
+  }
+  /* Tarjeta de invitación cuando aún no hay fotos propias subidas */
+  .about-collage-item.is-placeholder{
+    width:100%;
+    aspect-ratio:16/7;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    cursor:pointer;
+    border:1.5px dashed rgba(0,0,0,0.16);
+    background:rgba(0,0,0,0.015);
+    animation:aboutCollageIn .65s cubic-bezier(.19,1,.22,1) forwards;
+    transition:border-color .25s ease, background .25s ease, transform .3s ease;
+  }
+  .about-collage-item.is-placeholder:hover{
+    border-color:rgba(255,90,31,0.45);
+    background:rgba(255,90,31,0.04);
+    transform:translateY(-2px);
+  }
+  .about-collage-item.is-placeholder svg{
+    width:22px;
+    height:22px;
+    color:var(--dim);
+    opacity:.6;
+  }
+  .about-collage-item.is-placeholder span{
+    font-family:'Fraunces','Georgia',serif;
+    font-style:italic;
+    font-size:0.92rem;
+    color:var(--dim);
+  }
+  .about-collage-hint{
+    margin-top:14px;
+    font-size:0.85rem;
+    font-style:italic;
+    color:var(--dim);
+  }
+  .about-collage-hint button{
+    background:none;
+    border:none;
+    padding:0;
+    font:inherit;
+    font-style:italic;
+    color:var(--accent);
+    cursor:pointer;
+    text-decoration:underline;
+    text-underline-offset:3px;
+  }
+  @media (max-width:600px){
+    .about-collage-item{ width:calc(50% - 7px); }
+  }
+
+  /* Mosaico editorial por número de fotos: cada cantidad (1 a 5) tiene su
+     propio reparto, pensado para que en móvil (donde hay poco ancho) se
+     vea igual de cuidado que en escritorio, en vez de depender de la
+     cuadrícula genérica de arriba (que con 1 o 3 fotos deja huecos raros
+     o una foto suelta). Con 6 fotos la cuadrícula genérica ya reparte
+     perfecto (dos filas de tres), así que no se toca. */
+  .about-collage-grid--n1,
+  .about-collage-grid--n2,
+  .about-collage-grid--n3,
+  .about-collage-grid--n4,
+  .about-collage-grid--n5{
+    gap:14px;
+  }
+  .about-collage-grid--n1 .about-collage-item,
+  .about-collage-grid--n2 .about-collage-item,
+  .about-collage-grid--n3 .about-collage-item,
+  .about-collage-grid--n4 .about-collage-item,
+  .about-collage-grid--n5 .about-collage-item{
+    width:100%;
+    height:100%;
+    aspect-ratio:auto;
+    --tilt:0deg;
+  }
+
+  /* 1 foto: una sola pieza grande y cinematográfica. */
+  .about-collage-grid--n1{ display:block; }
+  .about-collage-grid--n1 .about-collage-item{ aspect-ratio:16/9; }
+  @media (max-width:600px){
+    .about-collage-grid--n1 .about-collage-item{ aspect-ratio:4/3.1; }
+  }
+
+  /* 2 fotos: dos piezas lado a lado en escritorio; en móvil, apiladas
+     para que cada una tenga anchura de sobra. */
+  .about-collage-grid--n2{
+    display:grid;
+    grid-template-columns:1.15fr 1fr;
+    grid-template-rows:1fr;
+    aspect-ratio:16/8.3;
+  }
+  @media (max-width:600px){
+    .about-collage-grid--n2{
+      grid-template-columns:1fr;
+      grid-template-rows:1fr 1fr;
+      gap:10px;
+      aspect-ratio:3/3.6;
+    }
+  }
+
+  /* 3 fotos: en escritorio, una grande a la izquierda + dos apiladas a
+     la derecha (tríptico editorial clásico). En móvil se gira: una
+     grande arriba + dos pequeñas abajo, que aprovecha mucho mejor un
+     ancho estrecho que tres columnas finas. */
+  .about-collage-grid--n3{
+    display:grid;
+    grid-template-columns:1.5fr 1fr;
+    grid-template-rows:1fr 1fr;
+    aspect-ratio:16/9.5;
+  }
+  .about-collage-grid--n3 .about-collage-item:nth-child(1){ grid-area:1 / 1 / 3 / 2; }
+  .about-collage-grid--n3 .about-collage-item:nth-child(2){ grid-area:1 / 2 / 2 / 3; }
+  .about-collage-grid--n3 .about-collage-item:nth-child(3){ grid-area:2 / 2 / 3 / 3; }
+  @media (max-width:600px){
+    .about-collage-grid--n3{
+      grid-template-columns:1fr 1fr;
+      grid-template-rows:auto auto;
+      gap:10px;
+      aspect-ratio:3/3.3;
+    }
+    .about-collage-grid--n3 .about-collage-item:nth-child(1){ grid-area:1 / 1 / 2 / 3; }
+    .about-collage-grid--n3 .about-collage-item:nth-child(2){ grid-area:2 / 1 / 3 / 2; }
+    .about-collage-grid--n3 .about-collage-item:nth-child(3){ grid-area:2 / 2 / 3 / 3; }
+  }
+
+  /* Mosaico editorial: se activa solo con 4 o 5 fotos, que son los
+     números "incómodos" para una cuadrícula de 3 en 3 (dejarían una foto
+     suelta). Con 1, 2, 3 o 6 fotos se mantiene la cuadrícula normal de
+     arriba, que ya reparte bien el espacio. */
+  .about-collage-grid.about-collage-grid--n4,
+  .about-collage-grid.about-collage-grid--n5{
+    display:grid;
+    grid-template-columns:1.6fr 1fr 1fr;
+    grid-template-rows:1fr 1fr;
+    aspect-ratio:16/9.2;
+    gap:14px;
+  }
+  .about-collage-grid.about-collage-grid--n4 .about-collage-item,
+  .about-collage-grid.about-collage-grid--n5 .about-collage-item{
+    width:100%;
+    height:100%;
+    aspect-ratio:auto;
+    --tilt:0deg;
+  }
+  /* 4 fotos: una grande vertical a la izquierda + dos arriba a la
+     derecha + una ancha abajo a la derecha. */
+  .about-collage-grid--n4 .about-collage-item:nth-child(1){ grid-area:1 / 1 / 3 / 2; }
+  .about-collage-grid--n4 .about-collage-item:nth-child(2){ grid-area:1 / 2 / 2 / 3; }
+  .about-collage-grid--n4 .about-collage-item:nth-child(3){ grid-area:1 / 3 / 2 / 4; }
+  .about-collage-grid--n4 .about-collage-item:nth-child(4){ grid-area:2 / 2 / 3 / 4; }
+  /* 5 fotos: una grande vertical a la izquierda + cuatro pequeñas en
+     una cuadrícula 2x2 a la derecha. */
+  .about-collage-grid--n5 .about-collage-item:nth-child(1){ grid-area:1 / 1 / 3 / 2; }
+  .about-collage-grid--n5 .about-collage-item:nth-child(2){ grid-area:1 / 2 / 2 / 3; }
+  .about-collage-grid--n5 .about-collage-item:nth-child(3){ grid-area:1 / 3 / 2 / 4; }
+  .about-collage-grid--n5 .about-collage-item:nth-child(4){ grid-area:2 / 2 / 3 / 3; }
+  .about-collage-grid--n5 .about-collage-item:nth-child(5){ grid-area:2 / 3 / 3 / 4; }
+  @media (max-width:600px){
+    .about-collage-grid.about-collage-grid--n4,
+    .about-collage-grid.about-collage-grid--n5{
+      grid-template-columns:1.3fr 1fr 1fr;
+      gap:10px;
+      aspect-ratio:3/3.6;
+    }
+  }
+  /* Móviles muy estrechos (iPhone SE y similares): con el ancho de
+     columna tan reducido, un mosaico de 3 columnas deja tiras demasiado
+     finas. Se simplifica a una columna única con todas las fotos
+     apiladas, que en tan poco ancho se lee mucho mejor que un mosaico. */
+  @media (max-width:380px){
+    .about-collage-grid.about-collage-grid--n4,
+    .about-collage-grid.about-collage-grid--n5{
+      display:flex;
+      flex-direction:column;
+      aspect-ratio:auto;
+      gap:10px;
+    }
+    .about-collage-grid.about-collage-grid--n4 .about-collage-item,
+    .about-collage-grid.about-collage-grid--n5 .about-collage-item{
+      grid-area:auto !important;
+      width:100%;
+      aspect-ratio:4/3;
+    }
+  }
+
+  /* ---------- "Mis ediciones": página a pantalla completa, tema oscuro
+     propio ----------
+     A diferencia del resto de .subview (que heredan var(--bg), blanco o
+     el gris/negro que vaya teniendo la escena en cada momento), esta
+     vista lleva SIEMPRE fondo negro fijo, sea cual sea el estado de la
+     escena principal cuando el usuario la abre desde el menú: es una
+     página propia, con su propia identidad visual, no una continuación
+     de la historia con scroll. */
+  #view-ediciones.subview{
+    background:#0a0a0a;
+    color:#f5f5f2;
+  }
+  .ediciones-inner{
+    max-width:760px;
+    padding:104px 22px 60px;
+  }
+  .ediciones-hero-head{
+    margin-bottom:64px;
+  }
+  .ediciones-hero-title{
+    margin:0;
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:600;
+    font-size:clamp(2.6rem, 9vw, 4.4rem);
+    line-height:1.05;
+    letter-spacing:-0.01em;
+  }
+  .ediciones-hero-title .hero-word-light{ color:#f7f7f4; }
+  .ediciones-hero-title .hero-word-accent{
+    color:var(--accent);
+    font-style:italic;
+    font-weight:500;
+  }
+  .ediciones-hero-rule{
+    width:78px;
+    height:4px;
+    border-radius:2px;
+    background:var(--accent);
+    margin:20px 0 26px;
+  }
+  .ediciones-hero-sub{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:0.82rem;
+    font-weight:600;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    line-height:1.7;
+    color:rgba(245,245,242,0.78);
+  }
+  .ediciones-hero-sub .accent-word{ color:var(--accent); }
+
+  /* Galería vertical de comparaciones, tipo portfolio: una tarjeta grande
+     debajo de otra, cada una a todo el ancho disponible. */
+  .ba-gallery{
+    display:flex;
+    flex-direction:column;
+    gap:46px;
+  }
+  .ba-card-frame{
+    position:relative;
+    width:100%;
+    aspect-ratio:4/3;
+    border-radius:22px;
+    overflow:hidden;
+    background:#111;
+    border:1px solid rgba(255,255,255,0.16);
+    box-shadow:
+      0 18px 46px rgba(0,0,0,0.5),
+      0 2px 10px rgba(0,0,0,0.35);
+    cursor:ew-resize;
+    touch-action:none;
+  }
+  .ba-card-before,
+  .ba-card-after{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    background-size:cover;
+    background-position:center;
+  }
+  .ba-card-after-clip{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+  }
+  .ba-card-handle{
+    position:absolute;
+    top:0;
+    bottom:0;
+    left:50%;
+    width:2px;
+    background:rgba(255,255,255,0.85);
+    transform:translateX(-50%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .ba-card-handle-grip{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    background:#fff;
+    color:#111;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 4px 14px rgba(0,0,0,0.4);
+    flex:none;
+  }
+  .ba-card-label{
+    position:absolute;
+    top:14px;
+    font-size:0.66rem;
+    font-weight:600;
+    letter-spacing:0.09em;
+    text-transform:uppercase;
+    color:#fff;
+    background:rgba(10,10,10,0.55);
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    padding:6px 12px;
+    border-radius:20px;
+    pointer-events:none;
+  }
+  .ba-card-label--before{ left:14px; }
+  .ba-card-label--after{ right:14px; }
+  @media (max-width:600px){
+    .ba-card-frame{ aspect-ratio:3/4; border-radius:16px; }
+    .ba-card-handle-grip{ width:32px; height:32px; }
+    .ba-gallery{ gap:34px; }
+  }
+
+  /* ---------- Sección: Ajustes ---------- */
+  /* Menú horizontal de pestañas: una por cada bloque de ajustes (Carrusel,
+     los que se vayan añadiendo...). Solo se ve el contenido de la pestaña
+     activa a la vez, en vez de todos los bloques apilados uno debajo de
+     otro. Para añadir un ajuste nuevo: una pestaña más aquí + un panel más
+     abajo con data-panel a juego. */
+  .ajustes-tabs{
+    display:flex;
+    gap:4px;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    background:rgba(0,0,0,0.045);
+    border:1px solid rgba(0,0,0,0.05);
+    padding:5px;
+    border-radius:14px;
+    margin:24px 0 28px;
+    scrollbar-width:none;
+  }
+  .ajustes-tabs::-webkit-scrollbar{ display:none; }
+  .ajustes-tab{
+    flex:0 0 auto;
+    background:transparent;
+    border:none;
+    border-radius:10px;
+    padding:9px 16px;
+    margin-right:0;
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:500;
+    font-size:0.9rem;
+    color:var(--dim);
+    cursor:pointer;
+    white-space:nowrap;
+    transition:color .2s ease, background .2s ease, box-shadow .2s ease;
+  }
+  .ajustes-tab:hover{ color:var(--fg); }
+  .ajustes-tab.active{
+    color:var(--fg);
+    font-style:normal;
+    font-weight:600;
+    background:#fff;
+    box-shadow:0 2px 9px rgba(0,0,0,0.10);
+  }
+  .ajustes-panels{ position:relative; }
+  .ajustes-panel{ display:none; }
+  .ajustes-panel.active{
+    display:block;
+    animation:ajustesPanelIn .28s ease;
+  }
+  @keyframes ajustesPanelIn{
+    from{ opacity:0; transform:translateY(4px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  .ajustes-section{
+    border:1px solid rgba(0,0,0,0.07);
+    border-radius:20px;
+    padding:28px 26px;
+    background:#fff;
+    box-shadow:0 2px 14px rgba(0,0,0,0.045);
+  }
+  .ajustes-section-head{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+    margin-bottom:20px;
+  }
+  .ajustes-section-icon{
+    flex-shrink:0;
+    width:40px;
+    height:40px;
+    border-radius:12px;
+    background:linear-gradient(155deg, rgba(255,90,31,0.14), rgba(255,90,31,0.06));
+    color:var(--accent);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:inset 0 0 0 1px rgba(255,90,31,0.1);
+  }
+  .ajustes-section-icon svg{ width:19px; height:19px; }
+  .ajustes-section-title{
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:600;
+    font-size:1.08rem;
+    color:var(--fg);
+    margin:0 0 4px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    line-height:1.3;
+  }
+  .ajustes-section-desc{
+    font-size:0.88rem;
+    line-height:1.55;
+    color:var(--dim);
+    margin:0;
+  }
+  .ajustes-section-footer{
+    margin-top:6px;
+  }
+  .ajustes-note{
+    background:rgba(0,0,0,0.022);
+    border:1px solid rgba(0,0,0,0.06);
+    border-left:3px solid var(--accent);
+    border-radius:10px;
+    padding:16px 18px;
+    margin:0 0 24px;
+  }
+  .ajustes-note p{
+    margin:0;
+    font-size:0.9rem;
+    line-height:1.6;
+    color:var(--dim);
+  }
+  .ajustes-note p + p{ margin-top:8px; }
+
+  /* Botón de subir: tarjeta con icono en círculo + etiqueta, en vez del
+     antiguo recuadro punteado con solo texto en cursiva, que quedaba muy
+     pobre. */
+  .ajustes-uploader{
+    border:1.5px dashed rgba(0,0,0,0.16);
+    border-radius:16px;
+    padding:30px 20px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    text-align:center;
+    cursor:pointer;
+    background:rgba(0,0,0,0.012);
+    transition:background .2s ease, border-color .2s ease, transform .18s ease;
+  }
+  .ajustes-uploader:hover{
+    background:rgba(255,90,31,0.05);
+    border-color:rgba(255,90,31,0.45);
+    transform:translateY(-1px);
+  }
+  .ajustes-uploader:active{ transform:translateY(0); }
+  .ajustes-uploader input[type="file"]{ display:none; }
+  .ajustes-uploader-icon{
+    width:46px;
+    height:46px;
+    border-radius:50%;
+    background:rgba(255,90,31,0.11);
+    color:var(--accent);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .ajustes-uploader-icon svg{ width:21px; height:21px; }
+  .ajustes-uploader .ajustes-uploader-label{
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:600;
+    font-style:normal;
+    color:var(--fg);
+    font-size:0.98rem;
+  }
+  .ajustes-uploader .ajustes-uploader-sub{
+    display:block;
+    font-size:0.76rem;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    color:var(--dim);
+  }
+
+  .ajustes-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));
+    gap:16px;
+    margin-top:24px;
+  }
+  .ajustes-thumb{
+    position:relative;
+    aspect-ratio:1/1;
+    border-radius:12px;
+    overflow:hidden;
+    background:#f0f0ee;
+    box-shadow:0 3px 12px rgba(0,0,0,0.09);
+    cursor:grab;
+  }
+  .ajustes-thumb.is-dragging{ cursor:grabbing; }
+  .ajustes-thumb img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    touch-action:none;
+    -webkit-user-drag:none;
+    -webkit-touch-callout:none;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+  }
+  /* Pista visual de que la foto se puede arrastrar para reencuadrarla:
+     un icono de "mover" que solo aparece al pasar el ratón. En pantallas
+     táctiles no hay hover real, así que se muestra un icono fijo y
+     pequeño en la esquina en su lugar (ver .ajustes-thumb-hint). */
+  @media (hover:hover) and (pointer:fine){
+    .ajustes-thumb-move{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(0,0,0,0);
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s ease, background .2s ease;
+    }
+    .ajustes-thumb:hover .ajustes-thumb-move{
+      opacity:1;
+      background:rgba(0,0,0,0.16);
+    }
+  }
+  @media not all and (hover:hover) and (pointer:fine){
+    .ajustes-thumb-move{ display:none; }
+    .ajustes-thumb-hint{
+      position:absolute;
+      left:7px;
+      bottom:7px;
+      width:22px;
+      height:22px;
+      border-radius:50%;
+      background:rgba(0,0,0,0.4);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;
+    }
+    .ajustes-thumb-hint svg{ width:12px; height:12px; color:#fff; }
+  }
+  @media (hover:hover) and (pointer:fine){
+    .ajustes-thumb-hint{ display:none; }
+  }
+  .ajustes-thumb-move svg{
+    width:20px;
+    height:20px;
+    color:#fff;
+    filter:drop-shadow(0 1px 3px rgba(0,0,0,0.5));
+  }
+  .ajustes-thumb-wrap{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+  }
+  .ajustes-thumb-name{
+    width:100%;
+    border:1px solid rgba(0,0,0,0.13);
+    border-radius:9px;
+    padding:7px 10px;
+    font-family:'Fraunces','Georgia',serif;
+    font-style:italic;
+    font-size:0.8rem;
+    color:var(--fg);
+    background:#fff;
+    transition:border-color .2s ease, box-shadow .2s ease;
+  }
+  .ajustes-thumb-name:focus{
+    outline:none;
+    border-color:rgba(255,90,31,0.5);
+    box-shadow:0 0 0 3px rgba(255,90,31,0.1);
+  }
+  .ajustes-thumb-name::placeholder{ color:var(--dim); opacity:0.7; }
+  .ajustes-thumb button{
+    position:absolute;
+    top:7px;
+    right:7px;
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    border:none;
+    background:rgba(255,255,255,0.95);
+    color:#222;
+    box-shadow:0 2px 7px rgba(0,0,0,0.2);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:background .18s ease, color .18s ease, transform .15s ease;
+  }
+  .ajustes-thumb button svg{ width:12px; height:12px; }
+  .ajustes-thumb button:hover{ background:var(--accent); color:#fff; transform:scale(1.08); }
+  .ajustes-empty{
+    font-size:0.85rem;
+    font-style:italic;
+    color:var(--dim);
+    margin-top:18px;
+  }
+  .ajustes-clear{
+    margin-top:20px;
+    background:#fff;
+    border:1px solid rgba(0,0,0,0.14);
+    border-radius:999px;
+    padding:10px 20px;
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:500;
+    font-size:0.84rem;
+    color:var(--dim);
+    cursor:pointer;
+    transition:border-color .2s ease, color .2s ease, box-shadow .2s ease;
+  }
+  .ajustes-clear:hover{
+    border-color:rgba(255,90,31,0.5);
+    color:var(--accent);
+    box-shadow:0 2px 10px rgba(255,90,31,0.12);
+  }
+
+  /* ---------- Título grande "Mi material / de trabajo" + frase (aparecen
+     arriba del todo, en el último fotograma, justo antes de las cámaras)
+     ----------
+     Los dos viven dentro de .equipo-header, un único bloque fijo y
+     centrado horizontalmente.
+
+     El título se escribe en DOS líneas fijas ("Mi material" / "de
+     trabajo", ver .equipo-title-line en el HTML) en vez de dejar que el
+     texto se parta solo donde le toque: así se puede hacer mucho más
+     grande sin miedo a que el salto de línea caiga en un sitio raro en
+     algún ancho intermedio.
+
+     Diseño en dos capas según el espacio disponible:
+     - Por defecto (móvil/tablet, en columna): título arriba, frase debajo,
+       todo centrado -flujo normal, con margin-top, así nunca se solapan
+       aunque cambie la altura del título-.
+     - Escritorio (≥901px, ver media query más abajo): .equipo-header pasa
+       a ser una fila; el título queda a la izquierda y la frase a la
+       derecha, más pequeña, alineada a la izquierda y con una línea vertical
+       fina de separación, como una nota al margen -"bien chula"-, en vez de
+       apilada debajo de un título ya de por sí enorme. */
+  .equipo-header{
+    position:fixed;
+    top:11%;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:30;
+    width:min(92vw, 760px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    pointer-events:none;
+  }
+  .equipo-title{
+    position:relative;
+    margin:0;
+    max-width:100%;
+    transform:translateY(-14px) scale(0.96);
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:700;
+    font-style:italic;
+    /* Mucho más grande que antes (clamp anterior tope 4.6rem): al ir
+       siempre en dos líneas fijas, puede crecer bastante más sin riesgo
+       de desbordar ni de partirse en un sitio feo. */
+    font-size:clamp(2.8rem, 9vw, 6.4rem);
+    letter-spacing:0.01em;
+    line-height:0.98;
+    color:var(--fg);
+    text-align:center;
+    opacity:0;
+    /* Antes .7s: el contenido tardaba en aparecer aunque el salto ya
+       hubiera terminado. Se acorta para que se note casi al instante en
+       cuanto se llega a la última parada. */
+    transition:opacity .3s ease, transform .3s ease;
+  }
+  /* Cada línea es su propio bloque, así el salto entre "Mi material" y
+     "de trabajo" es siempre exactamente ahí, en cualquier ancho de
+     pantalla, nunca depende de si el texto "cabe" o no. */
+  .equipo-title-line{ display:block; }
+  .equipo-title::after{
+    content:'';
+    display:block;
+    width:72px;
+    height:5px;
+    margin:18px auto 0;
+    border-radius:2px;
+    background:var(--accent);
+  }
+  .equipo-title.visible{
+    opacity:1;
+    /* --pe (post-end): mismo desplazamiento fluido que usa .camera-carousel,
+       para que el título suba junto con el carrusel (todo el contenido del
+       último bloque se mueve como una sola pieza al seguir el gesto más
+       allá de la última parada). Ya no lleva translateX (el centrado
+       horizontal ahora lo hace .equipo-header una sola vez para todo el
+       bloque). */
+    transform:translateY(calc(0px - var(--pe, 0px))) scale(1);
+  }
+
+  /* Frase corta: en móvil/tablet va debajo del título (flujo normal, con
+     margin-top -así siempre queda igual de despegada del título, se
+     parta este donde se parta-); en escritorio (ver media query) pasa a
+     ir al lado derecho. Mismo bloque flexible y mismo movimiento (--pe)
+     que el título y el carrusel, para que suban juntos como una sola
+     pieza. Tipografía más discreta (sans, no Fraunces) para no competir
+     con el título en cursiva. */
+  .equipo-subtitle{
+    position:relative;
+    margin:0;
+    margin-top:clamp(18px, 3.6vw, 32px);
+    max-width:min(90vw, 480px);
+    transform:translateY(-14px);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:clamp(0.85rem, 2.1vw, 1rem);
+    line-height:1.5;
+    letter-spacing:0.01em;
+    color:var(--dim);
+    text-align:center;
+    opacity:0;
+    transition:opacity .3s ease, transform .3s ease;
+  }
+  .equipo-subtitle.visible{
+    opacity:1;
+    transform:translateY(calc(0px - var(--pe, 0px)));
+  }
+
+  /* Móviles muy estrechos (320-480px): el título sube un poco en la
+     pantalla para dejar más aire por debajo antes del carrusel. */
+  @media (max-width:480px){
+    .equipo-header{ top:7.5%; width:94vw; }
+    .equipo-title{ font-size:clamp(2.1rem, 13.5vw, 3.1rem); }
+    .equipo-title::after{ width:50px; height:4px; margin-top:12px; }
+    .equipo-subtitle{ font-size:0.83rem; margin-top:16px; }
+  }
+  /* Foldables / móviles muy angostos (≤340px): un pelín más compacto
+     todavía, para que el título quepa sin apretarse. */
+  @media (max-width:340px){
+    .equipo-title{ font-size:clamp(1.8rem, 14vw, 2.6rem); }
+    .equipo-subtitle{ font-size:0.78rem; }
+  }
+  /* Tablets/portátiles medianos (siguen en columna, como el móvil, pero
+     con paso intermedio de tamaño para que el título no salte de golpe
+     al de escritorio). */
+  @media (min-width:481px) and (max-width:900px){
+    .equipo-header{ top:9%; }
+    .equipo-title{ font-size:clamp(3rem, 10vw, 4.4rem); }
+  }
+  /* ---------- Escritorio (≥901px): la frase se coloca "bien chula" al
+     lateral derecho del título en vez de apilada debajo -de lo contrario,
+     con el título ya tan grande, quedaría todo demasiado alto y separado
+     de las cámaras-. .equipo-header pasa de columna a fila; el título
+     queda alineado a la izquierda y la frase, más pequeña y también
+     alineada a la izquierda, se separa con una fina línea vertical a
+     modo de nota al margen. */
+  @media (min-width:901px){
+    .equipo-header{
+      flex-direction:row;
+      align-items:center;
+      justify-content:center;
+      width:min(90vw, 1040px);
+      gap:clamp(32px, 4.5vw, 64px);
+    }
+    .equipo-title{ text-align:left; flex:0 0 auto; }
+    .equipo-title::after{ margin:18px 0 0; }
+    .equipo-subtitle{
+      margin-top:0;
+      padding-left:clamp(24px, 2.6vw, 36px);
+      border-left:1px solid rgba(17,17,17,0.16);
+      text-align:left;
+      max-width:240px;
+      flex:0 0 auto;
+    }
+  }
+  /* Monitores muy anchos: el título ya no sigue creciendo con el ancho
+     (se queda estable en su tope) y el bloque entero se posiciona un
+     poco más arriba para dejar más recorrido de aire hasta las cámaras. */
+  @media (min-width:1600px){
+    .equipo-header{ top:12%; width:min(66vw, 1120px); }
+    .equipo-subtitle{ max-width:280px; font-size:1.05rem; }
+  }
+
+  /* ---------- Variante "a la derecha" ----------
+     En escritorio la foto queda pegada a la izquierda (drawCover, dx:0),
+     así que a la derecha suele quedar una franja libre. Antes el bloque
+     título+frase se centraba siempre respecto a TODA la pantalla, así que
+     en pantallas anchas terminaba invadiendo la propia foto/cámaras (ver
+     captura reportada). Esta clase la añade el JS (positionEquipoHeader)
+     solo cuando de verdad hay hueco de sobra a la derecha de la foto: en
+     vez de centrado, el bloque se coloca DENTRO de esa franja libre, en
+     columna y alineado a la izquierda (como una nota editorial junto a la
+     imagen), y el JS fija su "left"/"width"/"top" en px según el hueco
+     real disponible. Con !important porque hay que ganarle a las reglas
+     de fila/centrado de los media queries de arriba, pensadas para el
+     caso en que el título va centrado sobre la foto. */
+  .equipo-header.equipo-header--side{
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    justify-content:center !important;
+    transform:translateY(-50%) !important;
+    text-align:left;
+  }
+  .equipo-header--side .equipo-title{
+    text-align:left !important;
+    flex:0 0 auto;
+    /* Columna más estrecha que toda la pantalla: el título no necesita
+       crecer tanto como cuando iba centrado sobre la foto entera. */
+    font-size:clamp(1.7rem, 2.6vw, 2.9rem);
+  }
+  .equipo-header--side .equipo-title::after{ margin:16px 0 0; }
+  .equipo-header--side .equipo-subtitle{
+    margin-top:clamp(16px, 1.8vw, 26px) !important;
+    padding-left:0 !important;
+    border-left:none !important;
+    text-align:left !important;
+    max-width:100% !important;
+    flex:0 0 auto;
+  }
+  /* Pantallas bajas (móvil en horizontal, ventanas de escritorio poco
+     altas): con poca altura disponible, se sube y encoge todo el bloque
+     para que nunca choque con el carrusel de cámaras de más abajo. En
+     horizontal, aunque el ancho ya sea "de escritorio", conviene volver
+     a la fila si hay ancho de sobra (ver la combinación con el media de
+     ≥901px, que sigue aplicando) pero mucho más compacta. */
+  @media (max-height:520px){
+    .equipo-header{ top:5%; }
+    .equipo-title{ font-size:clamp(1.6rem, 6.5vw, 2.6rem); }
+    .equipo-subtitle{ margin-top:10px; font-size:0.78rem; }
+  }
+
+  /* ---------- Título de la 4ª posición ("Mis ediciones") ----------
+     La franja negra que se descubre al seguir deslizando más allá de la
+     3ª posición (después del carrusel de cámaras) pasa a tratarse como
+     una parada más -su propia "página"-, con un título grande, mismo
+     estilo tipográfico que .equipo-title (Fraunces, cursiva, negrita,
+     con el mismo subrayado en --accent), pero en un tono claro para
+     leerse sobre el fondo oscuro de .after-story-bg.
+
+     No usa opacity para aparecer: arranca por debajo de toda la pantalla
+     y, exactamente igual que el carrusel/título de la 3ª posición, se
+     desplaza hacia arriba lo mismo que el dedo/rueda a través de la MISMA
+     variable --pe (ver applyPostEndOffset en el JS). top:114vh hace que
+     llegue a su posición final ya asentada arriba de la pantalla (algo
+     más arriba que la altura donde antes quedaba el carrusel de cámaras)
+     justo cuando el panel negro se descubre del todo (pe == 100vh) -así
+     nunca se solapa con la foto/escena de delante, sin necesidad de
+     calcular ninguna transición de opacidad aparte. */
+  .after-story-header{
+    position:fixed;
+    top:105vh;
+    left:50%;
+    width:min(92vw, 760px);
+    transform:translate(-50%, calc(-1 * var(--pe, 0px)));
+    z-index:5;
+    text-align:center;
+    pointer-events:none;
+    /* Ahora aloja TODO el contenido de la 4ª posición (título, frase,
+       comparador, categorías y CTA), no solo el título: pasa a ser una
+       columna flexible con separación uniforme entre bloques, todo
+       centrado y ajustándose solo según el hueco disponible (clamp con
+       vh, ver cada bloque más abajo). */
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:clamp(14px, 2.6vh, 26px);
+    /* Más aire debajo del último bloque (la galería que se expande) antes
+       de que empiece lo que venga después (carrusel de cámaras): sin este
+       hueco todo quedaba demasiado pegado al borde inferior. */
+    padding-bottom:clamp(28px, 6vh, 70px);
+  }
+  .after-story-title{
+    margin:0;
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:700;
+    font-style:italic;
+    /* Se reduce el tope respecto al original (antes hasta 6.2rem): con
+       todo el bloque nuevo debajo (comparador, categorías, CTA) hace
+       falta dejar hueco, así que el título pasa a ser algo más discreto,
+       en línea con el resto de proporciones del diseño de referencia. */
+    font-size:clamp(2.3rem, 7.5vw, 4.2rem);
+    letter-spacing:0.01em;
+    line-height:1;
+    color:#111111;
+  }
+  .after-story-title .as-word-light{ color:#111111; }
+  .after-story-title .as-word-accent{ color:var(--accent); }
+  .after-story-title::after{
+    content:'';
+    display:block;
+    width:80px;
+    height:5px;
+    margin:16px auto 0;
+    border-radius:2px;
+    background:var(--accent);
+  }
+  @media (max-width:480px){
+    .after-story-title{ font-size:clamp(2rem, 11vw, 2.8rem); }
+    .after-story-title::after{ width:56px; height:4px; margin-top:12px; }
+  }
+
+  /* ---------- Frase corta bajo el título ("Transformo ideas en
+     imágenes") ---------- */
+  .after-story-sub{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:clamp(0.66rem, 1.7vw, 0.8rem);
+    font-weight:600;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    line-height:1.6;
+    color:rgba(17,17,17,0.62);
+  }
+  .after-story-sub .as-accent-word{ color:var(--accent); }
+
+  /* ---------- Comparador antes/después ----------
+     Deja un margen a cada lado (padding) para que las flechas de
+     navegación (as-ba-nav, para pasar a la siguiente pareja de fotos)
+     quepan FUERA del recuadro sin salirse del ancho del bloque. */
+  .as-ba-gallery{
+    position:relative;
+    width:100%;
+    max-width:560px;
+    padding:0 clamp(34px, 8vw, 48px);
+    pointer-events:auto;
+  }
+  .as-ba-gallery .ba-card-frame{
+    aspect-ratio:4/3;
+    max-height:clamp(140px, 28vh, 300px);
+    border-radius:18px;
+  }
+  @media (max-width:480px){
+    .as-ba-gallery .ba-card-frame{ aspect-ratio:5/4; max-height:26vh; }
+  }
+  .as-ba-nav{
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    width:clamp(30px, 7vw, 38px);
+    height:clamp(30px, 7vw, 38px);
+    border-radius:50%;
+    border:1px solid rgba(17,17,17,0.15);
+    background:rgba(17,17,17,0.05);
+    -webkit-backdrop-filter:blur(6px);
+    backdrop-filter:blur(6px);
+    color:#111111;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+    transition:background .2s ease, transform .2s ease;
+  }
+  .as-ba-nav:hover{ background:rgba(17,17,17,0.1); }
+  .as-ba-nav:active{ transform:translateY(-50%) scale(0.92); }
+  .as-ba-nav--prev{ left:0; }
+  .as-ba-nav--next{ right:0; }
+
+  /* ---------- "Descubre mi trabajo": fila de categorías ---------- */
+  .as-discover{ width:100%; }
+  .as-discover-eyebrow{
+    margin:0;
+    font-size:clamp(0.6rem, 1.5vw, 0.72rem);
+    font-weight:600;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    color:rgba(17,17,17,0.72);
+  }
+  .as-discover-rule{
+    width:32px;
+    height:2px;
+    border-radius:1px;
+    background:rgba(17,17,17,0.2);
+    margin:8px auto 14px;
+  }
+  /* ---------- Galería que se expande (tarjetas estrechas -> foto grande
+     con texto al pasar el ratón / tocar) ----------
+     Fila flex de tarjetas iguales (flex-grow:1) con overflow:hidden y
+     foto de fondo. Al pasar el ratón (o con la clase .is-active que pone
+     el JS al tocar en móvil), la tarjeta activa sube mucho su flex-grow
+     y, gracias a :has(), las demás bajan el suyo por debajo de 1 -no se
+     quedan solo "cediendo espacio", se encogen de verdad a una tira
+     fina-. La franja oscura y el texto (nombre + frase) están siempre en
+     el DOM pero con opacity:0 hasta que la tarjeta se expande, para que
+     la aparición sea un fundido suave y no un salto brusco. */
+  .as-expand{ width:100%; margin-top:clamp(4px, 1vh, 12px); pointer-events:auto; }
+  .as-expand-grid{
+    display:flex;
+    gap:clamp(6px, 1.4vw, 10px);
+    width:100%;
+    height:clamp(210px, 34vh, 320px);
+  }
+  .as-expand-card{
+    position:relative;
+    flex:1 1 0%;
+    min-width:0;
+    border-radius:clamp(12px, 2vw, 20px);
+    overflow:hidden;
+    cursor:pointer;
+    /* background-size/color por defecto: cada tarjeta los sobreescribe
+       inline según su "ajuste" (Cubrir/Ajustar, ver renderExpandPublic).
+       background-color de respaldo (mismo tono oscuro del panel de
+       detrás) para que, en modo "Ajustar" (sin recortar), el margen que
+       deja la foto se vea limpio en vez de blanco. */
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-color:#ffffff;
+    border:1px solid rgba(17,17,17,0.1);
+    transition:flex-grow .55s cubic-bezier(.22,1,.36,1);
+  }
+  /* IMPORTANTE: la tarjeta que se abre es SIEMPRE la que lleva la clase
+     .is-active, puesta por JS (paso automático o al pasar el ratón/tocar
+     -ver el listener "mouseenter" y el "click" más abajo-). Ya no se usa
+     :hover en el CSS: si se dejaba el :hover suelto, dos tarjetas podían
+     "pelearse" por expandirse a la vez (la que llevaba is-active y la que
+     el ratón tocaba de refilón) y, durante ese conflicto, se veía toda la
+     fila con las tarjetas del mismo ancho -exactamente el fallo de "se
+     ponen todas igual" que no queremos-. Con una única fuente de verdad
+     (is-active) siempre hay una y solo una tarjeta abierta. */
+  .as-expand-card.is-active{
+    flex-grow:9;
+  }
+  /* En cuanto una tarjeta de la fila está activa, todas las demás bajan su
+     flex-grow a una fracción pequeña -así se estrechan mucho más de lo
+     que crece la activa, en vez de repartirse el espacio a partes
+     iguales-. */
+  .as-expand-grid:has(.as-expand-card.is-active) .as-expand-card:not(.is-active){
+    flex-grow:0.35;
+  }
+  .as-expand-card-shade{
+    position:absolute;
+    inset:auto 0 0 0;
+    height:65%;
+    background:linear-gradient(to top, rgba(0,0,0,0.82), rgba(0,0,0,0) 100%);
+    opacity:0;
+    transition:opacity .4s ease;
+  }
+  .as-expand-card.is-active .as-expand-card-shade{
+    opacity:1;
+  }
+  .as-expand-card-info{
+    position:absolute;
+    left:16px;
+    right:16px;
+    bottom:14px;
+    color:#f5f5f5;
+    opacity:0;
+    transform:translateY(10px);
+    transition:opacity .3s ease, transform .3s ease;
+    white-space:nowrap;
+    overflow:hidden;
+  }
+  .as-expand-card.is-active .as-expand-card-info{
+    opacity:1;
+    transform:translateY(0);
+    transition-delay:.12s;
+  }
+  .as-expand-card-label{
+    margin:0;
+    font-size:clamp(0.72rem, 1.6vw, 0.92rem);
+    font-weight:600;
+    letter-spacing:0.01em;
+  }
+  .as-expand-card-phrase{
+    margin:2px 0 0;
+    font-size:clamp(0.62rem, 1.3vw, 0.74rem);
+    color:rgba(245,245,245,0.75);
+  }
+  .as-expand-card-dot{
+    position:absolute;
+    top:12px;
+    left:12px;
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--accent);
+    opacity:0;
+    transform:scale(0.4);
+    transition:opacity .3s ease, transform .3s ease;
+  }
+  .as-expand-card.is-active .as-expand-card-dot{
+    opacity:1;
+    transform:scale(1);
+    transition-delay:.12s;
+  }
+  @media (max-width:520px){
+    /* En móvil, con 5 tarjetas estrechas cuesta más pulsar la que se
+       quiere: se reduce el nº mínimo visible y se sube un poco el alto. */
+    .as-expand-grid{ height:clamp(230px, 40vh, 300px); gap:5px; }
+    .as-expand-card-phrase{ display:none; }
+  }
+
+  /* Nombres de las dos cámaras grandes de la foto (no las miniaturas del
+     carrusel de abajo). ANTES se colocaban a yFrac:0.40 del recuadro de la
+     foto, una altura que -según el propio fotograma final- cae DENTRO del
+     cuerpo de las cámaras (que ocupan aprox. 0.35-0.62 de esa altura), así
+     que el texto quedaba montado encima del objeto. AHORA la etiqueta se
+     ancla claramente por encima (ver CAMERA_LABEL_POS en el JS, yFrac más
+     bajo) y además vive dentro de una "chip" (fondo translúcido + blur +
+     borde fino) en vez de texto suelto: así queda legible pase lo que pase
+     debajo, y con una pequeña línea+punto conector hacia la cámara se lee
+     claramente como una etiqueta de producto bien estructurada, no como un
+     rótulo flotando sin relación con lo que señala. */
+  .camera-name-label{
+    position:fixed;
+    z-index:30;
+    margin:0;
+    display:inline-flex;
+    align-items:center;
+    /* -100% sube el bloque entero por encima del punto de anclaje; los 16px
+       extra son el aire de seguridad entre la chip y la cámara, y el hueco
+       para el conector (línea + punto) que se dibuja debajo con ::after. */
+    transform:translate(-50%, calc(-100% - 16px - var(--pe, 0px)));
+    padding:7px 16px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.78);
+    -webkit-backdrop-filter:blur(8px) saturate(1.4);
+    backdrop-filter:blur(8px) saturate(1.4);
+    border:1px solid rgba(17,17,17,0.08);
+    box-shadow:0 6px 18px rgba(17,17,17,0.07);
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:600;
+    font-size:clamp(0.72rem, 1.9vw, 0.95rem);
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--fg);
+    text-align:center;
+    white-space:nowrap;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s ease;
+  }
+  /* Conector: una línea corta y un punto naranja que bajan desde la chip
+     hasta el punto exacto de anclaje (justo encima de la cámara), para que
+     quede claro a qué cámara se refiere cada etiqueta sin necesidad de
+     superponer el texto sobre la propia pieza. */
+  .camera-name-label::after{
+    content:'';
+    position:absolute;
+    left:50%;
+    top:100%;
+    width:1px;
+    height:12px;
+    background:linear-gradient(to bottom, rgba(17,17,17,0.22), rgba(17,17,17,0));
+    transform:translateX(-50%);
+  }
+  .camera-name-label::before{
+    content:'';
+    position:absolute;
+    left:50%;
+    top:calc(100% + 11px);
+    width:5px;
+    height:5px;
+    border-radius:50%;
+    background:var(--accent);
+    transform:translate(-50%, -50%);
+    box-shadow:0 0 0 3px rgba(255,90,31,0.16);
+  }
+  .camera-name-label.visible{ opacity:1; }
+  @media (max-width:480px){
+    .camera-name-label{ font-size:0.66rem; letter-spacing:0.03em; padding:6px 12px; }
+  }
+  @media (max-width:340px){
+    .camera-name-label{ font-size:0.6rem; padding:5px 10px; }
+  }
+  /* Con poca altura de pantalla (móvil en horizontal) se acorta el hueco
+     entre la chip y la cámara, para no perder espacio vertical. */
+  @media (max-height:520px){
+    .camera-name-label{ transform:translate(-50%, calc(-100% - 10px - var(--pe, 0px))); }
+    .camera-name-label::after{ height:7px; }
+    .camera-name-label::before{ top:calc(100% + 6px); }
+  }
+
+  /* ---------- Carrusel circular de cámaras (aparece en el último fotograma) ---------- */
+  .camera-carousel{
+    position:fixed;
+    left:50%;
+    bottom:6%;
+    transform:translateX(-50%) translateY(14px);
+    /* Ancho de arranque antes de que el JS lo recalcule (sizeCarousel);
+       el JS lo sobreescribe siempre con el ancho exacto de 3 fotos, para
+       que nunca se vea un cuarto hueco/foto asomando por el lateral. */
+    width:min(92vw, 640px);
+    max-width:100%;
+    z-index:30;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s ease, transform .3s ease;
+  }
+  .camera-carousel.visible{
+    opacity:1;
+    /* --pe (post-end): desplazamiento fluido en px que añade el scroll real
+       tras la última parada; lo fija el JS y por defecto es 0 (sin cambios
+       de comportamiento mientras no se haga scroll más allá del final). */
+    transform:translateX(-50%) translateY(calc(0px - var(--pe, 0px)));
+  }
+  /* La cinta se mueve sola sin parar hacia la izquierda; el viewport recorta
+     el sobrante y, con la máscara en degradado, las fotos se van
+     desvaneciendo al salir por la izquierda y aparecen igual de suaves por
+     la derecha, en vez de cortarse de golpe en el borde.
+     IMPORTANTE: el ancho de .camera-carousel lo fija el JS para que quepan
+     EXACTAMENTE 3 fotos (ver sizeCarousel()). La zona de difuminado ocupa
+     ahora buena parte de cada lado (aprox. una foto entera a cada extremo),
+     así la foto que entra o sale nunca aparece "de golpe" con un borde
+     recto: solo la del centro se ve siempre nítida al 100%, y las de los
+     lados entran/salen ya semi-transparentes, disolviéndose en el fondo
+     en vez de cortarse en una línea blanca recta. */
+  .camera-carousel .marquee-viewport{
+    position:relative;
+    overflow:hidden;
+    width:100%;
+    /* Sin fondo: las fotos flotan directamente sobre la escena, sin
+       ningún rectángulo de color detrás. El difuminado en los bordes (para
+       que la foto que entra o sale no aparezca de golpe) ahora se hace con
+       una máscara de opacidad sobre el propio contenido, no pintando un
+       degradado de color por encima; así nunca se ve ningún bloque ni
+       borde recto, solo las fotos apareciendo/desvaneciéndose. */
+    -webkit-mask-image:linear-gradient(to right, transparent 0%, #000 15%, #000 85%, transparent 100%);
+    mask-image:linear-gradient(to right, transparent 0%, #000 15%, #000 85%, transparent 100%);
+  }
+  .camera-carousel .marquee-track{
+    display:flex;
+    align-items:flex-start;
+    width:max-content;
+    animation:cameraMarquee linear infinite;
+    animation-duration:16s; /* se recalcula por JS según el nº de fotos */
+  }
+  .camera-carousel.visible .marquee-track{
+    animation-play-state:running;
+  }
+  .camera-carousel .marquee-track{
+    animation-play-state:paused; /* arranca solo cuando el carrusel es visible */
+  }
+  @keyframes cameraMarquee{
+    from{ transform:translateX(0); }
+    to{ transform:translateX(-50%); }
+  }
+  /* Cada "celda" del carrusel: la foto y, debajo, su nombre (si el usuario
+     le puso uno en Ajustes). El margen que antes llevaba la foto ahora
+     vive aquí, en el contenedor, para que foto + texto se muevan siempre
+     juntos como un bloque. */
+  .camera-carousel .marquee-item{
+    flex:0 0 auto;
+    margin:0 12px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .camera-carousel .marquee-slide{
+    flex:0 0 auto;
+    background-position:center;
+    background-size:cover;
+    /* Sin color de fondo ni sombra: así no se ve ningún rectángulo, solo
+       la foto en sí, recortada con esquinas suaves. */
+    background-color:transparent;
+    /* Fluido en vez de un salto brusco entre un tamaño fijo de escritorio
+       (120px) y otro de móvil (88px) en un único punto de corte: así se
+       ve proporcionado en cualquier ancho intermedio (tablets) también. */
+    width:clamp(80px, 15vw, 128px);
+    height:clamp(80px, 15vw, 128px);
+    border-radius:12px;
+    filter:brightness(0.92);
+  }
+  /* Nombre de la foto, centrado justo debajo. Solo se pinta cuando el
+     usuario ha escrito algo en Ajustes (si no, no se genera el elemento y
+     no queda hueco vacío reservado). Tipografía a juego con el resto del
+     texto elegante de la web (Fraunces), en tamaño discreto para no
+     competir visualmente con las fotos. Se recorta con ellipsis si el
+     nombre es muy largo, así nunca rompe el ancho fijo de la celda ni
+     empuja a las fotos vecinas. */
+  /* Nombre de la foto, centrado justo debajo. Solo se pinta cuando el
+     usuario ha escrito algo en Ajustes (si no, no se genera el elemento y
+     no queda hueco vacío reservado). Tipografía a juego con el resto del
+     texto elegante de la web (Fraunces), en tamaño discreto para no
+     competir visualmente con las fotos. Si el nombre es largo, hace
+     salto de línea (nunca se corta con puntos suspensivos); como cada
+     celda del carrusel es una columna independiente con alto automático,
+     que el texto ocupe dos o tres líneas no descoloca a las fotos
+     vecinas. */
+  .camera-carousel .marquee-caption{
+    margin-top:8px;
+    /* Mismo ancho fluido que la foto (clamp), para que el texto nunca
+       quede más ancho ni más estrecho que la imagen que describe. */
+    max-width:clamp(80px, 15vw, 128px);
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:500;
+    font-size:clamp(0.68rem, 1.6vw, 0.78rem);
+    letter-spacing:0.01em;
+    line-height:1.3;
+    text-align:center;
+    white-space:normal;
+    overflow-wrap:break-word;
+    word-break:break-word;
+    /* Letra en negro (--fg) a petición: sin círculo/chip de fondo, solo el
+       texto en sí. Como el carrusel aparece sobre el degradado OSCURO del
+       último fotograma, un negro puro sin más ahí sería casi invisible;
+       por eso se le añade un halo claro (text-shadow blanco) que hace de
+       "borde" de contraste contra ese fondo oscuro, igual que antes el
+       texto blanco llevaba un halo oscuro contra el blanco. */
+    color:var(--fg);
+    text-shadow:
+      0 1px 2px rgba(255,255,255,0.75),
+      0 0 6px rgba(255,255,255,0.55);
+  }
+  /* Sombra suave detrás de cada foto para que su borde no se funda con el
+     fondo oscurecido justo debajo, sin necesidad de ponerle un recuadro de
+     color fijo. */
+  .camera-carousel .marquee-slide{
+    box-shadow:0 2px 10px rgba(0,0,0,0.22);
+  }
+  @media (max-width:480px){
+    .camera-carousel{ bottom:4%; }
+  }
+  @media (max-width:340px){
+    .camera-carousel{ bottom:3.5%; }
+    .camera-carousel .marquee-item{ margin:0 8px; }
+  }
+  /* Monitores muy anchos: se permite un carrusel algo más ancho (más
+     fotos visibles a la vez) para que no quede como una tira diminuta
+     perdida en medio de una pantalla enorme. */
+  @media (min-width:1600px){
+    .camera-carousel{ width:min(70vw, 780px); bottom:7%; }
+  }
+  /* Pantallas bajas (móvil en horizontal): el carrusel baja su margen
+     inferior y las fotos se compactan un poco para que quepa todo el
+     bloque (título + frase + carrusel) sin salirse de la pantalla. */
+  @media (max-height:520px){
+    .camera-carousel{ bottom:3%; }
+    .camera-carousel .marquee-slide{ width:clamp(64px, 12vh, 92px); height:clamp(64px, 12vh, 92px); }
+    .camera-carousel .marquee-caption{ display:none; }
+  }
+
+  /* ---------- Acceso de administrador (cuenta con contraseña) ---------- */
+  .admin-login-overlay{
+    position:fixed;
+    inset:0;
+    z-index:200;
+    background:rgba(17,17,17,0.55);
+    backdrop-filter:blur(6px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .admin-login-overlay.open{ display:flex; }
+  .admin-login-card{
+    width:100%;
+    max-width:360px;
+    background:var(--bg);
+    border-radius:18px;
+    padding:28px 26px 24px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.25);
+    animation:ajustesPanelIn .28s ease;
+  }
+  .admin-login-title{
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:600;
+    font-size:1.3rem;
+    margin:0 0 4px;
+  }
+  .admin-login-sub{
+    font-size:0.84rem;
+    color:var(--dim);
+    margin:0 0 20px;
+    line-height:1.4;
+  }
+  .admin-login-card input[type="password"],
+  .admin-login-card input[type="text"]{
+    width:100%;
+    box-sizing:border-box;
+    padding:12px 14px;
+    border-radius:10px;
+    border:1px solid rgba(0,0,0,0.14);
+    font-size:0.95rem;
+    font-family:inherit;
+    margin-bottom:10px;
+  }
+  .admin-login-card input:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+  .admin-login-actions{
+    display:flex;
+    gap:10px;
+    margin-top:6px;
+  }
+  .admin-login-actions button{
+    flex:1;
+    border:none;
+    border-radius:999px;
+    padding:11px 14px;
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:500;
+    font-size:0.86rem;
+    cursor:pointer;
+    transition:opacity .2s ease, transform .15s ease;
+  }
+  .admin-login-primary{ background:var(--accent); color:#fff; }
+  .admin-login-primary:hover{ opacity:0.9; }
+  .admin-login-cancel{ background:transparent; color:var(--dim); border:1px solid rgba(0,0,0,0.12) !important; }
+  .admin-login-error{
+    color:#c0392b;
+    font-size:0.8rem;
+    margin:0 0 10px;
+    display:none;
+  }
+  .admin-login-error.visible{ display:block; }
+
+  /* Botón de acceso oculto: invisible, sin ningún rastro visual, en la
+     esquina inferior izquierda de la pantalla. Tres toques/clics seguidos
+     ahí abren la ventana de acceso de administrador. */
+  .secret-access{
+    position:fixed;
+    left:0;
+    bottom:0;
+    width:64px;
+    height:64px;
+    z-index:150;
+    background:transparent;
+    border:none;
+    padding:0;
+    margin:0;
+    -webkit-tap-highlight-color:transparent;
+    outline:none;
+    cursor:default;
+  }
+
+  /* ---------- Ajustes: pestaña "Cuenta" (historial + copia de seguridad) ---------- */
+  .cuenta-status{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 14px;
+    border-radius:12px;
+    background:rgba(0,0,0,0.03);
+    font-size:0.86rem;
+    color:var(--dim);
+    margin-bottom:18px;
+  }
+  .cuenta-status .dot-live{
+    width:8px; height:8px; border-radius:50%; background:#2ecc71; flex:0 0 auto;
+  }
+  .cuenta-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:8px;
+  }
+  .cuenta-btn{
+    background:#fff;
+    border:1px solid rgba(0,0,0,0.14);
+    border-radius:999px;
+    padding:10px 18px;
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:500;
+    font-size:0.82rem;
+    color:var(--fg);
+    cursor:pointer;
+    transition:border-color .2s ease, color .2s ease, box-shadow .2s ease;
+  }
+  .cuenta-btn:hover{ border-color:rgba(255,90,31,0.5); color:var(--accent); box-shadow:0 2px 10px rgba(255,90,31,0.12); }
+  .cuenta-btn--danger:hover{ border-color:#c0392b; color:#c0392b; box-shadow:none; }
+  .cuenta-form{ margin-top:18px; }
+  .cuenta-form input{
+    width:100%;
+    box-sizing:border-box;
+    padding:11px 13px;
+    border-radius:10px;
+    border:1px solid rgba(0,0,0,0.14);
+    font-size:0.9rem;
+    font-family:inherit;
+    margin-bottom:9px;
+  }
+  .cuenta-msg{
+    font-size:0.8rem;
+    margin:8px 0 0;
+    display:none;
+  }
+  .cuenta-msg.visible{ display:block; }
+  .cuenta-msg--ok{ color:#1e8e5a; }
+  .cuenta-msg--err{ color:#c0392b; }
+  .historial-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    max-height:340px;
+    overflow-y:auto;
+    border:1px solid rgba(0,0,0,0.08);
+    border-radius:12px;
+  }
+  .historial-item{
+    padding:12px 14px;
+    border-bottom:1px solid rgba(0,0,0,0.06);
+    font-size:0.84rem;
+  }
+  .historial-item:last-child{ border-bottom:none; }
+  .historial-item-top{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:2px;
+  }
+  .historial-item-action{ font-weight:600; }
+  .historial-item-time{ color:var(--dim); font-size:0.74rem; white-space:nowrap; }
+  .historial-item-detail{ color:var(--dim); }
+  .historial-empty{ padding:16px; text-align:center; color:var(--dim); font-size:0.84rem; }
+
+  /* =======================================================================
+     PANEL DE ADMINISTRADOR — tema propio, deliberadamente distinto del
+     resto de la web. La web pública usa serif Fraunces, fondo claro y
+     acento naranja; aquí usamos una tipografía de sistema, fondo oscuro
+     tipo "panel de control" y acento cian, para que quede clarísimo en
+     todo momento que estás en una zona de gestión y no en la web que ve
+     el público. Todas las reglas van con prefijo #view-ajustes para no
+     tocar ni una coma del resto del sitio.
+     ======================================================================= */
+  #view-ajustes{
+    --adm-bg:#0d1117;
+    --adm-surface:#161b25;
+    --adm-surface-2:#1d2430;
+    --adm-border:rgba(255,255,255,0.09);
+    --adm-fg:#e8edf5;
+    --adm-dim:#8994a6;
+    --adm-accent:#33e6c8;
+    --adm-accent-dim:rgba(51,230,200,0.14);
+    --adm-danger:#ff6767;
+    background:var(--adm-bg) !important;
+    color:var(--adm-fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  #view-ajustes .subview-inner{
+    max-width:960px;
+    padding:96px 20px 60px;
+  }
+  #view-ajustes .subview-eyebrow{
+    font-family:inherit;
+    font-weight:700;
+    letter-spacing:0.18em;
+    color:var(--adm-accent);
+  }
+  #view-ajustes h1{
+    font-family:inherit;
+    font-weight:800;
+    letter-spacing:-0.01em;
+    color:var(--adm-fg);
+    font-size:clamp(1.5rem, 4vw, 2.1rem);
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  #view-ajustes h1::before{
+    content:"";
+    display:inline-block;
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    background:var(--adm-accent);
+    box-shadow:0 0 0 4px var(--adm-accent-dim);
+    flex-shrink:0;
+  }
+  #view-ajustes p.lead{
+    font-family:inherit;
+    font-style:normal;
+    color:var(--adm-dim);
+    font-size:0.95rem;
+  }
+
+  /* Botón "Volver": fijo en la esquina superior para poder salir de
+     Ajustes y regresar a la web pública sin cerrar la sesión. */
+  .ajustes-back-btn{
+    position:fixed;
+    top:18px;
+    left:18px;
+    z-index:220;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:0.82rem;
+    font-weight:600;
+    letter-spacing:0.02em;
+    color:var(--adm-fg);
+    background:var(--adm-surface);
+    border:1px solid var(--adm-border);
+    border-radius:999px;
+    padding:9px 16px 9px 12px;
+    cursor:pointer;
+    transition:background .15s ease, transform .15s ease;
+  }
+  .ajustes-back-btn svg{ width:16px; height:16px; flex-shrink:0; }
+  .ajustes-back-btn:hover{ background:var(--adm-surface-2); transform:translateX(-2px); }
+  .ajustes-back-btn:active{ transform:translateX(-2px) scale(0.97); }
+  @media (max-width:600px){
+    .ajustes-back-btn{ top:14px; left:14px; padding:8px 14px 8px 10px; font-size:0.78rem; }
+  }
+
+  /* Barra de pestañas: en vez de la píldora clara de la web, una barra
+     oscura tipo consola con la pestaña activa marcada por un acento cian
+     inferior, mayúsculas y letras espaciadas — como un panel de control. */
+  #view-ajustes .ajustes-tabs{
+    background:var(--adm-surface);
+    border:1px solid var(--adm-border);
+    border-radius:10px;
+    padding:4px;
+    gap:2px;
+  }
+  #view-ajustes .ajustes-tab{
+    font-family:inherit;
+    font-weight:600;
+    font-style:normal;
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--adm-dim);
+    border-radius:7px;
+    padding:10px 14px;
+  }
+  #view-ajustes .ajustes-tab:hover{ color:var(--adm-fg); background:rgba(255,255,255,0.04); }
+  #view-ajustes .ajustes-tab.active{
+    color:#04231d;
+    font-weight:700;
+    background:var(--adm-accent);
+    box-shadow:none;
+  }
+
+  #view-ajustes .ajustes-section{
+    background:var(--adm-surface);
+    border:1px solid var(--adm-border);
+    border-radius:12px;
+    box-shadow:none;
+  }
+  #view-ajustes .ajustes-section-icon{
+    background:var(--adm-accent-dim);
+    color:var(--adm-accent);
+    border-radius:8px;
+    box-shadow:none;
+  }
+  #view-ajustes .ajustes-section-title{
+    font-family:inherit;
+    font-weight:700;
+    color:var(--adm-fg);
+  }
+  #view-ajustes .ajustes-section-desc{ color:var(--adm-dim); }
+
+  #view-ajustes .ajustes-note{
+    background:var(--adm-surface-2);
+    border:1px solid var(--adm-border);
+    border-left:3px solid var(--adm-accent);
+  }
+  #view-ajustes .ajustes-note p{ color:var(--adm-dim); }
+  #view-ajustes .ajustes-note p strong{ color:var(--adm-fg); }
+
+  #view-ajustes .ajustes-uploader{
+    border:1.5px dashed rgba(255,255,255,0.18);
+    background:var(--adm-surface-2);
+  }
+  #view-ajustes .ajustes-uploader:hover{
+    background:var(--adm-accent-dim);
+    border-color:var(--adm-accent);
+  }
+  #view-ajustes .ajustes-uploader-icon{
+    background:var(--adm-accent-dim);
+    color:var(--adm-accent);
+  }
+  #view-ajustes .ajustes-uploader .ajustes-uploader-label{
+    font-family:inherit;
+    font-weight:700;
+    color:var(--adm-fg);
+  }
+  #view-ajustes .ajustes-uploader .ajustes-uploader-sub{ color:var(--adm-dim); }
+
+  #view-ajustes .ajustes-thumb{
+    background:var(--adm-surface-2);
+    box-shadow:0 4px 16px rgba(0,0,0,0.35);
+    border:1px solid var(--adm-border);
+  }
+  #view-ajustes .ajustes-thumb-name{
+    font-family:inherit;
+    font-style:normal;
+    background:var(--adm-surface-2);
+    border:1px solid var(--adm-border);
+    color:var(--adm-fg);
+  }
+  #view-ajustes .ajustes-thumb-name::placeholder{ color:var(--adm-dim); }
+  #view-ajustes .ajustes-thumb-name:focus{
+    border-color:var(--adm-accent);
+    box-shadow:0 0 0 3px var(--adm-accent-dim);
+  }
+  #view-ajustes .ajustes-thumb button{
+    background:rgba(13,17,23,0.85);
+    color:var(--adm-fg);
+  }
+  #view-ajustes .ajustes-thumb button:hover{ background:var(--adm-danger); color:#fff; }
+  #view-ajustes .ajustes-empty{ color:var(--adm-dim); font-style:normal; }
+  #view-ajustes .ajustes-clear{
+    font-family:inherit;
+    font-weight:600;
+    background:var(--adm-surface-2);
+    border:1px solid var(--adm-border);
+    color:var(--adm-dim);
+  }
+  #view-ajustes .ajustes-clear:hover{
+    border-color:var(--adm-danger);
+    color:var(--adm-danger);
+    box-shadow:none;
+  }
+
+  /* Campos de texto y botones de las pestañas "Textos" y "Cuenta" */
+  #view-ajustes textarea,
+  #view-ajustes .cuenta-form input{
+    background:var(--adm-surface-2) !important;
+    border:1px solid var(--adm-border) !important;
+    color:var(--adm-fg) !important;
+    font-family:inherit !important;
+  }
+  #view-ajustes textarea:focus,
+  #view-ajustes .cuenta-form input:focus{
+    outline:none;
+    border-color:var(--adm-accent) !important;
+    box-shadow:0 0 0 3px var(--adm-accent-dim);
+  }
+  #view-ajustes textarea::placeholder,
+  #view-ajustes .cuenta-form input::placeholder{ color:var(--adm-dim); }
+  #view-ajustes .ajustes-section-desc[for]{ color:var(--adm-dim); }
+
+  #view-ajustes .cuenta-status{ color:var(--adm-dim); }
+  #view-ajustes .dot-live{
+    background:var(--adm-accent);
+    box-shadow:0 0 0 4px var(--adm-accent-dim);
+  }
+  #view-ajustes .cuenta-btn{
+    font-family:inherit;
+    font-weight:700;
+    font-size:0.78rem;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    background:var(--adm-surface-2);
+    border:1px solid var(--adm-border);
+    color:var(--adm-fg);
+    border-radius:8px;
+  }
+  #view-ajustes .cuenta-btn:hover{
+    border-color:var(--adm-accent);
+    color:var(--adm-accent);
+    box-shadow:none;
+  }
+  #view-ajustes .cuenta-btn--danger{ color:var(--adm-danger); }
+  #view-ajustes .cuenta-btn--danger:hover{ border-color:var(--adm-danger); color:var(--adm-danger); }
+  #view-ajustes .cuenta-msg--ok{ color:var(--adm-accent); }
+  #view-ajustes .cuenta-msg--err{ color:var(--adm-danger); }
+
+  /* ---------- Editor de botones de categorías (pestaña "Categorías") ---------- */
+  .cat-editor-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin:16px 0;
+  }
+  .cat-editor-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .cat-editor-item input{
+    flex:1;
+    min-width:0;
+    padding:10px 13px;
+    border-radius:8px;
+    border:1px solid rgba(0,0,0,0.14);
+    font-family:inherit;
+    font-size:0.9rem;
+  }
+  .cat-editor-remove{
+    flex:0 0 auto;
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    border:1px solid rgba(0,0,0,0.14);
+    background:transparent;
+    color:var(--dim);
+    font-size:16px;
+    line-height:1;
+    cursor:pointer;
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .cat-editor-remove:hover{ border-color:#c0392b; color:#c0392b; }
+  .cat-editor-empty{
+    font-size:0.85rem;
+    color:var(--dim);
+    font-style:italic;
+  }
+  #view-ajustes .cat-editor-item input{
+    background:var(--adm-surface-2) !important;
+    border:1px solid var(--adm-border) !important;
+    color:var(--adm-fg) !important;
+    font-family:inherit !important;
+  }
+  #view-ajustes .cat-editor-item input:focus{
+    outline:none;
+    border-color:var(--adm-accent) !important;
+    box-shadow:0 0 0 3px var(--adm-accent-dim);
+  }
+  #view-ajustes .cat-editor-remove{
+    border-color:var(--adm-border);
+    color:var(--adm-dim);
+  }
+  #view-ajustes .cat-editor-remove:hover{
+    border-color:var(--adm-danger);
+    color:var(--adm-danger);
+  }
+  #view-ajustes .cat-editor-empty{ color:var(--adm-dim); }
+
+  /* ---------- Editor "Descubre mi trabajo": foto + nombre + frase ----------
+     Cada fila reutiliza el mismo recuadro de subida que el resto de
+     Ajustes (ver .ba-slot-box) en miniatura, junto a dos campos de texto
+     (nombre y frase corta) y el botón de quitar de .cat-editor-remove. */
+  .disc-editor-list{ display:flex; flex-direction:column; gap:12px; margin:16px 0; }
+  .disc-editor-item{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .disc-editor-box{
+    position:relative;
+    flex:0 0 auto;
+    width:56px;
+    height:72px;
+    border:1.5px dashed rgba(17,17,17,0.32);
+    border-radius:8px;
+    background:rgba(0,0,0,0.02);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    overflow:hidden;
+    transition:border-color .2s ease;
+  }
+  .disc-editor-box:hover{ border-color:var(--accent); }
+  .disc-editor-box svg{ width:18px; height:18px; color:var(--dim); flex:none; }
+  .disc-editor-box.has-image{ border-style:solid; border-color:rgba(17,17,17,0.14); background:#000; }
+  .disc-editor-box.has-image img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .disc-editor-box.is-uploading{ cursor:default; }
+  .disc-editor-fields{ flex:1 1 160px; min-width:150px; display:flex; flex-direction:column; gap:6px; }
+  .disc-editor-fields input{
+    padding:8px 11px;
+    border-radius:8px;
+    border:1px solid rgba(0,0,0,0.14);
+    font-family:inherit;
+    font-size:0.82rem;
+  }
+  #view-ajustes .disc-editor-box{ border-color:var(--adm-border); background:var(--adm-surface-2); }
+  #view-ajustes .disc-editor-box:hover{ border-color:var(--adm-accent); }
+  #view-ajustes .disc-editor-fields input{
+    background:var(--adm-surface-2) !important;
+    border:1px solid var(--adm-border) !important;
+    color:var(--adm-fg) !important;
+    font-family:inherit !important;
+  }
+  #view-ajustes .disc-editor-fields input:focus{
+    outline:none;
+    border-color:var(--adm-accent) !important;
+    box-shadow:0 0 0 3px var(--adm-accent-dim);
+  }
+  /* Control de encuadre vertical (evita que la foto se corte por el sitio
+     equivocado al expandirse la tarjeta): un slider que mueve el
+     background-position-y de la miniatura de la galería expandible. */
+  .disc-editor-range-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-top:2px;
+  }
+  .disc-editor-range-row label{
+    font-size:0.68rem;
+    color:var(--dim);
+    white-space:nowrap;
+  }
+  .disc-editor-range-row input[type="range"]{
+    flex:1 1 auto;
+    min-width:0;
+    accent-color:var(--accent);
+  }
+  #view-ajustes .disc-editor-range-row label{ color:var(--adm-fg); opacity:0.7; }
+
+  /* ---------- Ajuste de la foto (galería que se expande) ----------
+     Antes la foto siempre se recortaba/ampliaba para rellenar el
+     recuadro entero ("cover"). Ahora se puede elegir, por foto:
+     "Cubrir" (igual que antes, rellena el recuadro) o "Ajustar" (la foto
+     entera se ve siempre, sin recortar ni ampliar, dejando un margen de
+     color si hace falta). Dos botones pequeños tipo pastilla, con el
+     activo resaltado en --accent. */
+  .disc-editor-fit-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-top:2px;
+    flex-wrap:wrap;
+  }
+  .disc-editor-fit-row span{
+    font-size:0.68rem;
+    color:var(--dim);
+    white-space:nowrap;
+  }
+  #view-ajustes .disc-editor-fit-row span{ color:var(--adm-fg); opacity:0.7; }
+  .disc-editor-fit-btn{
+    font:inherit;
+    font-size:0.7rem;
+    font-weight:600;
+    padding:4px 10px;
+    border-radius:999px;
+    border:1px solid rgba(17,17,17,0.16);
+    background:transparent;
+    color:var(--fg);
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  #view-ajustes .disc-editor-fit-btn{ border-color:var(--adm-border); color:var(--adm-fg); }
+  .disc-editor-fit-btn.active{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+
+  /* ---------- Editor de parejas del comparador con flechas ----------
+     Cada fila son dos recuadros de subida (sin editar / editada, mismo
+     patrón que .ba-slot-box) más el botón de quitar la pareja entera. */
+  .pair-editor-list{ display:flex; flex-direction:column; gap:16px; margin:16px 0; }
+  .pair-editor-item{ display:flex; align-items:center; gap:10px; }
+  .pair-editor-item .ba-slots{ flex:1; margin:0; align-items:flex-start; }
+  .pair-editor-item .ba-slot{ max-width:110px; }
+  /* En esta lista compacta el máximo de alto es menor que en Ajustes,
+     para que una foto muy vertical no dispare la altura de toda la fila. */
+  .pair-editor-item .ba-slot-box.has-image{ max-height:146px; }
+  .pair-editor-item .ba-slot-box.has-image img{ max-height:146px; }
+  .pair-editor-item .cat-editor-remove{ flex:0 0 auto; }
+
+  #view-ajustes .historial-list{
+    background:var(--adm-surface-2);
+    border:1px solid var(--adm-border);
+    border-radius:10px;
+  }
+  #view-ajustes .historial-item{ border-bottom:1px solid var(--adm-border); }
+  #view-ajustes .historial-item-action{ color:var(--adm-fg); }
+  #view-ajustes .historial-item-time{ color:var(--adm-dim); }
+  #view-ajustes .historial-item-detail{ color:var(--adm-dim); }
+  #view-ajustes .historial-empty{ color:var(--adm-dim); }
