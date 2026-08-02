@@ -488,13 +488,11 @@
      del tramo final) -ver updateProgressTrack en el JS-, así el indicador
      "acompaña" el gesto en vez de limitarse a marcar destinos. */
   .scene-progress{
-    position:fixed;
-    right:18px;
-    top:50%;
-    transform:translateY(-50%);
-    z-index:20;
-    pointer-events:none;
-    display:block;
+    /* Eliminado a petición: ya no se muestra el indicador de progreso
+       (raya vertical + puntos) en el borde derecho. Se deja "display:none"
+       fijo aquí para que ningún cambio de vista en el JS pueda volver a
+       mostrarlo. */
+    display:none !important;
   }
   .scene-progress-track{
     position:relative;
