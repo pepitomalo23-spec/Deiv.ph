@@ -905,6 +905,28 @@
     return linearT * linearT * (3 - 2 * linearT); // smoothstep
   }
 
+  // Progreso (0→1) de la aparición ANTICIPADA del bloque de "las dos
+  // cámaras" (carrusel + título "Mi material de trabajo" + etiquetas de
+  // cámara, ver camera-carousel.js): a diferencia del resto del contenido
+  // del sitio, que aparece justo al aterrizar en su parada, este bloque
+  // debe empezar a hacerse notar ANTES de que el 2º salto (2ª->3ª parada)
+  // termine del todo, para que no aparezca de golpe al final sino que se
+  // anticipe con el mismo espíritu "smoothstep" que ya usa el resto del
+  // motor (ver computePhotoBgT arriba). Arranca en CAMERA_ONLY_START_FRAME
+  // -el mismo punto en el que el plano pasa a ser "solo cámara"; antes de
+  // eso aún se ve a la persona, así que revelar el carrusel ahí se vería
+  // fuera de lugar- y llega al 100% mucho antes del último fotograma
+  // (CAMERA_REVEAL_LEAD_FRACTION), no al aterrizar.
+  const CAMERA_REVEAL_LEAD_FRACTION = 0.55;
+
+  function computeCameraRevealP(frameExact){
+    if (frameExact <= CAMERA_ONLY_START_FRAME) return 0;
+    const range = (FRAME_COUNT - 1) - CAMERA_ONLY_START_FRAME;
+    const raw = (frameExact - CAMERA_ONLY_START_FRAME) / range;
+    const leadT = Math.min(1, raw / CAMERA_REVEAL_LEAD_FRACTION);
+    return leadT * leadT * (3 - 2 * leadT); // smoothstep
+  }
+
   // El tinte de fondo debe llegar a su color final ANTES de que el achicado
   // se note, para que cuando la imagen empieza a ser visiblemente más
   // pequeña, el fondo ya sea del mismo blanco (ligeramente distinto) que el
@@ -1745,5 +1767,11 @@
   setInterval(() => {
     window.__storyStep = stepIndex;
     window.__storyAnimating = animating;
+    // Progreso (0→1) de aparición anticipada del bloque "las dos cámaras":
+    // ver computeCameraRevealP más arriba. Se recalcula aquí a partir de
+    // currentFrameExact -la misma fuente única de verdad que usa render()-
+    // así cubre por igual el salto animado, el arrastre en vivo y el
+    // reposo, sin importar cuál de los tres está moviendo la escena.
+    window.__storyCameraRevealP = computeCameraRevealP(currentFrameExact);
   }, 40);
 })();

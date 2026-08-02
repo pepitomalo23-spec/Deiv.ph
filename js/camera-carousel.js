@@ -266,9 +266,14 @@
   window.addEventListener('resize', positionEquipoHeader);
 
   setInterval(() => {
+    // A diferencia del resto del contenido del sitio (que aparece justo al
+    // aterrizar en su parada), este bloque se anticipa: se muestra en
+    // cuanto __storyCameraRevealP llega a 1, lo cual ocurre ANTES de que
+    // termine el 2º salto (2ª->3ª parada), no al término. Es el único
+    // contenido de la escena con esta aparición adelantada -ver
+    // computeCameraRevealP en scroll-engine.js-.
     const show = window.currentView === 'resumen'
-      && !window.__storyAnimating
-      && window.__storyStep === window.STORY_LAST_STEP;
+      && (window.__storyCameraRevealP || 0) >= 1;
     cameraCarousel.classList.toggle('visible', show);
     if (equipoTitle) equipoTitle.classList.toggle('visible', show);
     const equipoSubtitle = document.getElementById('equipoSubtitle');
