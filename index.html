@@ -43,7 +43,7 @@
           Database" y "Storage", y crear ahí tu único usuario admin.
        2) Pegar los datos de tu proyecto en firebaseConfig, aquí abajo.
 
-     El acceso de administrador ahora es una página aparte: admin.html.
+     El acceso de administrador ahora es una página aparte: /yo.
      Inicias sesión ahí con el correo y la contraseña de tu cuenta y te
      lleva directo a Ajustes. Como es una cuenta real en la nube, te
      sirve para entrar desde cualquier dispositivo, no solo desde uno. -->
@@ -58,8 +58,8 @@
 
 <script src="js/cloud-db.js"></script>
 
-<!-- ---------- Vuelta desde admin.html ----------
-     Tras iniciar sesión en admin.html, redirige aquí con ?ajustes=1 en la
+<!-- ---------- Vuelta desde /yo ----------
+     Tras iniciar sesión en /yo, redirige aquí con ?ajustes=1 en la
      URL; este script espera a que Firebase confirme la sesión y abre
      Ajustes automáticamente (ver js/admin-redirect.js). -->
 <script src="js/admin-redirect.js"></script>

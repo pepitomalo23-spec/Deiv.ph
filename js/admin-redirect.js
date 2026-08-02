@@ -20,7 +20,7 @@
   }
 
   // window.isAdminDevice lo fija cloud-db.js de forma asíncrona (en cuanto
-  // Firebase confirma la sesión que se acaba de iniciar en admin.html), así
+  // Firebase confirma la sesión que se acaba de iniciar en /yo), así
   // que puede que todavía no esté listo en este mismo instante: si no lo
   // está aún, se reintenta con el evento 'admin-auth-changed' y, como red
   // de seguridad por si ese evento llegara antes de que view-navigation.js
