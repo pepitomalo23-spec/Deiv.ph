@@ -820,9 +820,18 @@
     position:absolute;
     inset:0;
     pointer-events:none;
+    /* Se añade un degradado RADIAL (centrado, círculo) por debajo de los
+       dos lineales de siempre: el marco/recuadro de la foto que hay dentro
+       del vídeo está ligeramente rotado, así que sus bordes caen en
+       diagonal y un difuminado solo horizontal+vertical deja esas esquinas
+       demasiado nítidas. El radial cubre justo eso, disolviendo por igual
+       en todas direcciones. También se ensancha la zona de transición de
+       los lineales (antes 22%→78%, ahora 28%→72%) para que el fundido sea
+       más largo y gradual y dej de leerse como un "marco" recto. */
     background:
-      linear-gradient(to right, var(--bg) 0%, transparent 22%, transparent 78%, var(--bg) 100%),
-      linear-gradient(to bottom, var(--bg) 0%, transparent 22%, transparent 78%, var(--bg) 100%);
+      radial-gradient(circle at 50% 50%, transparent 0%, transparent 36%, var(--bg) 80%),
+      linear-gradient(to right, var(--bg) 0%, transparent 28%, transparent 72%, var(--bg) 100%),
+      linear-gradient(to bottom, var(--bg) 0%, transparent 28%, transparent 72%, var(--bg) 100%);
   }
 
   /* ---------- Menú de navegación (3 rayitas) ---------- */

@@ -1340,8 +1340,17 @@
 
     const dir = e.deltaY > 0 ? 1 : -1;
 
+    // FIX "subida de tirón": antes, un gesto que llegaba mientras ya había
+    // un salto en marcha se guardaba en pendingDir y se disparaba solo, sin
+    // pausa, en cuanto terminaba ese salto -así, un scroll fuerte o largo
+    // (o varios "golpes" seguidos de rueda/trackpad) podía encadenar los
+    // dos saltos (parada 0 -> 1 -> 2) del tirón, sin llegar a notarse la
+    // parada intermedia. Ahora, mientras hay una animación en curso, CUAL-
+    // QUIER gesto nuevo se ignora sin más (no se guarda ni se dispara
+    // luego): como mucho una parada por gesto físico, por fuerte que se
+    // deslice; para seguir avanzando hace falta un gesto nuevo una vez la
+    // escena ya se ha asentado en la parada.
     if (animating){
-      pendingDir = dir;
       return;
     }
     if (wheelLock) return;
@@ -1644,7 +1653,7 @@
       if (!animating && stepIndex === WAYPOINTS.length - 1){
         stopPostEndInertia();
         setPostEndOffset(postEndTarget + KEY_SCROLL_STEP);
-      } else if (animating){ pendingDir = 1; } else { goNext(); }
+      } else if (animating){ /* se ignora mientras salta, ver FIX en onWheel */ } else { goNext(); }
     } else if (e.key === 'ArrowUp' || e.key === 'PageUp'){
       e.preventDefault();
       if (!animating && stepIndex === WAYPOINTS.length - 1){
@@ -1660,7 +1669,7 @@
           // subiendo, así que ahora sí se dispara el salto a la 2ª.
           goPrev();
         }
-      } else if (animating){ pendingDir = -1; } else { goPrev(); }
+      } else if (animating){ /* se ignora mientras salta, ver FIX en onWheel */ } else { goPrev(); }
     }
   }
 
