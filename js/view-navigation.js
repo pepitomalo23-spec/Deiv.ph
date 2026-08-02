@@ -65,6 +65,16 @@
     if (view === 'ajustes' && !window.isAdminDevice) view = 'resumen';
     window.currentView = view;
 
+    // En Ajustes no debe quedar ninguna forma de volver al sitio público
+    // desde dentro (ni el botón que hubo antes, ni el menú general): la
+    // única puerta de entrada y salida es la URL del sitio en sí.
+    if (view === 'ajustes'){
+      closeMenu();
+      menuToggle.style.display = 'none';
+    } else {
+      menuToggle.style.display = '';
+    }
+
     const showingResumen = view === 'resumen';
     sceneWrap.style.display = showingResumen ? '' : 'none';
     if (categoryButtons) categoryButtons.style.display = showingResumen ? '' : 'none';
@@ -105,15 +115,6 @@
   }
 
   window.goToView = goToView;
-
-  const ajustesBackBtn = document.getElementById('ajustesBackBtn');
-  if (ajustesBackBtn){
-    ajustesBackBtn.addEventListener('click', () => {
-      // Solo cambia de vista; no cierra sesión, así se puede volver a
-      // entrar a Ajustes sin tener que iniciar sesión otra vez.
-      goToView('resumen');
-    });
-  }
 
   menuItems.forEach(btn => {
     btn.addEventListener('click', (e) => {

@@ -2650,34 +2650,6 @@
     font-size:0.95rem;
   }
 
-  /* Botón "Volver": fijo en la esquina superior para poder salir de
-     Ajustes y regresar a la web pública sin cerrar la sesión. */
-  .ajustes-back-btn{
-    position:fixed;
-    top:18px;
-    left:18px;
-    z-index:220;
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    font-size:0.82rem;
-    font-weight:600;
-    letter-spacing:0.02em;
-    color:var(--adm-fg);
-    background:var(--adm-surface);
-    border:1px solid var(--adm-border);
-    border-radius:999px;
-    padding:9px 16px 9px 12px;
-    cursor:pointer;
-    transition:background .15s ease, transform .15s ease;
-  }
-  .ajustes-back-btn svg{ width:16px; height:16px; flex-shrink:0; }
-  .ajustes-back-btn:hover{ background:var(--adm-surface-2); transform:translateX(-2px); }
-  .ajustes-back-btn:active{ transform:translateX(-2px) scale(0.97); }
-  @media (max-width:600px){
-    .ajustes-back-btn{ top:14px; left:14px; padding:8px 14px 8px 10px; font-size:0.78rem; }
-  }
 
   /* Barra de pestañas: en vez de la píldora clara de la web, una barra
      oscura tipo consola con la pestaña activa marcada por un acento cian
