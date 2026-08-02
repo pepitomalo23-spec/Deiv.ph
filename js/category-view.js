@@ -15,12 +15,6 @@
 
   let currentList = DEFAULT_CATEGORIES.map(c => Object.assign({}, c));
 
-  function escapeHtml(s){
-    const d = document.createElement('div');
-    d.textContent = s == null ? '' : String(s);
-    return d.innerHTML;
-  }
-
   function slugify(s){
     const base = (s || '').toString().toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')

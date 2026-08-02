@@ -50,15 +50,6 @@
   const resetBtn   = document.getElementById('textosReset');
   const msg        = document.getElementById('textosMsg');
 
-  function flashMsg(el, text, ok){
-    if (!el) return;
-    el.textContent = text;
-    el.classList.remove('cuenta-msg--ok', 'cuenta-msg--err');
-    el.classList.add(ok ? 'cuenta-msg--ok' : 'cuenta-msg--err', 'visible');
-    clearTimeout(el._t);
-    el._t = setTimeout(() => el.classList.remove('visible'), 2600);
-  }
-
   if (guardarBtn){
     guardarBtn.addEventListener('click', async () => {
       const partial = {};

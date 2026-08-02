@@ -1,20 +1,4 @@
 (function(){
-  function escapeHtml(s){
-    const d = document.createElement('div');
-    d.textContent = s == null ? '' : String(s);
-    return d.innerHTML;
-  }
-  function escapeAttr(str){
-    return String(str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-  }
-  function flashMsg(el, text, ok){
-    if (!el) return;
-    el.textContent = text;
-    el.classList.remove('cuenta-msg--ok', 'cuenta-msg--err');
-    el.classList.add(ok ? 'cuenta-msg--ok' : 'cuenta-msg--err', 'visible');
-    clearTimeout(el._t);
-    el._t = setTimeout(() => el.classList.remove('visible'), 2600);
-  }
   const PLACEHOLDER_ICON = `
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
       <rect x="3" y="5" width="18" height="14" rx="2"/>

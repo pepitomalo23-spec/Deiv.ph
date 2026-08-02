@@ -108,10 +108,6 @@
   if (goAjustesBtn) goAjustesBtn.addEventListener('click', openAjustesCollage);
 
   // ---- Gestión en Ajustes ----
-  function escapeAttr(str){
-    return String(str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-  }
-
   function renderAjustesCollageGrid(){
     if (!ajustesGrid) return;
     const images = loadImages();

@@ -13,15 +13,6 @@
   const passNueva2      = document.getElementById('cuentaPassNueva2');
   const passMsg          = document.getElementById('cuentaPassMsg');
 
-  function flashMsg(el, text, ok){
-    if (!el) return;
-    el.textContent = text;
-    el.classList.remove('cuenta-msg--ok', 'cuenta-msg--err');
-    el.classList.add(ok ? 'cuenta-msg--ok' : 'cuenta-msg--err', 'visible');
-    clearTimeout(el._t);
-    el._t = setTimeout(() => el.classList.remove('visible'), 3200);
-  }
-
   function formatDate(ts){
     try{
       return new Date(ts).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
@@ -56,7 +47,7 @@
   if (exportBtn){
     exportBtn.addEventListener('click', () => {
       window.CloudDB.exportBackup();
-      flashMsg(backupMsg, 'Copia de seguridad descargada.', true);
+      flashMsg(backupMsg, 'Copia de seguridad descargada.', true, 3200);
     });
   }
 
@@ -66,10 +57,10 @@
       if (!file) return;
       try{
         await window.CloudDB.importBackup(file);
-        flashMsg(backupMsg, 'Copia restaurada. Recargando…', true);
+        flashMsg(backupMsg, 'Copia restaurada. Recargando…', true, 3200);
         setTimeout(() => location.reload(), 900);
       }catch(err){
-        flashMsg(backupMsg, 'No se pudo leer ese archivo. ¿Es una copia de seguridad válida?', false);
+        flashMsg(backupMsg, 'No se pudo leer ese archivo. ¿Es una copia de seguridad válida?', false, 3200);
       }
       importInput.value = '';
     });
@@ -89,24 +80,24 @@
       const nueva  = passNueva.value;
       const nueva2 = passNueva2.value;
       if (!actual || !nueva || !nueva2){
-        flashMsg(passMsg, 'Rellena los tres campos.', false);
+        flashMsg(passMsg, 'Rellena los tres campos.', false, 3200);
         return;
       }
       if (nueva.length < 4){
-        flashMsg(passMsg, 'La nueva contraseña debe tener al menos 4 caracteres.', false);
+        flashMsg(passMsg, 'La nueva contraseña debe tener al menos 4 caracteres.', false, 3200);
         return;
       }
       if (nueva !== nueva2){
-        flashMsg(passMsg, 'Las dos contraseñas nuevas no coinciden.', false);
+        flashMsg(passMsg, 'Las dos contraseñas nuevas no coinciden.', false, 3200);
         return;
       }
       try{
         await window.CloudDB.changePassword(actual, nueva);
         window.CloudDB.logHistory('Contraseña actualizada', '');
         passActual.value = ''; passNueva.value = ''; passNueva2.value = '';
-        flashMsg(passMsg, 'Contraseña actualizada correctamente.', true);
+        flashMsg(passMsg, 'Contraseña actualizada correctamente.', true, 3200);
       }catch(err){
-        flashMsg(passMsg, 'La contraseña actual no es correcta.', false);
+        flashMsg(passMsg, 'La contraseña actual no es correcta.', false, 3200);
       }
     });
   }

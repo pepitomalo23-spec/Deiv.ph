@@ -89,18 +89,6 @@
     return base.slice(0, MAX_IMAGES);
   }
 
-  // Escapa texto para insertarlo como contenido de un elemento (a diferencia
-  // de escapeAttr, más abajo, que escapa para meterlo dentro de un atributo
-  // HTML como value="..."). Se usa para pintar el nombre de cada foto debajo
-  // de ella en el carrusel, evitando que cualquier carácter especial rompa
-  // el HTML.
-  function escapeHtml(str){
-    return String(str || '')
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;');
-  }
-
   // Velocidad constante (px/segundo), para que la cinta vaya igual de
   // rápida tenga 3 fotos o más en el futuro; solo cambia cuánto tarda en
   // completar una vuelta (más fotos = vuelta más larga, misma velocidad).
@@ -293,10 +281,6 @@
   }, 40);
 
   // ---------- Ajustes: subir/quitar imágenes propias ----------
-  function escapeAttr(str){
-    return String(str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-  }
-
   function renderAjustesGrid(){
     const userImages = loadUserImages().slice(0, MAX_IMAGES);
     ajustesGrid.innerHTML = userImages.map((item, i) => `
