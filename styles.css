@@ -206,6 +206,64 @@
       var(--bg) 100%);
   }
 
+  /* Difuminado hacia el fondo en los bordes IZQUIERDO y DERECHO de la
+     escena: mismo motivo y misma curva de easing que .scene-pin::before/
+     ::after (arriba/abajo), pero en horizontal. Antes solo existía el
+     difuminado vertical, así que en pantallas anchas -donde la foto
+     (cuadrada) queda centrada con huecos a los lados por el object-fit:
+     contain- se notaba un corte recto justo en el borde izquierdo/derecho
+     de la foto. Van como elementos reales (no ::before/::after, que ya
+     están usados arriba) dentro de .scene-pin. */
+  .scene-pin-fade-left,
+  .scene-pin-fade-right{
+    content:"";
+    position:absolute;
+    top:0;
+    bottom:0;
+    width:30%;
+    pointer-events:none;
+    z-index:5;
+  }
+  .scene-pin-fade-left{
+    left:0;
+    background:linear-gradient(to left,
+      color-mix(in srgb, var(--bg) 0%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 1%, transparent) 8%,
+      color-mix(in srgb, var(--bg) 3%, transparent) 16%,
+      color-mix(in srgb, var(--bg) 6%, transparent) 24%,
+      color-mix(in srgb, var(--bg) 11%, transparent) 32%,
+      color-mix(in srgb, var(--bg) 18%, transparent) 40%,
+      color-mix(in srgb, var(--bg) 27%, transparent) 48%,
+      color-mix(in srgb, var(--bg) 38%, transparent) 55%,
+      color-mix(in srgb, var(--bg) 50%, transparent) 62%,
+      color-mix(in srgb, var(--bg) 63%, transparent) 69%,
+      color-mix(in srgb, var(--bg) 75%, transparent) 75%,
+      color-mix(in srgb, var(--bg) 85%, transparent) 81%,
+      color-mix(in srgb, var(--bg) 92%, transparent) 87%,
+      color-mix(in srgb, var(--bg) 97%, transparent) 93%,
+      var(--bg) 100%);
+  }
+  .scene-pin-fade-right{
+    right:0;
+    background:linear-gradient(to right,
+      color-mix(in srgb, var(--bg) 0%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 1%, transparent) 8%,
+      color-mix(in srgb, var(--bg) 3%, transparent) 16%,
+      color-mix(in srgb, var(--bg) 6%, transparent) 24%,
+      color-mix(in srgb, var(--bg) 11%, transparent) 32%,
+      color-mix(in srgb, var(--bg) 18%, transparent) 40%,
+      color-mix(in srgb, var(--bg) 27%, transparent) 48%,
+      color-mix(in srgb, var(--bg) 38%, transparent) 55%,
+      color-mix(in srgb, var(--bg) 50%, transparent) 62%,
+      color-mix(in srgb, var(--bg) 63%, transparent) 69%,
+      color-mix(in srgb, var(--bg) 75%, transparent) 75%,
+      color-mix(in srgb, var(--bg) 85%, transparent) 81%,
+      color-mix(in srgb, var(--bg) 92%, transparent) 87%,
+      color-mix(in srgb, var(--bg) 97%, transparent) 93%,
+      var(--bg) 100%);
+  }
+
+
   .frame-canvas{
     height:100%;
     width:100%;
