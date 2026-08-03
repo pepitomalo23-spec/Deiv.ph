@@ -11,8 +11,8 @@
         posición, justo encima de "Descubre mi trabajo")
      ================================================================= */
   const DEFAULT_PAIRS = [
-    { id:'pair-1', before:null, after:null },
-    { id:'pair-2', before:null, after:null }
+    { id:'pair-1', before:null, after:null, beforePosY:50, afterPosY:50 },
+    { id:'pair-2', before:null, after:null, beforePosY:50, afterPosY:50 }
   ];
   const PAIR_PLACEHOLDER_BEFORE = 'linear-gradient(160deg,#4a4d4f,#202325 55%,#0c0d0e)';
   const PAIR_PLACEHOLDER_AFTER = 'linear-gradient(150deg,#ffb27a 0%,#ff5a1f 32%,#7a2708 62%,#180a04 100%)';
@@ -36,6 +36,12 @@
     const pair = currentPairs[aseIndex];
     asBaBeforeEl.style.backgroundImage = pair.before ? 'url(\'' + pair.before.replace(/'/g, "\\'") + '\')' : PAIR_PLACEHOLDER_BEFORE;
     asBaAfterEl.style.backgroundImage = pair.after ? 'url(\'' + pair.after.replace(/'/g, "\\'") + '\')' : PAIR_PLACEHOLDER_AFTER;
+    // Encuadre ↕ guardado desde Ajustes (por defecto 50%, centrado): así se
+    // puede corregir una foto en la que el recorte automático se coma una
+    // cara u otra parte importante, igual que ya se podía en la galería
+    // que se expande.
+    asBaBeforeEl.style.backgroundPosition = 'center ' + (pair.beforePosY != null ? pair.beforePosY : 50) + '%';
+    asBaAfterEl.style.backgroundPosition = 'center ' + (pair.afterPosY != null ? pair.afterPosY : 50) + '%';
   }
   if (asBaPrevBtn) asBaPrevBtn.addEventListener('click', () => renderPairsPublic(aseIndex - 1));
   if (asBaNextBtn) asBaNextBtn.addEventListener('click', () => renderPairsPublic(aseIndex + 1));
@@ -68,15 +74,34 @@
     );
   }
 
+  // Mismo deslizador "Encuadre ↕" que ya tenía la galería que se expande
+  // (reutiliza su misma clase .disc-editor-range-row), ahora también para
+  // cada una de las dos fotos del comparador: antes solo se podía corregir
+  // el recorte en la galería, no aquí.
+  function renderSlotRange(pair, index, slot){
+    const posY = pair[slot + 'PosY'] != null ? pair[slot + 'PosY'] : 50;
+    return (
+      '<div class="disc-editor-range-row">' +
+        '<label>Encuadre ↕</label>' +
+        '<input type="range" class="pair-editor-pos" min="0" max="100" value="' + posY + '" data-index="' + index + '" data-slot="' + slot + '">' +
+      '</div>'
+    );
+  }
+
   function renderPairsEditor(){
     if (!pairListEl) return;
+    const last = pairDraft.length - 1;
     pairListEl.innerHTML = pairDraft.map((p, i) => (
       '<div class="pair-editor-item" data-index="' + i + '">' +
         '<div class="ba-slots">' +
-          '<div class="ba-slot">' + renderSlotBox(p, i, 'before') + '</div>' +
-          '<div class="ba-slot">' + renderSlotBox(p, i, 'after') + '</div>' +
+          '<div class="ba-slot">' + renderSlotBox(p, i, 'before') + renderSlotRange(p, i, 'before') + '</div>' +
+          '<div class="ba-slot">' + renderSlotBox(p, i, 'after') + renderSlotRange(p, i, 'after') + '</div>' +
         '</div>' +
-        '<button type="button" class="cat-editor-remove" aria-label="Quitar comparación">×</button>' +
+        '<div class="pair-editor-actions">' +
+          '<button type="button" class="pair-editor-move" data-dir="up" ' + (i === 0 ? 'disabled' : '') + ' aria-label="Mover comparación hacia arriba">↑</button>' +
+          '<button type="button" class="pair-editor-move" data-dir="down" ' + (i === last ? 'disabled' : '') + ' aria-label="Mover comparación hacia abajo">↓</button>' +
+          '<button type="button" class="cat-editor-remove" aria-label="Quitar comparación">×</button>' +
+        '</div>' +
       '</div>'
     )).join('');
     if (pairEmptyEl) pairEmptyEl.style.display = pairDraft.length ? 'none' : '';
@@ -89,6 +114,16 @@
 
   if (pairListEl){
     pairListEl.addEventListener('click', (e) => {
+      const moveBtn = e.target.closest('.pair-editor-move');
+      if (moveBtn){
+        const row = moveBtn.closest('.pair-editor-item');
+        const i = Number(row.dataset.index);
+        const j = moveBtn.dataset.dir === 'up' ? i - 1 : i + 1;
+        if (j < 0 || j >= pairDraft.length) return;
+        [pairDraft[i], pairDraft[j]] = [pairDraft[j], pairDraft[i]];
+        renderPairsEditor();
+        return;
+      }
       const removeBtn = e.target.closest('.cat-editor-remove');
       if (removeBtn){
         const row = removeBtn.closest('.pair-editor-item');
@@ -102,6 +137,13 @@
         pairPending = { index: Number(box.dataset.index), slot: box.dataset.slot };
         pairFileInput.click();
       }
+    });
+    pairListEl.addEventListener('input', (e) => {
+      if (!e.target.classList.contains('pair-editor-pos')) return;
+      const i = Number(e.target.dataset.index);
+      const slot = e.target.dataset.slot;
+      if (!pairDraft[i]) return;
+      pairDraft[i][slot + 'PosY'] = Number(e.target.value);
     });
     pairListEl.addEventListener('keydown', (e) => {
       const box = e.target.closest('.ba-slot-box');
@@ -148,7 +190,9 @@
       const cleaned = pairDraft.map(p => ({
         id: p.id || ('pair-' + Date.now()),
         before: p.before || null,
-        after: p.after || null
+        after: p.after || null,
+        beforePosY: p.beforePosY != null ? p.beforePosY : 50,
+        afterPosY: p.afterPosY != null ? p.afterPosY : 50
       }));
       if (!window.CloudDB){
         flashMsg(pairMsgEl, 'No se pudo guardar: la conexión con la nube no está lista.', false);
@@ -311,6 +355,7 @@
 
   function renderExpandEditor(){
     if (!expListEl) return;
+    const last = expDraft.length - 1;
     expListEl.innerHTML = expDraft.map((c, i) => {
       const isUploading = expUploadingIndex === i;
       const fit = c.fit === 'contain' ? 'contain' : 'cover';
@@ -337,7 +382,11 @@
               '<button type="button" class="disc-editor-fit-btn' + (fit === 'contain' ? ' active' : '') + '" data-fit="contain">Ver foto entera</button>' +
             '</div>' +
           '</div>' +
-          '<button type="button" class="cat-editor-remove" aria-label="Quitar foto">×</button>' +
+          '<div class="pair-editor-actions">' +
+            '<button type="button" class="pair-editor-move" data-dir="up" ' + (i === 0 ? 'disabled' : '') + ' aria-label="Mover foto hacia arriba">↑</button>' +
+            '<button type="button" class="pair-editor-move" data-dir="down" ' + (i === last ? 'disabled' : '') + ' aria-label="Mover foto hacia abajo">↓</button>' +
+            '<button type="button" class="cat-editor-remove" aria-label="Quitar foto">×</button>' +
+          '</div>' +
         '</div>'
       );
     }).join('');
@@ -365,6 +414,16 @@
       }
     });
     expListEl.addEventListener('click', (e) => {
+      const moveBtn = e.target.closest('.pair-editor-move');
+      if (moveBtn){
+        const row = moveBtn.closest('.disc-editor-item');
+        const i = Number(row.dataset.index);
+        const j = moveBtn.dataset.dir === 'up' ? i - 1 : i + 1;
+        if (j < 0 || j >= expDraft.length) return;
+        [expDraft[i], expDraft[j]] = [expDraft[j], expDraft[i]];
+        renderExpandEditor();
+        return;
+      }
       const removeBtn = e.target.closest('.cat-editor-remove');
       if (removeBtn){
         const row = removeBtn.closest('.disc-editor-item');
@@ -485,7 +544,13 @@
       const cloudPairs = Array.isArray(data.baPairs) && data.baPairs.length
         ? data.baPairs
         : DEFAULT_PAIRS;
-      currentPairs = cloudPairs.map(p => ({ id: p.id, before: p.before || null, after: p.after || null }));
+      currentPairs = cloudPairs.map(p => ({
+        id: p.id,
+        before: p.before || null,
+        after: p.after || null,
+        beforePosY: p.beforePosY != null ? p.beforePosY : 50,
+        afterPosY: p.afterPosY != null ? p.afterPosY : 50
+      }));
       renderPairsPublic(0);
       fillPairsEditor();
 

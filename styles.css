@@ -2749,6 +2749,16 @@
   }
   #view-ajustes .disc-editor-range-row label{ color:var(--adm-fg); opacity:0.7; }
 
+  /* En el comparador de parejas cada columna es más estrecha (110px) que en
+     la galería, así que aquí el deslizador va apilado bajo la etiqueta en
+     vez de en línea, para no quedarse sin sitio. */
+  .pair-editor-item .disc-editor-range-row{
+    flex-direction:column;
+    align-items:stretch;
+    gap:2px;
+    margin-top:6px;
+  }
+
   /* ---------- Ajuste de la foto (galería que se expande) ----------
      Antes la foto siempre se recortaba/ampliaba para rellenar el
      recuadro entero ("cover"). Ahora se puede elegir, por foto:
@@ -2794,12 +2804,45 @@
   .pair-editor-list{ display:flex; flex-direction:column; gap:16px; margin:16px 0; }
   .pair-editor-item{ display:flex; align-items:center; gap:10px; }
   .pair-editor-item .ba-slots{ flex:1; margin:0; align-items:flex-start; }
-  .pair-editor-item .ba-slot{ max-width:110px; }
+  .pair-editor-item .ba-slot{ max-width:110px; flex-direction:column; align-items:stretch; }
   /* En esta lista compacta el máximo de alto es menor que en Ajustes,
      para que una foto muy vertical no dispare la altura de toda la fila. */
   .pair-editor-item .ba-slot-box.has-image{ max-height:146px; }
   .pair-editor-item .ba-slot-box.has-image img{ max-height:146px; }
-  .pair-editor-item .cat-editor-remove{ flex:0 0 auto; }
+
+  /* Columna de "mover arriba / mover abajo / quitar", al final de la fila.
+     La reutilizan tanto el editor de parejas como el de la galería que se
+     expande (ver .disc-editor-item más abajo), para poder reordenar sin
+     tener que borrar y volver a añadir desde cero. */
+  .pair-editor-actions{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    flex:0 0 auto;
+  }
+  .pair-editor-move{
+    width:30px;
+    height:30px;
+    border-radius:50%;
+    border:1px solid rgba(0,0,0,0.14);
+    background:transparent;
+    color:var(--dim);
+    font-size:14px;
+    line-height:1;
+    cursor:pointer;
+    transition:border-color .15s ease, color .15s ease, opacity .15s ease;
+  }
+  .pair-editor-move:hover:not(:disabled){ border-color:var(--accent); color:var(--accent); }
+  .pair-editor-move:disabled{ opacity:0.3; cursor:default; }
+  #view-ajustes .pair-editor-move{
+    border-color:var(--adm-border);
+    color:var(--adm-dim);
+  }
+  #view-ajustes .pair-editor-move:hover:not(:disabled){
+    border-color:var(--adm-accent);
+    color:var(--adm-accent);
+  }
 
   #view-ajustes .historial-list{
     background:var(--adm-surface-2);
