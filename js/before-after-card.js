@@ -11,7 +11,16 @@
       // "antes" y la de "después", se quedan centradas y sin encogerse);
       // lo único que cambia es cuánto se ve de cada una a cada lado del
       // tirador.
-      clip.style.clipPath = `inset(0 ${100 - pos}% 0 0)`;
+      //
+      // FIX: antes se revelaba "editada" desde la IZQUIERDA (creciendo
+      // hacia la derecha), al revés que las etiquetas fijas de la tarjeta
+      // (SIN EDITAR a la izquierda, EDITADA a la derecha, ver
+      // .ba-card-label--before/--after en styles.css) -las dos fotos
+      // aparecían intercambiadas respecto a lo que decían las etiquetas-.
+      // Ahora se revela desde la DERECHA: a la izquierda del tirador se ve
+      // "sin editar" (la capa base, sin recortar) y a la derecha "editada"
+      // (la capa recortada), tal cual anuncian las etiquetas.
+      clip.style.clipPath = `inset(0 0 0 ${pos}%)`;
       handle.style.left = pos + '%';
       handle.setAttribute('aria-valuenow', String(Math.round(pos)));
     }

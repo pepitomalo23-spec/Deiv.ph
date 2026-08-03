@@ -1217,7 +1217,16 @@
     inset:0;
     width:100%;
     height:100%;
-    background-size:cover;
+    /* FIX: antes era "cover", que recorta cada foto para rellenar el
+       recuadro entero -y como "sin editar" y "editada" casi nunca tienen
+       exactamente la misma proporción, cada una se recortaba/ampliaba una
+       cantidad distinta para llenar el mismo hueco, así que una acababa
+       viéndose más "de cerca" que la otra-. Con "contain" cada foto se ve
+       entera, a su proporción real, sin que ninguna de las dos se amplíe
+       más que la otra; si sobra hueco a los lados o arriba/abajo se rellena
+       con el fondo oscuro de .ba-card-frame en vez de recortar la foto. */
+    background-size:contain;
+    background-repeat:no-repeat;
     background-position:center;
   }
   .ba-card-after-clip{
