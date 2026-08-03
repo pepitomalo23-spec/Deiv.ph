@@ -129,8 +129,9 @@
         ? `<div class="marquee-caption">${escapeHtml(s.name.trim())}</div>`
         : '';
       const bgPos = (typeof s.pos === 'number' ? s.pos : 50);
+      const fastImg = (typeof optimizeCloudinaryUrl === 'function') ? optimizeCloudinaryUrl(s.img, 700) : s.img;
       return `<div class="marquee-item">` +
-        `<div class="marquee-slide" style="background-image:url('${s.img}'); background-position:center ${bgPos}%;"></div>` +
+        `<div class="marquee-slide" style="background-image:url('${fastImg}'); background-position:center ${bgPos}%;"></div>` +
         caption +
         `</div>`;
     }).join('');
@@ -464,7 +465,7 @@
   if (typeof registerAssetReady === 'function'){
     const readyForCarousel = (window.CloudDB ? window.CloudDB.ready : Promise.resolve())
       .then(() => (typeof preloadImages === 'function')
-        ? preloadImages(cloudCarouselImages.map(item => item.img))
+        ? preloadImages(cloudCarouselImages.map(item => (typeof optimizeCloudinaryUrl === 'function') ? optimizeCloudinaryUrl(item.img, 700) : item.img))
         : null);
     registerAssetReady(readyForCarousel);
   }

@@ -197,8 +197,11 @@
   // se deja a nadie esperando más de SITE_ASSETS_TIMEOUT_MS -pasado ese
   // tiempo se entra igual, con lo que haya llegado hasta entonces (cada
   // pantalla ya sabe mostrar su propio estado de "cargando"/"sin foto"
-  // sin romperse, ver is-loading en styles.css).
-  const SITE_ASSETS_TIMEOUT_MS = 6000;
+  // sin romperse, ver is-loading en styles.css). Se deja generoso a
+  // propósito -20s-: la idea es que esto solo salte si de verdad hay un
+  // problema (sin conexión, Firestore caído...), no como forma normal de
+  // entrar a la web sin esperar a que las fotos reales hayan llegado.
+  const SITE_ASSETS_TIMEOUT_MS = 20000;
   function waitForSiteAssets(){
     return new Promise((resolve) => {
       let done = false;

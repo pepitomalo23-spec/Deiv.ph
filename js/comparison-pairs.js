@@ -39,8 +39,19 @@
   // el degradado de "sin foto"): así el recuadro se queda simplemente en
   // blanco/cargando un instante, en vez de parecer que no se ha añadido
   // ninguna foto cuando en realidad solo está tardando en llegar.
+  // Ancho máximo real al que se llega a ver esta foto en pantalla (el
+  // recuadro tiene un tope de max-height:420px, a 4:3 como mucho, incluso
+  // en pantallas grandes con más resolución/densidad): pedir una versión
+  // ya recortada a ese tamaño (en vez del original a resolución de
+  // cámara, que puede pesar varios MB) es lo que más acelera la carga.
+  const BA_CARD_IMAGE_WIDTH = 900;
+
   function applySlotBg(el, url, placeholder){
-    if (url){ el.style.backgroundImage = "url('" + url.replace(/'/g, "\\'") + "')"; return; }
+    if (url){
+      const fast = (typeof optimizeCloudinaryUrl === 'function') ? optimizeCloudinaryUrl(url, BA_CARD_IMAGE_WIDTH) : url;
+      el.style.backgroundImage = "url('" + fast.replace(/'/g, "\\'") + "')";
+      return;
+    }
     el.style.backgroundImage = cloudLoaded ? placeholder : 'none';
   }
 
@@ -61,7 +72,8 @@
   // tamaño de forma nativa, sin ningún cálculo ni caché propios.
   function setFrameAspect(url){
     if (!asBaFrameEl) return;
-    if (asBaSizerEl) asBaSizerEl.src = url || '';
+    const fast = url && typeof optimizeCloudinaryUrl === 'function' ? optimizeCloudinaryUrl(url, BA_CARD_IMAGE_WIDTH) : url;
+    if (asBaSizerEl) asBaSizerEl.src = fast || '';
     asBaFrameEl.classList.toggle('has-photo', !!url);
   }
 
@@ -624,9 +636,12 @@
   // descargarse. Ver waitForSiteAssets() en scroll-engine.js.
   if (typeof registerAssetReady === 'function'){
     const readyForFirstPair = (window.CloudDB ? window.CloudDB.ready : Promise.resolve())
-      .then(() => (typeof preloadImages === 'function')
-        ? preloadImages([currentPairs[0] && currentPairs[0].before, currentPairs[0] && currentPairs[0].after])
-        : null);
+      .then(() => {
+        if (typeof preloadImages !== 'function') return null;
+        const p = currentPairs[0] || {};
+        const optimize = (u) => (u && typeof optimizeCloudinaryUrl === 'function') ? optimizeCloudinaryUrl(u, BA_CARD_IMAGE_WIDTH) : u;
+        return preloadImages([optimize(p.before), optimize(p.after)]);
+      });
     registerAssetReady(readyForFirstPair);
   }
 })();
