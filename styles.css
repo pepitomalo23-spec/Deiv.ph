@@ -1905,8 +1905,26 @@
     pointer-events:auto;
   }
   .as-ba-gallery .ba-card-frame{
+    /* FIX: antes tenía "width:100%" fijo (heredado de .ba-card-frame) A LA
+       VEZ que un "max-height": cuando la foto real es más alta que ancha
+       (retrato), esos dos límites entraban en conflicto -el recuadro se
+       quedaba con el ancho completo del bloque pero sin poder crecer en
+       alto- y "aspect-ratio" (calculado en JS a partir del tamaño real de
+       la foto, ver setFrameAspect en comparison-pairs.js) no se podía
+       respetar del todo: sobraba hueco a los lados, relleno con el fondo
+       oscuro. Con "width:auto" el recuadro deja de tener un ancho fijo:
+       su tamaño lo marcan "aspect-ratio" (la forma real de la foto) y
+       "max-height" a la vez, igual que le pasaría a una <img> con
+       object-fit:contain -así el recuadro adopta la forma de cada foto
+       (vertical, horizontal o cuadrada) sin dejar bandas negras y sin
+       ampliar ni recortar la imagen-. "max-width:100%" evita que en fotos
+       muy panorámicas el recuadro se salga del ancho del bloque. */
+    width:auto;
+    max-width:100%;
+    height:auto;
     aspect-ratio:4/3;
     max-height:clamp(140px, 28vh, 300px);
+    margin:0 auto;
     border-radius:18px;
   }
   @media (max-width:480px){
