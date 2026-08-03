@@ -1900,8 +1900,13 @@
   .as-ba-gallery{
     position:relative;
     width:100%;
-    max-width:560px;
-    padding:0 clamp(34px, 8vw, 48px);
+    /* Recuadro más grande: antes 560px de ancho tope. */
+    max-width:720px;
+    /* Más hueco a los lados según crece el recuadro, para que las flechas
+       (as-ba-nav, ancladas a left:0/right:0 de ESTE contenedor) queden
+       más pegadas a los bordes reales del bloque en vez de quedarse cerca
+       del centro. */
+    padding:0 clamp(40px, 10vw, 64px);
     pointer-events:auto;
   }
   .as-ba-gallery .ba-card-frame{
@@ -1910,11 +1915,30 @@
        si por lo que sea la foto no llega a cargar. En cuanto hay una foto
        real, la clase .has-photo (más abajo) toma el control del tamaño. */
     aspect-ratio:4/3;
-    max-height:clamp(140px, 28vh, 300px);
+    /* Recuadro más grande: antes 140-300px (28vh de tope). */
+    max-height:clamp(200px, 40vh, 420px);
     border-radius:18px;
   }
   @media (max-width:480px){
-    .as-ba-gallery .ba-card-frame{ aspect-ratio:5/4; max-height:26vh; }
+    .as-ba-gallery .ba-card-frame{ aspect-ratio:5/4; max-height:34vh; }
+  }
+  /* Etiquetas SIN EDITAR / EDITADA como pie de foto, fuera del recuadro:
+     una fila debajo, cada una alineada bajo su lado (izquierda/derecha)
+     igual que antes cuando iban superpuestas. */
+  .as-ba-labels{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    width:100%;
+    margin-top:12px;
+  }
+  .as-ba-labels .ba-card-label{
+    position:static;
+    background:none;
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+    padding:0;
+    color:rgba(17,17,17,0.55);
   }
   /* FIX: antes la forma real de la foto se calculaba a mano en JS
      (cargando la foto aparte, leyendo su ancho/alto y escribiendo el

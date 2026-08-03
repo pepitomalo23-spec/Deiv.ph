@@ -183,6 +183,13 @@
             <div class="ba-card-after" id="asBaAfter" style="background-image:linear-gradient(150deg,#ffb27a 0%,#ff5a1f 32%,#7a2708 62%,#180a04 100%);"></div>
           </div>
           <div class="ba-card-handle"><div class="ba-card-handle-grip"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 3 12 9 6"/><polyline points="15 6 21 12 15 18"/></svg></div></div>
+        </div>
+        <!-- Etiquetas fuera del recuadro (antes iban superpuestas sobre la
+             foto, dentro de .ba-card-frame; como ese contenedor recorta
+             overflow:hidden, para que sean pie de foto -y no tapen la
+             imagen- tienen que vivir aquí fuera, como fila debajo del
+             recuadro. -->
+        <div class="as-ba-labels">
           <span class="ba-card-label ba-card-label--before">SIN EDITAR</span>
           <span class="ba-card-label ba-card-label--after">EDITADA</span>
         </div>
