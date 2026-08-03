@@ -263,6 +263,16 @@
       var(--bg) 100%);
   }
 
+  /* En móvil apenas hay huecos laterales que disimular (la foto ocupa
+     casi todo el ancho), así que el difuminado se reduce a un borde
+     mínimo para que no se note. */
+  @media (max-width:600px){
+    .scene-pin-fade-left,
+    .scene-pin-fade-right{
+      width:4%;
+    }
+  }
+
 
   .frame-canvas{
     height:100%;
