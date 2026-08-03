@@ -1905,30 +1905,44 @@
     pointer-events:auto;
   }
   .as-ba-gallery .ba-card-frame{
-    /* FIX: antes tenía "width:100%" fijo (heredado de .ba-card-frame) A LA
-       VEZ que un "max-height": cuando la foto real es más alta que ancha
-       (retrato), esos dos límites entraban en conflicto -el recuadro se
-       quedaba con el ancho completo del bloque pero sin poder crecer en
-       alto- y "aspect-ratio" (calculado en JS a partir del tamaño real de
-       la foto, ver setFrameAspect en comparison-pairs.js) no se podía
-       respetar del todo: sobraba hueco a los lados, relleno con el fondo
-       oscuro. Con "width:auto" el recuadro deja de tener un ancho fijo:
-       su tamaño lo marcan "aspect-ratio" (la forma real de la foto) y
-       "max-height" a la vez, igual que le pasaría a una <img> con
-       object-fit:contain -así el recuadro adopta la forma de cada foto
-       (vertical, horizontal o cuadrada) sin dejar bandas negras y sin
-       ampliar ni recortar la imagen-. "max-width:100%" evita que en fotos
-       muy panorámicas el recuadro se salga del ancho del bloque. */
-    width:auto;
-    max-width:100%;
-    height:auto;
+    /* Proporción de repuesto: se usa solo mientras no hay ninguna foto
+       real todavía (el recuadro muestra los degradados de "sin foto") o
+       si por lo que sea la foto no llega a cargar. En cuanto hay una foto
+       real, la clase .has-photo (más abajo) toma el control del tamaño. */
     aspect-ratio:4/3;
     max-height:clamp(140px, 28vh, 300px);
-    margin:0 auto;
     border-radius:18px;
   }
   @media (max-width:480px){
     .as-ba-gallery .ba-card-frame{ aspect-ratio:5/4; max-height:26vh; }
+  }
+  /* FIX: antes la forma real de la foto se calculaba a mano en JS
+     (cargando la foto aparte, leyendo su ancho/alto y escribiendo el
+     resultado como "aspect-ratio" del recuadro) Y ese resultado chocaba
+     con un "width:100%" fijo -con fotos verticales, ese cálculo casi
+     nunca terminaba de aplicarse a tiempo o de encajar, y el recuadro se
+     quedaba con la proporción de repuesto (4/3, apaisada) aunque la foto
+     fuera vertical: de ahí las bandas negras a los lados.
+     Ahora, en vez de calcular nada, dejamos que sea el propio navegador
+     quien mida la foto: #asBaSizer es una <img> oculta con la misma foto
+     (ver setFrameAspect en comparison-pairs.js); "width:max-content" hace
+     que el recuadro se amolde exactamente al tamaño que esa imagen ocupa
+     -su forma real, vertical, horizontal o cuadrada-, sin cálculos
+     propios ni margen de error. */
+  .as-ba-gallery .ba-card-frame.has-photo{
+    aspect-ratio:auto;
+    width:max-content;
+    max-width:100%;
+    margin:0 auto;
+  }
+  .ba-card-frame-sizer{
+    display:block;
+    width:auto;
+    height:auto;
+    max-width:100%;
+    max-height:inherit;
+    visibility:hidden;
+    pointer-events:none;
   }
   .as-ba-nav{
     position:absolute;

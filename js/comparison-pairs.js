@@ -29,6 +29,7 @@
   const asBaBeforeEl = document.getElementById('asBaBefore');
   const asBaAfterEl = document.getElementById('asBaAfter');
   const asBaFrameEl = asBaBeforeEl ? asBaBeforeEl.closest('.ba-card-frame') : null;
+  const asBaSizerEl = document.getElementById('asBaSizer');
   const asBaPrevBtn = document.getElementById('asBaPrev');
   const asBaNextBtn = document.getElementById('asBaNext');
   let aseIndex = 0;
@@ -43,30 +44,25 @@
     el.style.backgroundImage = cloudLoaded ? placeholder : 'none';
   }
 
-  // Cachea, por URL, la proporción real (ancho/alto) de cada foto ya
-  // consultada, para no tener que volver a cargarla cada vez que se
-  // vuelve a mostrar la misma pareja (con las flechas, por ejemplo).
-  const frameAspectCache = Object.create(null);
+  // FIX: la versión anterior calculaba la proporción real de la foto "a
+  // mano" -cargándola en un Image() aparte, leyendo naturalWidth/Height en
+  // su evento onload y escribiendo el resultado como "aspect-ratio" del
+  // recuadro-. Ese cálculo manual dependía de que el evento onload llegara
+  // a tiempo y de comparar cadenas de texto para saber si seguía siendo la
+  // foto vigente; si algo fallaba por el camino, el recuadro se quedaba
+  // con la proporción de repuesto (4/3) aunque la foto real fuera vertical,
+  // y aparecían bandas negras a los lados sin que se notara ningún cambio.
+  //
+  // Ahora, en vez de calcular la proporción nosotros, dejamos que la
+  // proporción real de la foto sea la del sitio: #asBaSizer es una <img>
+  // oculta (visibility:hidden) que carga la misma foto que se ve; el
+  // navegador ya sabe su ancho/alto real en cuanto la decodifica, así que
+  // el recuadro (.ba-card-frame.has-photo, ver styles.css) se amolda a su
+  // tamaño de forma nativa, sin ningún cálculo ni caché propios.
   function setFrameAspect(url){
     if (!asBaFrameEl) return;
-    if (!url){ asBaFrameEl.style.removeProperty('aspect-ratio'); return; }
-    if (frameAspectCache[url]){
-      asBaFrameEl.style.aspectRatio = frameAspectCache[url];
-      return;
-    }
-    const probe = new Image();
-    probe.onload = () => {
-      if (!probe.naturalWidth || !probe.naturalHeight) return;
-      const ratio = probe.naturalWidth + ' / ' + probe.naturalHeight;
-      frameAspectCache[url] = ratio;
-      // Solo se aplica si seguimos mirando esta misma foto (si el usuario
-      // ya pasó a la siguiente pareja con las flechas mientras cargaba,
-      // no queremos "saltar" el tamaño de la que se ve ahora).
-      if (asBaAfterEl.style.backgroundImage.indexOf(url) !== -1 || asBaBeforeEl.style.backgroundImage.indexOf(url) !== -1){
-        asBaFrameEl.style.aspectRatio = ratio;
-      }
-    };
-    probe.src = url;
+    if (asBaSizerEl) asBaSizerEl.src = url || '';
+    asBaFrameEl.classList.toggle('has-photo', !!url);
   }
 
   function renderPairsPublic(i){
