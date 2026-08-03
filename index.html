@@ -75,6 +75,14 @@
          siempre, en cualquier circunstancia. -->
     <canvas class="loader-video" id="loaderCanvas" width="640" height="640" tabindex="-1"></canvas>
     </div>
+    <!-- Spinner de "cargando", debajo del logo/animación de entrada. Se
+         queda oculto (is-waiting es lo que lo muestra, ver JS) mientras
+         dura la propia animación de entrada; si al terminarla todavía
+         faltan fotos de la nube por llegar (comparador antes/después,
+         carrusel de cámaras...), este spinner aparece y la animación se
+         queda congelada en su último fotograma hasta que todo esté listo
+         -ver waitForSiteAssets() en scroll-engine.js-. -->
+    <div class="loader-spinner" id="loaderSpinner" aria-hidden="true"></div>
     <div class="loader-bar" style="display:none"><div class="loader-fill" id="loaderFill"></div></div>
   </div>
 

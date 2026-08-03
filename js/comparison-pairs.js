@@ -615,4 +615,18 @@
     renderExpandPublic();
     fillExpandEditor();
   }
+
+  // ---- Pantalla de entrada: que espere a esta foto ----
+  // La pareja que se ve nada más entrar (currentPairs[0]) es la que
+  // importa para no dejar el recuadro en blanco: se espera a que llegue
+  // el contenido de la nube (o de inmediato si no hay CloudDB) y, ya con
+  // las URLs reales, a que esas dos fotos concretas terminen de
+  // descargarse. Ver waitForSiteAssets() en scroll-engine.js.
+  if (typeof registerAssetReady === 'function'){
+    const readyForFirstPair = (window.CloudDB ? window.CloudDB.ready : Promise.resolve())
+      .then(() => (typeof preloadImages === 'function')
+        ? preloadImages([currentPairs[0] && currentPairs[0].before, currentPairs[0] && currentPairs[0].after])
+        : null);
+    registerAssetReady(readyForFirstPair);
+  }
 })();

@@ -671,6 +671,28 @@
     text-transform:uppercase;
     color:var(--dim);
   }
+  /* Spinner de "cargando" bajo el logo/animación de entrada. Oculto por
+     defecto: solo se enseña (.is-visible, activada por JS) si al acabar
+     la animación de entrada todavía faltan fotos de la nube por llegar,
+     ver waitForSiteAssets() en scroll-engine.js. */
+  .loader-spinner{
+    width:26px;
+    height:26px;
+    margin-top:22px;
+    border-radius:50%;
+    border:2.5px solid rgba(0,0,0,0.12);
+    border-top-color:var(--accent);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .35s ease;
+  }
+  .loader-spinner.is-visible{
+    opacity:1;
+    animation:loaderSpinnerSpin 0.85s linear infinite;
+  }
+  @keyframes loaderSpinnerSpin{
+    to{ transform:rotate(360deg); }
+  }
 
   /* ---------- Vídeo de preloader (animación de inicio) ---------- */
   /* Contenedor que fija el tamaño (igual que antes tenía el <video>) y

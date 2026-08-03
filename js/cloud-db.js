@@ -16,6 +16,13 @@ window.CloudDB = (function(){
   let historyCache = [];
   const contentListeners = [];
   const historyListeners = [];
+  // Promesa que resuelve en cuanto "loaded" pasa a true por primera vez
+  // (o de inmediato si Firebase ni siquiera está configurado): la usan
+  // los módulos que dependen de fotos de la nube para saber cuándo ya
+  // pueden fiarse del contenido recibido, sin tener que llevar su propio
+  // banderín "primera vez" cada uno por su lado.
+  let resolveReady;
+  const readyPromise = new Promise(resolve => { resolveReady = resolve; });
 
   function onContentChange(cb){ contentListeners.push(cb); cb(cache, loaded); }
   function onHistoryChange(cb){ historyListeners.push(cb); cb(historyCache); }
@@ -24,6 +31,7 @@ window.CloudDB = (function(){
     contentRef().onSnapshot(doc => {
       if (doc.exists) cache = Object.assign({}, cache, doc.data());
       loaded = true;
+      resolveReady();
       contentListeners.forEach(cb => cb(cache, loaded));
     }, err => console.error('Firestore (contenido):', err.message));
 
@@ -33,7 +41,7 @@ window.CloudDB = (function(){
     }, err => console.error('Firestore (historial):', err.message));
   }
   if (window.__firebaseConfigured) startListeners();
-  else loaded = true; // sin Firebase configurado no habrá snapshot nunca: no hay "cargando" que esperar
+  else { loaded = true; resolveReady(); } // sin Firebase configurado no habrá snapshot nunca: no hay "cargando" que esperar
 
   function getContent(){ return cache; }
   function updateContent(partial){
@@ -257,7 +265,8 @@ window.CloudDB = (function(){
     logHistory, getHistory, onHistoryChange, clearHistory,
     uploadImage, uploadImageAlways, deleteImageUrl,
     login, logout, resetPassword, onAuthChange, currentUser, changePassword,
-    exportBackup, importBackup
+    exportBackup, importBackup,
+    ready: readyPromise
   };
 })();
 

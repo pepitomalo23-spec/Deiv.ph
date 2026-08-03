@@ -454,4 +454,18 @@
   });
 
   renderAjustesGrid();
+
+  // ---- Pantalla de entrada: que espere a estas fotos ----
+  // Si el admin no ha subido fotos propias todavía, el carrusel usa las 3
+  // de ejemplo (incrustadas, instantáneas) y no hace falta esperar nada.
+  // Si SÍ hay fotos propias (vienen de la nube), se espera a que lleguen
+  // y a que esas fotos concretas terminen de descargarse, para que el
+  // carrusel no aparezca vacío ni se vaya rellenando a trozos.
+  if (typeof registerAssetReady === 'function'){
+    const readyForCarousel = (window.CloudDB ? window.CloudDB.ready : Promise.resolve())
+      .then(() => (typeof preloadImages === 'function')
+        ? preloadImages(cloudCarouselImages.map(item => item.img))
+        : null);
+    registerAssetReady(readyForCarousel);
+  }
 })();

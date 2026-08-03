@@ -4,6 +4,7 @@
   const sceneWrap = document.getElementById('sceneWrap');
   const loader = document.getElementById('loader');
   const loaderFill = document.getElementById('loaderFill');
+  const loaderSpinner = document.getElementById('loaderSpinner');
   const sceneHint = document.getElementById('sceneHint');
   const sceneProgress = document.getElementById('sceneProgress');
   const themeColorMeta = document.getElementById('themeColorMeta');
@@ -180,6 +181,32 @@
         const n = String(idx + 1).padStart(3, '0');
         img.src = 'assets/loader-frames/f' + n + '.jpg';
       }
+    });
+  }
+
+  // ---- tras la intro y las fotos principales, espera también a las
+  // fotos que vienen de la nube (comparador antes/después, carrusel de
+  // cámaras...) para no dejar la web a medio cargar nada más entrar ----
+  //
+  // Cada módulo que depende de fotos de la nube registra su propia
+  // promesa en window.__assetReadyPromises (ver registerAssetReady en
+  // utils.js, y su uso en comparison-pairs.js / camera-carousel.js).
+  // Aquí simplemente se espera a que TODAS esas promesas resuelvan.
+  //
+  // Tope de seguridad: si la nube tarda demasiado (o algo falla), nunca
+  // se deja a nadie esperando más de SITE_ASSETS_TIMEOUT_MS -pasado ese
+  // tiempo se entra igual, con lo que haya llegado hasta entonces (cada
+  // pantalla ya sabe mostrar su propio estado de "cargando"/"sin foto"
+  // sin romperse, ver is-loading en styles.css).
+  const SITE_ASSETS_TIMEOUT_MS = 6000;
+  function waitForSiteAssets(){
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = () => { if (done) return; done = true; resolve(); };
+      const safety = setTimeout(finish, SITE_ASSETS_TIMEOUT_MS);
+      Promise.all(window.__assetReadyPromises || [])
+        .then(() => { clearTimeout(safety); finish(); })
+        .catch(() => { clearTimeout(safety); finish(); });
     });
   }
 
@@ -1731,8 +1758,19 @@
     updateEndOfPathUI();
     pushStep1Amount(stepIndex === 1 ? 1 : 0);
     setPageBgColor(PAGE_BG_WHITE);
-    loader.style.opacity = '0';
-    setTimeout(() => { loader.style.display = 'none'; }, 500);
+
+    // La intro ya terminó y se ha quedado congelada en su último
+    // fotograma (drawFrame no se vuelve a limpiar tras el último "step",
+    // ver playSequence más arriba). Si a estas alturas todavía faltan
+    // fotos de la nube por llegar, se enseña el spinner debajo del logo
+    // y NO se oculta el loader hasta que waitForSiteAssets() resuelva
+    // -así nunca se ve la web "a medio cargar" nada más entrar-.
+    if (loaderSpinner) loaderSpinner.classList.add('is-visible');
+    waitForSiteAssets().then(() => {
+      if (loaderSpinner) loaderSpinner.classList.remove('is-visible');
+      loader.style.opacity = '0';
+      setTimeout(() => { loader.style.display = 'none'; }, 500);
+    });
   });
 
   // La tipografía Fraunces se carga de forma asíncrona (Google Fonts); en
