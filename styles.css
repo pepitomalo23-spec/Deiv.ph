@@ -1277,6 +1277,17 @@
   }
   .ba-card-label--before{ left:14px; }
   .ba-card-label--after{ right:14px; }
+  /* Mientras la nube todavía no ha respondido la primera vez (ver
+     "cloudLoaded" en comparison-pairs.js), el recuadro no muestra ni una
+     foto ni el degradado de "sin foto" -para no dar la sensación de que
+     no se ha añadido nada-, sino este pulso neutro y sutil. */
+  .ba-card-frame.is-loading{
+    animation:baFrameLoading 1.4s ease-in-out infinite;
+  }
+  @keyframes baFrameLoading{
+    0%, 100%{ background-color:#111; }
+    50%{ background-color:#1c1c1c; }
+  }
   @media (max-width:600px){
     .ba-card-frame{ aspect-ratio:3/4; border-radius:16px; }
     .ba-card-handle-grip{ width:32px; height:32px; }

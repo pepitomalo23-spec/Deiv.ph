@@ -18,30 +18,80 @@
   const PAIR_PLACEHOLDER_AFTER = 'linear-gradient(150deg,#ffb27a 0%,#ff5a1f 32%,#7a2708 62%,#180a04 100%)';
 
   let currentPairs = DEFAULT_PAIRS.map(p => Object.assign({}, p));
+  // Si la nube todavía no ha respondido la primera vez (ver "loaded" en
+  // cloud-db.js), currentPairs sigue teniendo los valores por defecto
+  // (before/after a null) aunque en realidad SÍ haya fotos guardadas: de
+  // ahí que antes se viera el degradado de "sin foto" un instante justo
+  // al cargar la página. Con esta bandera sabemos si ya podemos fiarnos
+  // de que "sin foto" significa "sin foto de verdad".
+  let cloudLoaded = false;
 
   const asBaBeforeEl = document.getElementById('asBaBefore');
   const asBaAfterEl = document.getElementById('asBaAfter');
+  const asBaFrameEl = asBaBeforeEl ? asBaBeforeEl.closest('.ba-card-frame') : null;
   const asBaPrevBtn = document.getElementById('asBaPrev');
   const asBaNextBtn = document.getElementById('asBaNext');
   let aseIndex = 0;
 
+  // Pone (o quita) el fondo de una ranura del comparador. Mientras la nube
+  // no ha respondido todavía y no hay foto, no se pone NINGÚN fondo (ni
+  // el degradado de "sin foto"): así el recuadro se queda simplemente en
+  // blanco/cargando un instante, en vez de parecer que no se ha añadido
+  // ninguna foto cuando en realidad solo está tardando en llegar.
+  function applySlotBg(el, url, placeholder){
+    if (url){ el.style.backgroundImage = "url('" + url.replace(/'/g, "\\'") + "')"; return; }
+    el.style.backgroundImage = cloudLoaded ? placeholder : 'none';
+  }
+
+  // Cachea, por URL, la proporción real (ancho/alto) de cada foto ya
+  // consultada, para no tener que volver a cargarla cada vez que se
+  // vuelve a mostrar la misma pareja (con las flechas, por ejemplo).
+  const frameAspectCache = Object.create(null);
+  function setFrameAspect(url){
+    if (!asBaFrameEl) return;
+    if (!url){ asBaFrameEl.style.removeProperty('aspect-ratio'); return; }
+    if (frameAspectCache[url]){
+      asBaFrameEl.style.aspectRatio = frameAspectCache[url];
+      return;
+    }
+    const probe = new Image();
+    probe.onload = () => {
+      if (!probe.naturalWidth || !probe.naturalHeight) return;
+      const ratio = probe.naturalWidth + ' / ' + probe.naturalHeight;
+      frameAspectCache[url] = ratio;
+      // Solo se aplica si seguimos mirando esta misma foto (si el usuario
+      // ya pasó a la siguiente pareja con las flechas mientras cargaba,
+      // no queremos "saltar" el tamaño de la que se ve ahora).
+      if (asBaAfterEl.style.backgroundImage.indexOf(url) !== -1 || asBaBeforeEl.style.backgroundImage.indexOf(url) !== -1){
+        asBaFrameEl.style.aspectRatio = ratio;
+      }
+    };
+    probe.src = url;
+  }
+
   function renderPairsPublic(i){
     if (!asBaBeforeEl || !asBaAfterEl) return;
     if (!currentPairs.length){
-      asBaBeforeEl.style.backgroundImage = PAIR_PLACEHOLDER_BEFORE;
-      asBaAfterEl.style.backgroundImage = PAIR_PLACEHOLDER_AFTER;
+      applySlotBg(asBaBeforeEl, null, PAIR_PLACEHOLDER_BEFORE);
+      applySlotBg(asBaAfterEl, null, PAIR_PLACEHOLDER_AFTER);
+      if (asBaFrameEl) asBaFrameEl.classList.toggle('is-loading', !cloudLoaded);
       return;
     }
     aseIndex = ((i % currentPairs.length) + currentPairs.length) % currentPairs.length;
     const pair = currentPairs[aseIndex];
-    asBaBeforeEl.style.backgroundImage = pair.before ? 'url(\'' + pair.before.replace(/'/g, "\\'") + '\')' : PAIR_PLACEHOLDER_BEFORE;
-    asBaAfterEl.style.backgroundImage = pair.after ? 'url(\'' + pair.after.replace(/'/g, "\\'") + '\')' : PAIR_PLACEHOLDER_AFTER;
+    applySlotBg(asBaBeforeEl, pair.before, PAIR_PLACEHOLDER_BEFORE);
+    applySlotBg(asBaAfterEl, pair.after, PAIR_PLACEHOLDER_AFTER);
     // Encuadre ↕ guardado desde Ajustes (por defecto 50%, centrado): así se
     // puede corregir una foto en la que el recorte automático se coma una
     // cara u otra parte importante, igual que ya se podía en la galería
     // que se expande.
     asBaBeforeEl.style.backgroundPosition = 'center ' + (pair.beforePosY != null ? pair.beforePosY : 50) + '%';
     asBaAfterEl.style.backgroundPosition = 'center ' + (pair.afterPosY != null ? pair.afterPosY : 50) + '%';
+    // El recuadro deja de tener siempre la misma proporción fija: se
+    // ajusta a la forma real de la foto "después" (o la de "antes" si
+    // esa no existe), dentro del máximo de alto que ya definía el CSS.
+    if (asBaFrameEl) asBaFrameEl.classList.toggle('is-loading', !cloudLoaded && !pair.before && !pair.after);
+    setFrameAspect(pair.after || pair.before || null);
   }
   if (asBaPrevBtn) asBaPrevBtn.addEventListener('click', () => renderPairsPublic(aseIndex - 1));
   if (asBaNextBtn) asBaNextBtn.addEventListener('click', () => renderPairsPublic(aseIndex + 1));
@@ -540,7 +590,8 @@
 
   /* ---- Conexión con la nube ---- */
   if (window.CloudDB){
-    window.CloudDB.onContentChange(data => {
+    window.CloudDB.onContentChange((data, loaded) => {
+      cloudLoaded = !!loaded;
       const cloudPairs = Array.isArray(data.baPairs) && data.baPairs.length
         ? data.baPairs
         : DEFAULT_PAIRS;
@@ -562,6 +613,7 @@
       fillExpandEditor();
     });
   } else {
+    cloudLoaded = true;
     renderPairsPublic(0);
     fillPairsEditor();
     renderExpandPublic();
