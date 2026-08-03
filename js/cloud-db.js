@@ -3,17 +3,28 @@ window.CloudDB = (function(){
   const historyCol = () => window.fb.db.collection('historial');
 
   let cache = { bodyCaption:'', about1:'', about2:'', about3:'', carouselImages:[], collageImages:[] };
+  // "loaded" distingue "todavía no ha llegado nada de la nube" de "ya
+  // llegó y, de verdad, no hay foto guardada". Antes onContentChange
+  // llamaba al callback una primera vez con el "cache" vacío inicial
+  // ANTES de que Firestore respondiera: durante ese instante (que en una
+  // conexión lenta puede notarse) cualquier pantalla que dependa de esto
+  // pintaba sus placeholders de "sin foto", dando la sensación de que no
+  // se había añadido nada aunque sí estuviera guardado. Pasando este
+  // segundo valor al callback, cada pantalla puede mostrar un estado de
+  // "cargando" neutro en vez del de "sin foto" mientras loaded es false.
+  let loaded = false;
   let historyCache = [];
   const contentListeners = [];
   const historyListeners = [];
 
-  function onContentChange(cb){ contentListeners.push(cb); cb(cache); }
+  function onContentChange(cb){ contentListeners.push(cb); cb(cache, loaded); }
   function onHistoryChange(cb){ historyListeners.push(cb); cb(historyCache); }
 
   function startListeners(){
     contentRef().onSnapshot(doc => {
       if (doc.exists) cache = Object.assign({}, cache, doc.data());
-      contentListeners.forEach(cb => cb(cache));
+      loaded = true;
+      contentListeners.forEach(cb => cb(cache, loaded));
     }, err => console.error('Firestore (contenido):', err.message));
 
     historyCol().orderBy('t', 'desc').limit(300).onSnapshot(snap => {
@@ -22,6 +33,7 @@ window.CloudDB = (function(){
     }, err => console.error('Firestore (historial):', err.message));
   }
   if (window.__firebaseConfigured) startListeners();
+  else loaded = true; // sin Firebase configurado no habrá snapshot nunca: no hay "cargando" que esperar
 
   function getContent(){ return cache; }
   function updateContent(partial){
