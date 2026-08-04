@@ -1237,7 +1237,65 @@
   .ba-gallery{
     display:flex;
     flex-direction:column;
-    gap:46px;
+    /* Más aire entre tarjetas: con el efecto de "pila de fotos" de detrás
+       (ver .ba-gallery .ba-card::before/::after más abajo) necesitan más
+       margen para no pisarse con la siguiente tarjeta. */
+    gap:76px;
+  }
+  /* ---------- Recuadro de cada comparación, en la página "Ediciones"
+     ----------
+     Más grande que antes (el contenedor ya se ensanchó, ver
+     .ediciones-inner) y con aire arriba/abajo para que quede más
+     centrado en su propio hueco vertical y un poco más abajo del título
+     de la tarjeta, en vez de pegado arriba del todo. */
+  .ba-gallery .ba-card{
+    /* Contexto de apilado propio: los pseudo-elementos de "más fotos
+       detrás" (más abajo) se posicionan respecto a ESTE contenedor, y
+       con isolation quedan garantizados por detrás de la foto real sin
+       depender de qué stacking context tenga el resto de la página. */
+    position:relative;
+    isolation:isolate;
+  }
+  .ba-gallery .ba-card-frame{
+    margin:4vh auto 2vh;
+    max-width:900px;
+    /* Recuadro más grande: antes tope 4/3 pegado al ancho del
+       contenedor; ahora, además de ser más ancho (contenedor 960px),
+       se deja crecer más en alto sin pasarse de la pantalla. */
+    max-height:72vh;
+  }
+  /* ---------- Efecto "hay más fotos detrás" ----------
+     Dos tarjetas fantasma, del mismo tamaño que la real, giradas
+     ligeramente a cada lado y un pelín más abajo, asomando por los
+     bordes -como una pila de fotos física-. Van DETRÁS (z-index) de la
+     tarjeta real y no reaccionan al ratón/toque (pointer-events:none):
+     es solo un efecto visual, no otra tarjeta interactiva. */
+  .ba-gallery .ba-card::before,
+  .ba-gallery .ba-card::after{
+    content:'';
+    position:absolute;
+    left:50%;
+    top:4vh;
+    width:100%;
+    max-width:900px;
+    aspect-ratio:4/3;
+    max-height:72vh;
+    margin-left:calc(-1 * min(50%, 450px));
+    border-radius:22px;
+    background:linear-gradient(155deg, #2a2a2a, #131313 70%);
+    border:1px solid rgba(255,255,255,0.1);
+    box-shadow:0 14px 34px rgba(0,0,0,0.4);
+    z-index:-1;
+    pointer-events:none;
+  }
+  .ba-gallery .ba-card::before{
+    transform:rotate(-3.5deg) translate(-14px, 14px);
+    opacity:0.85;
+  }
+  .ba-gallery .ba-card::after{
+    transform:rotate(3.5deg) translate(14px, 18px);
+    opacity:0.65;
+    z-index:-2;
   }
   .ba-card-frame{
     position:relative;
@@ -1333,7 +1391,15 @@
   @media (max-width:600px){
     .ba-card-frame{ aspect-ratio:3/4; border-radius:16px; }
     .ba-card-handle-grip{ width:32px; height:32px; }
-    .ba-gallery{ gap:34px; }
+    .ba-gallery{ gap:58px; }
+    .ba-gallery .ba-card-frame{ margin:2.5vh auto 1.5vh; max-height:60vh; }
+    .ba-gallery .ba-card::before,
+    .ba-gallery .ba-card::after{
+      top:2.5vh;
+      aspect-ratio:3/4;
+      max-height:60vh;
+      border-radius:16px;
+    }
   }
 
   /* ---------- Sección: Ajustes ---------- */
