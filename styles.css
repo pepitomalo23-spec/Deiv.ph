@@ -1258,11 +1258,19 @@
   }
   .ba-gallery .ba-card-frame{
     margin:4vh auto 2vh;
+    /* FIX barra inferior de Safari: vh puro se calcula sobre la altura
+       completa de pantalla, sin descontar la barra de herramientas de
+       Safari cuando está visible -así que el recuadro podía crecer más
+       de la cuenta y quedar tapado por ella. dvh sí se recalcula según
+       la barra esté visible u oculta (mismo patrón que .scene-wrap y
+       #storyTrack más arriba), así el recuadro nunca queda por detrás. */
+    margin:4dvh auto 2dvh;
     max-width:900px;
     /* Recuadro más grande: antes tope 4/3 pegado al ancho del
        contenedor; ahora, además de ser más ancho (contenedor 960px),
        se deja crecer más en alto sin pasarse de la pantalla. */
     max-height:72vh;
+    max-height:72dvh;
   }
   /* ---------- Efecto "hay más fotos detrás" ----------
      Dos tarjetas fantasma, del mismo tamaño que la real, giradas
@@ -1276,10 +1284,12 @@
     position:absolute;
     left:50%;
     top:4vh;
+    top:4dvh;
     width:100%;
     max-width:900px;
     aspect-ratio:4/3;
     max-height:72vh;
+    max-height:72dvh;
     margin-left:calc(-1 * min(50%, 450px));
     border-radius:22px;
     background:linear-gradient(155deg, #2a2a2a, #131313 70%);
@@ -1403,12 +1413,23 @@
     .ba-card-frame{ aspect-ratio:3/4; border-radius:16px; }
     .ba-card-handle-grip{ width:32px; height:32px; }
     .ba-gallery{ gap:58px; }
-    .ba-gallery .ba-card-frame{ margin:2.5vh auto 1.5vh; max-height:60vh; }
+    .ba-gallery .ba-card-frame{
+      margin:2.5vh auto 1.5vh;
+      max-height:60vh;
+      /* FIX barra inferior de Safari (ver comentario en la regla
+         desktop de .ba-card-frame más arriba): dvh se recalcula según
+         la barra esté visible u oculta, así el recuadro nunca queda
+         parcialmente escondido detrás de ella. */
+      margin:2.5dvh auto 1.5dvh;
+      max-height:60dvh;
+    }
     .ba-gallery .ba-card::before,
     .ba-gallery .ba-card::after{
       top:2.5vh;
+      top:2.5dvh;
       aspect-ratio:3/4;
       max-height:60vh;
+      max-height:60dvh;
       border-radius:16px;
     }
   }
