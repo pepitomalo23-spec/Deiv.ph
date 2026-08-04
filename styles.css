@@ -1661,32 +1661,40 @@
     flex-direction:column;
     align-items:center;
     opacity:0;
+    /* Importante: SIN esto, aunque el bloque esté invisible (opacity:0)
+       seguía "tapando" con su hueco fijo los toques de otras zonas de la
+       página (p.ej. el tirador del comparador de "Mis ediciones"),
+       porque un elemento con opacity:0 sigue recibiendo eventos si no
+       se le quita pointer-events explícitamente. Solo su hijo
+       #asExpandWrap (ver .as-expand más abajo, pointer-events:auto)
+       vuelve a aceptar toques, para poder tocar las tarjetas. */
+    pointer-events:none;
     transition:opacity .3s ease, transform .3s ease;
   }
   .proyectos-header.visible{ opacity:1; }
+  /* Título discreto, tipo "etiqueta" (mismo espíritu que .as-discover-eyebrow),
+     en vez de un titular enorme: con una plaquita clara y difuminada
+     detrás para que se lea igual de bien encima de cualquier zona de la
+     foto (clara u oscura), sin ser el elemento más llamativo de la
+     pantalla. */
   .proyectos-title{
-    margin:0 0 clamp(10px, 1.8vh, 18px);
-    font-family:'Fraunces','Georgia',serif;
-    font-weight:700;
-    font-style:italic;
-    font-size:clamp(1.8rem, 5.5vw, 3rem);
-    letter-spacing:0.01em;
-    color:#111111;
+    margin:0 0 clamp(10px, 1.6vh, 16px);
+    padding:7px 18px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.72);
+    -webkit-backdrop-filter:blur(8px);
+    backdrop-filter:blur(8px);
+    box-shadow:0 2px 10px rgba(0,0,0,0.08);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:clamp(0.7rem, 1.8vw, 0.82rem);
+    font-weight:600;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:rgba(17,17,17,0.8);
     text-align:center;
-    pointer-events:none;
-  }
-  .proyectos-title::after{
-    content:'';
-    display:block;
-    width:64px;
-    height:4px;
-    margin:12px auto 0;
-    border-radius:2px;
-    background:var(--accent);
   }
   @media (max-width:480px){
     .proyectos-header{ bottom:4%; width:96vw; }
-    .proyectos-title{ font-size:clamp(1.5rem, 7vw, 2.2rem); }
   }
 
   /* ---------- Título grande "Mi material / de trabajo" + frase (aparecen
@@ -2017,6 +2025,19 @@
   @media (max-width:480px){
     .as-ba-gallery .ba-card-frame{ aspect-ratio:5/4; max-height:40vh; }
   }
+  /* Tirador más disimulado en el comparador de "Mis ediciones": círculo
+     más pequeño, más transparente y con menos sombra que el estándar
+     (.ba-card-handle-grip, compartido con la galería de "Ediciones" del
+     menú, que se deja tal cual). */
+  .as-ba-gallery .ba-card-handle-grip{
+    width:26px;
+    height:26px;
+    background:rgba(255,255,255,0.55);
+    box-shadow:0 2px 8px rgba(0,0,0,0.18);
+  }
+  .as-ba-gallery .ba-card-handle{
+    background:rgba(255,255,255,0.55);
+  }
   /* Etiquetas SIN EDITAR / EDITADA como pie de foto, fuera del recuadro:
      una fila debajo, cada una alineada bajo su lado (izquierda/derecha)
      igual que antes cuando iban superpuestas. */
@@ -2119,7 +2140,10 @@
     display:flex;
     gap:clamp(6px, 1.4vw, 10px);
     width:100%;
-    height:clamp(210px, 34vh, 320px);
+    /* Menos altas que antes (era 210-320px / 34vh de tope): ahora ocupan
+       bastante menos pantalla, acorde a que viven en la 1ª posición y no
+       deben competir con la foto de fondo. */
+    height:clamp(120px, 20vh, 190px);
   }
   .as-expand-card{
     position:relative;
@@ -2218,7 +2242,7 @@
   @media (max-width:520px){
     /* En móvil, con 5 tarjetas estrechas cuesta más pulsar la que se
        quiere: se reduce el nº mínimo visible y se sube un poco el alto. */
-    .as-expand-grid{ height:clamp(230px, 40vh, 300px); gap:5px; }
+    .as-expand-grid{ height:clamp(130px, 24vh, 190px); gap:5px; }
     .as-expand-card-phrase{ display:none; }
   }
 

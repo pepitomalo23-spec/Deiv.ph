@@ -1523,7 +1523,14 @@
     'textarea',
     'select',
     'label',
-    '[role="button"]',
+    // '.as-expand-card' queda fuera a propósito (:not): son las tarjetas
+    // de "Proyectos" en la 1ª posición y, aunque llevan role="button" (se
+    // pueden tocar para expandirse), viven encima de la propia escena y
+    // hay que poder seguir deslizando verticalmente sobre ellas para
+    // pasar a la 2ª posición. Un toque corto (sin apenas movimiento)
+    // sigue disparando su "click" con normalidad; solo el arrastre largo
+    // (scroll) se deja pasar a la escena.
+    '[role="button"]:not(.as-expand-card)',
     '[contenteditable]',
     '#cameraCarousel',
     '.camera-carousel'
