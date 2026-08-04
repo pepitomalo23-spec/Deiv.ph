@@ -157,20 +157,47 @@
   </div>
 
   <!-- ---------- Contenido de la 1ª posición ("Proyectos") ----------
-       Título "Proyectos" + comparador antes/después (SIN EDITAR / EDITADA),
-       fijos y centrados sobre la escena. Solo se ven en la 1ª parada de la
-       historia (stepIndex === 0, la foto de entrada con el aviso
-       "desliza"): la clase "visible" la pone/quita scroll-engine.js con el
-       mismo criterio que usa para #sceneHint (buscar "proyectosHeaderEl"
-       en ese archivo). El comparador es el mismo bloque que antes vivía en
-       la 4ª posición ("Mis ediciones"): mismos ids (#asBaGallery,
-       #asBaPrev/#asBaNext, #asBaBefore/#asBaAfter...), así que el motor
-       genérico del comparador (crearComparador, más abajo) sigue
-       encontrándolo sin ningún cambio de JS. -->
+       Título "Proyectos" + la galería de tarjetas que se expanden (fotos
+       que se van conociendo/cambiando al pasar el ratón o tocarlas), fijos
+       sobre la escena, anclados a la parte MÁS BAJA de la pantalla (no al
+       centro). Solo se ven en la 1ª parada de la historia (stepIndex === 0,
+       la foto de entrada con el aviso "desliza"): la clase "visible" la
+       pone/quita scroll-engine.js con el mismo criterio que usa para
+       #sceneHint (buscar "proyectosHeaderEl" en ese archivo). Es el mismo
+       bloque que antes vivía en la 4ª posición ("Mis ediciones"): mismos
+       ids (#asExpandWrap, #asExpandGrid), así que el JS que lo rellena
+       (comparison-pairs.js) sigue encontrándolo sin ningún cambio. -->
   <div class="proyectos-header" id="proyectosHeader">
     <h2 class="proyectos-title">Proyectos</h2>
 
-    <div class="as-ba-gallery proyectos-ba-gallery" id="asBaGallery">
+    <div class="as-expand" id="asExpandWrap">
+      <div class="as-expand-grid" id="asExpandGrid"></div>
+    </div>
+  </div>
+
+  <!-- ---------- Contenido de la 4ª posición ("Mis ediciones") ----------
+       Vive en la franja negra que se descubre al seguir deslizando más
+       allá de la 3ª posición. TODO el bloque (título, frase, comparador
+       antes/después, categorías y CTA de contacto) vive dentro de un
+       único contenedor fijo -el mismo #afterStoryHeader que antes solo
+       tenía el título- para que suba junto con el gesto a través de la
+       misma variable --pe (ver applyPostEndOffset en el JS): no hace
+       falta ningún enganche nuevo, es el mismo mecanismo que ya movía el
+       título, ahora aplicado a todo el bloque de una vez.
+       El carrusel de cámaras (#cameraCarousel) se mantiene tal cual
+       estaba, debajo de este bloque nuevo (ver su propio anclaje fijo,
+       bottom:6%, más abajo en el HTML). -->
+  <div class="after-story-header" id="afterStoryHeader">
+    <h2 class="after-story-title" id="afterStoryTitle"><span class="as-word-light">Mis</span> <span class="as-word-accent">ediciones</span></h2>
+    <p class="after-story-sub">TRANSFORMO IDEAS<br>EN <span class="as-accent-word">IMÁGENES</span>.</p>
+
+    <!-- Comparador antes/después: reutiliza la misma clase .ba-card y el
+         mismo motor de arrastre (crearComparador) que la galería de la
+         página "Ediciones" del menú -ver el script "Motor genérico del
+         comparador", donde el selector se amplía a #asBaGallery-.
+         Recuadro más grande y más centrado (ver .as-ba-gallery en
+         styles.css). -->
+    <div class="as-ba-gallery" id="asBaGallery">
       <button type="button" class="as-ba-nav as-ba-nav--prev" id="asBaPrev" aria-label="Comparación anterior">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
@@ -200,23 +227,6 @@
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
     </div>
-  </div>
-
-  <!-- ---------- Contenido de la 4ª posición ("Mis ediciones") ----------
-       Vive en la franja negra que se descubre al seguir deslizando más
-       allá de la 3ª posición. TODO el bloque (título, frase, comparador
-       antes/después, categorías y CTA de contacto) vive dentro de un
-       único contenedor fijo -el mismo #afterStoryHeader que antes solo
-       tenía el título- para que suba junto con el gesto a través de la
-       misma variable --pe (ver applyPostEndOffset en el JS): no hace
-       falta ningún enganche nuevo, es el mismo mecanismo que ya movía el
-       título, ahora aplicado a todo el bloque de una vez.
-       El carrusel de cámaras (#cameraCarousel) se mantiene tal cual
-       estaba, debajo de este bloque nuevo (ver su propio anclaje fijo,
-       bottom:6%, más abajo en el HTML). -->
-  <div class="after-story-header" id="afterStoryHeader">
-    <h2 class="after-story-title" id="afterStoryTitle"><span class="as-word-light">Mis</span> <span class="as-word-accent">ediciones</span></h2>
-    <p class="after-story-sub">TRANSFORMO IDEAS<br>EN <span class="as-accent-word">IMÁGENES</span>.</p>
   </div>
 
   <div class="camera-name-label" id="cameraNameLeft">Sony Alpha 7 III</div>

@@ -1642,16 +1642,17 @@
     box-shadow:0 2px 10px rgba(255,90,31,0.12);
   }
 
-  /* ---------- 1ª posición: título "Proyectos" + comparador antes/después
+  /* ---------- 1ª posición: título "Proyectos" + galería que se expande
      ----------
-     Bloque fijo y centrado, superpuesto sobre la foto de entrada (la
-     misma parada donde vivía #sceneHint, "desliza"). Solo se muestra en
-     stepIndex === 0: la clase "visible" la pone/quita scroll-engine.js
-     con el mismo criterio que usa para #sceneHint (buscar
-     "proyectosHeaderEl" en ese archivo). */
+     Bloque fijo, superpuesto sobre la foto de entrada (la misma parada
+     donde vivía #sceneHint, "desliza"), pero anclado a la parte MÁS BAJA
+     de la pantalla (bottom, no centrado verticalmente). Solo se muestra
+     en stepIndex === 0: la clase "visible" la pone/quita
+     scroll-engine.js con el mismo criterio que usa para #sceneHint
+     (buscar "proyectosHeaderEl" en ese archivo). */
   .proyectos-header{
     position:fixed;
-    top:8%;
+    bottom:6%;
     left:50%;
     transform:translateX(-50%);
     z-index:20;
@@ -1659,43 +1660,33 @@
     display:flex;
     flex-direction:column;
     align-items:center;
-    pointer-events:none;
     opacity:0;
     transition:opacity .3s ease, transform .3s ease;
   }
   .proyectos-header.visible{ opacity:1; }
   .proyectos-title{
-    margin:0 0 clamp(14px, 2.6vh, 26px);
+    margin:0 0 clamp(10px, 1.8vh, 18px);
     font-family:'Fraunces','Georgia',serif;
     font-weight:700;
     font-style:italic;
-    font-size:clamp(2.4rem, 8vw, 4.6rem);
+    font-size:clamp(1.8rem, 5.5vw, 3rem);
     letter-spacing:0.01em;
     color:#111111;
     text-align:center;
+    pointer-events:none;
   }
   .proyectos-title::after{
     content:'';
     display:block;
-    width:80px;
-    height:5px;
-    margin:16px auto 0;
+    width:64px;
+    height:4px;
+    margin:12px auto 0;
     border-radius:2px;
     background:var(--accent);
   }
-  /* Recuadro mucho más grande que el que tenía en "Mis ediciones": era
-     max-width:720px / max-height 420px, aquí crece bastante más para que
-     sea el protagonista de la 1ª posición. */
-  .proyectos-ba-gallery{
-    max-width:min(94vw, 1080px);
-  }
-  .proyectos-ba-gallery .ba-card-frame{
-    max-height:clamp(280px, 62vh, 640px);
-  }
   @media (max-width:480px){
-    .proyectos-header{ top:6%; width:96vw; }
-    .proyectos-title{ font-size:clamp(2rem, 11vw, 2.8rem); }
-    .proyectos-ba-gallery .ba-card-frame{ max-height:46vh; }
+    .proyectos-header{ bottom:4%; width:96vw; }
+    .proyectos-title{ font-size:clamp(1.5rem, 7vw, 2.2rem); }
   }
 
   /* ---------- Título grande "Mi material / de trabajo" + frase (aparecen
@@ -1928,7 +1919,10 @@
     position:fixed;
     top:105vh;
     left:50%;
-    width:min(92vw, 760px);
+    /* Más ancho que antes (760px) para dar sitio real al comparador
+       agrandado (.as-ba-gallery, ver más abajo) y que quede bien
+       centrado en vez de recortado por este contenedor. */
+    width:min(94vw, 960px);
     transform:translate(-50%, calc(-1 * var(--pe, 0px)));
     z-index:5;
     text-align:center;
@@ -1998,8 +1992,11 @@
   .as-ba-gallery{
     position:relative;
     width:100%;
-    /* Recuadro más grande: antes 560px de ancho tope. */
-    max-width:720px;
+    /* Recuadro mucho más grande y más centrado: antes 720px de ancho
+       tope; el bloque padre (.after-story-header) también se ensancha
+       (ver más abajo) para que este margen extra tenga sitio real. */
+    max-width:920px;
+    margin:0 auto;
     /* Más hueco a los lados según crece el recuadro, para que las flechas
        (as-ba-nav, ancladas a left:0/right:0 de ESTE contenedor) queden
        más pegadas a los bordes reales del bloque en vez de quedarse cerca
@@ -2013,12 +2010,12 @@
        si por lo que sea la foto no llega a cargar. En cuanto hay una foto
        real, la clase .has-photo (más abajo) toma el control del tamaño. */
     aspect-ratio:4/3;
-    /* Recuadro más grande: antes 140-300px (28vh de tope). */
-    max-height:clamp(200px, 40vh, 420px);
+    /* Recuadro mucho más grande: antes 200-420px (40vh de tope). */
+    max-height:clamp(240px, 52vh, 560px);
     border-radius:18px;
   }
   @media (max-width:480px){
-    .as-ba-gallery .ba-card-frame{ aspect-ratio:5/4; max-height:34vh; }
+    .as-ba-gallery .ba-card-frame{ aspect-ratio:5/4; max-height:40vh; }
   }
   /* Etiquetas SIN EDITAR / EDITADA como pie de foto, fuera del recuadro:
      una fila debajo, cada una alineada bajo su lado (izquierda/derecha)
