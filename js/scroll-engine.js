@@ -6,6 +6,13 @@
   const loaderFill = document.getElementById('loaderFill');
   const loaderSpinner = document.getElementById('loaderSpinner');
   const sceneHint = document.getElementById('sceneHint');
+  // Bloque "Proyectos" (título + comparador antes/después) de la 1ª
+  // posición: visible solo en stepIndex === 0, mismo criterio que
+  // sceneHint pero al revés (ese se ve en TODAS las paradas menos la
+  // última; este solo en la primera). Ver los 3 sitios donde se guarda
+  // sceneHint.classList.toggle/add('visible', ...) más abajo: cada uno
+  // lleva justo debajo su equivalente para proyectosHeaderEl.
+  const proyectosHeaderEl = document.getElementById('proyectosHeader');
   const menuToggleBtn = document.getElementById('menuToggle');
   const sceneProgress = document.getElementById('sceneProgress');
   const themeColorMeta = document.getElementById('themeColorMeta');
@@ -1170,6 +1177,7 @@
         // el aviso de "desliza" se muestra en cualquier parada que no sea la
         // última, para invitar a seguir deslizando
         sceneHint.classList.toggle('visible', stepIndex < WAYPOINTS.length - 1);
+        if (proyectosHeaderEl) proyectosHeaderEl.classList.toggle('visible', stepIndex === 0);
         updateEndOfPathUI();
 
         // Si durante esta animación llegó otro gesto (deslizar rápido), se
@@ -1299,6 +1307,7 @@
         updateCaptionAndHint();
         animating = false;
         sceneHint.classList.toggle('visible', stepIndex < WAYPOINTS.length - 1);
+        if (proyectosHeaderEl) proyectosHeaderEl.classList.toggle('visible', stepIndex === 0);
         updateEndOfPathUI();
         if (pendingDir !== 0){
           const dir = pendingDir;
@@ -1758,6 +1767,7 @@
     updateCaptionAndHint();
     fitBodyCaption();
     sceneHint.classList.add('visible');
+    if (proyectosHeaderEl) proyectosHeaderEl.classList.add('visible');
     recomputeProgressSpan();
     updateEndOfPathUI();
     pushStep1Amount(stepIndex === 1 ? 1 : 0);
