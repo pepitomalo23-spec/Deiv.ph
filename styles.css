@@ -1308,8 +1308,6 @@
     box-shadow:
       0 18px 46px rgba(0,0,0,0.5),
       0 2px 10px rgba(0,0,0,0.35);
-    cursor:ew-resize;
-    touch-action:none;
   }
   .ba-card-before,
   .ba-card-after{
@@ -1347,6 +1345,11 @@
     display:flex;
     align-items:center;
     justify-content:center;
+    /* La raya en sí ya no se puede arrastrar (ver más abajo, el arrastre
+       vive solo en el círculo .ba-card-handle-grip): pointer-events:none
+       aquí deja que los toques sobre la línea -fuera del círculo- pasen
+       de largo hacia la foto de debajo, como si no estuviera. */
+    pointer-events:none;
   }
   .ba-card-handle-grip{
     width:38px;
@@ -1359,6 +1362,14 @@
     justify-content:center;
     box-shadow:0 4px 14px rgba(0,0,0,0.4);
     flex:none;
+    /* Único punto de arrastre del comparador (ver crearComparador en
+       before-after-card.js): solo aquí hace falta cursor de arrastre
+       horizontal y bloquear el gesto táctil por defecto (si no,
+       touch-action:auto haría que el propio navegador intentara
+       interpretar el arrastre como scroll en vez de dejarlo al JS). */
+    cursor:ew-resize;
+    touch-action:none;
+    pointer-events:auto;
   }
   .ba-card-label{
     position:absolute;
@@ -2167,13 +2178,25 @@
     width:100%;
     margin-top:12px;
   }
+  /* Antes iban en texto plano y sin fondo (heredado de superponerlas
+     encima de la foto, donde hacía falta que "pesaran" poco); ahora que
+     viven fuera, como una fila de pie de foto, pasan a ser dos pastillas
+     rellenas -"SIN EDITAR" en oscuro neutro, "EDITADA" en el color de
+     acento de la web- para que se lean mejor y queden más resultonas. */
   .as-ba-labels .ba-card-label{
     position:static;
-    background:none;
     backdrop-filter:none;
     -webkit-backdrop-filter:none;
-    padding:0;
-    color:rgba(17,17,17,0.55);
+    padding:7px 16px;
+    border-radius:20px;
+    color:#ffffff;
+    box-shadow:0 4px 12px rgba(0,0,0,0.12);
+  }
+  .as-ba-labels .ba-card-label--before{
+    background:rgba(17,17,17,0.78);
+  }
+  .as-ba-labels .ba-card-label--after{
+    background:var(--accent);
   }
   /* FIX: antes la forma real de la foto se calculaba a mano en JS
      (cargando la foto aparte, leyendo su ancho/alto y escribiendo el

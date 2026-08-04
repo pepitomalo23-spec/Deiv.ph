@@ -1,8 +1,17 @@
 (function(){
   // ---- Función compartida: monta el arrastre del tirador de una copia
   // del comparador (frame + clip + handle), dado un getter de posición
-  // inicial. La usan las tarjetas de la galería "Mis ediciones". ----
-  function crearComparador(frame, clip, handle){
+  // inicial. La usan las tarjetas de la galería "Mis ediciones".
+  // "grip" es el círculo del medio (.ba-card-handle-grip): es el ÚNICO
+  // punto por el que se puede arrastrar -antes se podía arrastrar
+  // tocando cualquier parte de la foto, lo cual chocaba con las flechas
+  // de siguiente/anterior (que viven encima de la foto: un toque
+  // pensado para la flecha se interpretaba primero como inicio de
+  // arrastre) y con el gesto de deslizar la página en el comparador de
+  // la portada. Si no se pasa "grip", se usa "handle" como antes
+  // (compatibilidad). ----
+  function crearComparador(frame, clip, handle, grip){
+    const dragTarget = grip || handle;
     let pos = 50;
     function setPos(p){
       pos = Math.max(0, Math.min(100, p));
@@ -43,8 +52,8 @@
       e.preventDefault();
     }
     function onPointerUp(){ dragging = false; }
-    frame.addEventListener('mousedown', onPointerDown);
-    frame.addEventListener('touchstart', onPointerDown, { passive:true });
+    dragTarget.addEventListener('mousedown', onPointerDown);
+    dragTarget.addEventListener('touchstart', onPointerDown, { passive:true });
     window.addEventListener('mousemove', onPointerMove);
     window.addEventListener('touchmove', onPointerMove, { passive:false });
     window.addEventListener('mouseup', onPointerUp);
@@ -79,13 +88,14 @@
       const frame = card.querySelector('.ba-card-frame');
       const clip = card.querySelector('.ba-card-after-clip');
       const handle = card.querySelector('.ba-card-handle');
+      const grip = card.querySelector('.ba-card-handle-grip');
       if (!frame || !clip || !handle) return;
       handle.setAttribute('tabindex', '0');
       handle.setAttribute('role', 'slider');
       handle.setAttribute('aria-label', 'Deslizar para comparar antes y después');
       handle.setAttribute('aria-valuemin', '0');
       handle.setAttribute('aria-valuemax', '100');
-      crearComparador(frame, clip, handle);
+      crearComparador(frame, clip, handle, grip);
     });
   })();
 
