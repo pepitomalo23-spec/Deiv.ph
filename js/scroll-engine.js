@@ -1099,7 +1099,14 @@
   // estándar, tanto subiendo como bajando. El gesto solo decide SI se
   // dispara el salto (y hacia qué dirección), nunca a qué velocidad ni si
   // se "adelanta" o se salta algún fotograma.
-  const JUMP_DURATION_CONTINUATION = 1800;
+  // Antes 1800ms: con un gesto rápido, el límite de velocidad del
+  // arrastre en vivo (dt/dur, ver dragStepLoop) hacía que la escena se
+  // quedara "a la cola" del dedo bastante rato antes de alcanzarlo, y se
+  // notaba como un enganchón justo al llegar a la 3ª posición. Con una
+  // duración menor, ese margen se acorta y el aterrizaje se siente mucho
+  // más fluido, sin dejar de ser una duración fija (no depende de lo
+  // fuerte que se deslice).
+  const JUMP_DURATION_CONTINUATION = 1200;
   const JUMP_DURATION_CONTINUATION_DOWN = JUMP_DURATION_CONTINUATION; // bajando (avanzando)
   const JUMP_DURATION_CONTINUATION_UP = JUMP_DURATION_CONTINUATION;   // subiendo (retrocediendo)
   let lastJumpDuration = JUMP_DURATION;
@@ -1146,6 +1153,7 @@
       // (igual que localP en applySegmentProgress), así que sirve tal
       // cual para el mismo cálculo de difuminado del recuadro Antes/Después.
       pushStep1Amount(step1AmountFromAxis(low, high, p));
+      updateProyectosFade(low, p);
 
       if (t < 1){
         requestAnimationFrame(step);
@@ -1234,6 +1242,18 @@
     if (typeof window.__setStep1Amount === 'function') window.__setStep1Amount(amount);
   }
 
+  // Difumina rápido el bloque "Proyectos" (1ª posición) en cuanto se nota
+  // intención de deslizar hacia la 2ª parada, mucho antes de llegar a
+  // ella -no un fundido lento que dura todo el trayecto-. "low" es la
+  // parada más baja del tramo (0 o 1 según se venga o se vaya) y "p" el
+  // progreso 0→1 a lo largo de ese mismo eje (mismo significado que
+  // localP en applySegmentProgress y que "p" en el step() de jumpTo).
+  function updateProyectosFade(low, p){
+    if (!proyectosHeaderEl || low !== 0) return;
+    const fastP = Math.min(1, p * 3.5);
+    proyectosHeaderEl.style.opacity = String(1 - fastP);
+  }
+
   function applySegmentProgress(fromStep, toStep, p){
     const low = Math.min(fromStep, toStep);
     const high = Math.max(fromStep, toStep);
@@ -1245,6 +1265,7 @@
     updateProgressTrack(fromStep + (toStep - fromStep) * p);
     syncRealScrollForStepPosition(fromStep + (toStep - fromStep) * p);
     pushStep1Amount(step1AmountFromAxis(low, high, localP));
+    updateProyectosFade(low, localP);
   }
 
   // Termina, animado, el tramo que ya se venía arrastrando: sigue desde

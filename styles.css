@@ -1645,21 +1645,21 @@
   /* ---------- 1ª posición: título "Proyectos" + galería que se expande
      ----------
      Bloque fijo, superpuesto sobre la foto de entrada (la misma parada
-     donde vivía #sceneHint, "desliza"), pero anclado a la parte MÁS BAJA
-     de la pantalla (bottom, no centrado verticalmente). Solo se muestra
-     en stepIndex === 0: la clase "visible" la pone/quita
+     donde vivía #sceneHint, "desliza"), anclado ABAJO A LA IZQUIERDA
+     (ni centrado ni con plaquita detrás: solo el texto, con su propia
+     sombra para leerse bien encima de cualquier zona de la foto). Solo
+     se muestra en stepIndex === 0: la clase "visible" la pone/quita
      scroll-engine.js con el mismo criterio que usa para #sceneHint
      (buscar "proyectosHeaderEl" en ese archivo). */
   .proyectos-header{
     position:fixed;
     bottom:6%;
-    left:50%;
-    transform:translateX(-50%);
+    left:6%;
     z-index:20;
-    width:min(94vw, 900px);
+    width:min(88vw, 700px);
     display:flex;
     flex-direction:column;
-    align-items:center;
+    align-items:flex-start;
     opacity:0;
     /* Importante: SIN esto, aunque el bloque esté invisible (opacity:0)
        seguía "tapando" con su hueco fijo los toques de otras zonas de la
@@ -1669,32 +1669,27 @@
        #asExpandWrap (ver .as-expand más abajo, pointer-events:auto)
        vuelve a aceptar toques, para poder tocar las tarjetas. */
     pointer-events:none;
-    transition:opacity .3s ease, transform .3s ease;
+    transition:opacity .2s ease;
   }
   .proyectos-header.visible{ opacity:1; }
-  /* Título discreto, tipo "etiqueta" (mismo espíritu que .as-discover-eyebrow),
-     en vez de un titular enorme: con una plaquita clara y difuminada
-     detrás para que se lea igual de bien encima de cualquier zona de la
-     foto (clara u oscura), sin ser el elemento más llamativo de la
-     pantalla. */
+  /* Solo el texto, sin plaquita/recuadro detrás: cursiva serif (mismo
+     estilo de familia que el resto de títulos de la web), blanco con
+     una sombra suave para que se lea igual de bien encima de cualquier
+     zona de la foto, clara u oscura. */
   .proyectos-title{
-    margin:0 0 clamp(10px, 1.6vh, 16px);
-    padding:7px 18px;
-    border-radius:999px;
-    background:rgba(255,255,255,0.72);
-    -webkit-backdrop-filter:blur(8px);
-    backdrop-filter:blur(8px);
-    box-shadow:0 2px 10px rgba(0,0,0,0.08);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-    font-size:clamp(0.7rem, 1.8vw, 0.82rem);
+    margin:0 0 clamp(8px, 1.4vh, 14px);
+    font-family:'Fraunces','Georgia',serif;
     font-weight:600;
-    letter-spacing:0.18em;
-    text-transform:uppercase;
-    color:rgba(17,17,17,0.8);
-    text-align:center;
+    font-style:italic;
+    font-size:clamp(1.15rem, 3.4vw, 1.6rem);
+    letter-spacing:0.02em;
+    color:#ffffff;
+    text-shadow:0 1px 3px rgba(0,0,0,0.45), 0 4px 16px rgba(0,0,0,0.35);
+    text-align:left;
   }
   @media (max-width:480px){
-    .proyectos-header{ bottom:4%; width:96vw; }
+    .proyectos-header{ bottom:4%; left:5%; width:90vw; }
+    .proyectos-title{ font-size:clamp(1rem, 4.6vw, 1.3rem); }
   }
 
   /* ---------- Título grande "Mi material / de trabajo" + frase (aparecen

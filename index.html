@@ -202,7 +202,11 @@
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
       <div class="ba-card as-ba-card" data-ba>
-        <div class="ba-card-frame">
+        <!-- data-no-scene-drag: mientras se toca este recuadro para
+             comparar antes/después (arrastrando el tirador a un lado u
+             otro), NO debe dispararse a la vez el gesto de deslizar de
+             la historia -antes pasaban las dos cosas a la vez-. -->
+        <div class="ba-card-frame" data-no-scene-drag>
           <!-- Imagen oculta que solo sirve para que el recuadro herede la
                forma real de la foto (ver setFrameAspect en
                comparison-pairs.js y .ba-card-frame.has-photo en styles.css):
