@@ -890,102 +890,6 @@
     transform:translateY(0);
   }
 
-  /* ---------- Barra de progreso "por saltos" (sustituye a la barra de
-     scroll nativa dentro de Sobre mí / Ediciones) ----------
-     Un cápsula fija pegada al borde derecho, con un punto por cada
-     "parada" real de la pantalla (los elementos marcados con
-     data-scroll-stop en el HTML, ver js/subview-stops.js). Una rayita de
-     fondo conecta todos los puntos y otra, en naranja, la va rellenando
-     según se avanza -de golpe entre punto y punto, no de forma continua
-     como el scroll real: es justo el "por saltos" que se pidió, para que
-     de un vistazo se note en qué bloque de la pantalla se está, no solo
-     cuánto queda por bajar-. Se puede tocar cualquier punto para saltar
-     directamente a ese bloque. */
-  .subview-stops{
-    position:fixed;
-    top:50%;
-    right:12px;
-    transform:translateY(-50%);
-    z-index:180;
-    opacity:0;
-    pointer-events:none;
-    transition:opacity .35s ease;
-  }
-  .subview-stops.visible{
-    opacity:1;
-    pointer-events:auto;
-  }
-  .subview-stops-track{
-    position:relative;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:space-between;
-    gap:22px;
-    padding:16px 10px;
-    border-radius:999px;
-    background:rgba(255,255,255,0.6);
-    backdrop-filter:blur(8px);
-    -webkit-backdrop-filter:blur(8px);
-    box-shadow:0 10px 30px rgba(0,0,0,0.10);
-  }
-  .subview-stops-line,
-  .subview-stops-fill{
-    position:absolute;
-    left:50%;
-    top:16px;
-    bottom:16px;
-    width:3px;
-    transform:translateX(-50%);
-    border-radius:3px;
-  }
-  .subview-stops-line{
-    background:var(--dim);
-    opacity:0.22;
-  }
-  .subview-stops-fill{
-    height:0;
-    background:var(--accent);
-    transition:height .35s cubic-bezier(.4,0,.2,1);
-  }
-  .subview-stops-dot{
-    position:relative;
-    z-index:1;
-    width:9px;
-    height:9px;
-    border-radius:50%;
-    border:none;
-    padding:0;
-    background:var(--bg);
-    box-shadow:0 0 0 2px var(--dim);
-    opacity:0.55;
-    cursor:pointer;
-    transition:transform .25s ease, opacity .25s ease, box-shadow .25s ease;
-    /* La zona tocable es bastante más grande que el puntito visible, para
-       que sea cómodo de pulsar también en móvil sin que se vea enorme. */
-    outline-offset:6px;
-  }
-  .subview-stops-dot::before{
-    content:'';
-    position:absolute;
-    inset:-12px;
-  }
-  .subview-stops-dot.passed{
-    background:var(--accent);
-    box-shadow:0 0 0 2px var(--accent);
-    opacity:0.7;
-  }
-  .subview-stops-dot.active{
-    background:var(--accent);
-    box-shadow:0 0 0 2px var(--accent);
-    opacity:1;
-    transform:scale(1.35);
-  }
-  @media (max-width:640px){
-    .subview-stops{ right:8px; }
-    .subview-stops-track{ padding:12px 8px; gap:18px; }
-  }
-
   /* ---------- Vistas secundarias (Sobre mí / Ediciones) ---------- */
   .subview{
     position:fixed;
@@ -996,15 +900,7 @@
     -webkit-overflow-scrolling:touch;
     display:none;
     padding:0 0 80px;
-    /* La barra nativa del navegador la sustituye la nuestra (ver
-       .subview-stops más abajo): aquí simplemente se oculta, en Firefox
-       y en navegadores basados en WebKit/Blink. El scroll en sí sigue
-       funcionando exactamente igual -con rueda, gesto táctil o
-       teclado-, solo cambia lo que se ve. */
-    scrollbar-width:none;
-    -ms-overflow-style:none;
   }
-  .subview::-webkit-scrollbar{ display:none; width:0; height:0; }
   .subview.active{ display:block; }
   .subview-inner{
     max-width:720px;
