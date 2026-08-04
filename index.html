@@ -145,6 +145,21 @@
 
   <div class="menu-toast" id="menuToast">Estás en esta sección</div>
 
+  <!-- ---------- Barra de progreso "por saltos" ----------
+       Sustituye a la barra de scroll nativa del navegador dentro de las
+       vistas secundarias (Sobre mí / Ediciones): en vez de una rayita fina
+       que sube y baja sin más, marca los puntos/paradas reales de esa
+       pantalla (ver atributos data-scroll-stop repartidos por el HTML de
+       cada vista) y se puede tocar para saltar directamente a cada uno.
+       Los puntos se generan solos por JS -ver js/subview-stops.js-, así
+       que aquí solo hace falta la estructura vacía. -->
+  <nav class="subview-stops" id="subviewStops" aria-label="Progreso de la sección">
+    <div class="subview-stops-track" id="subviewStopsTrack">
+      <div class="subview-stops-line"></div>
+      <div class="subview-stops-fill" id="subviewStopsFill"></div>
+    </div>
+  </nav>
+
   <!-- ---------- Carrusel circular de cámaras (solo visible en el último fotograma) ----------
        Título y frase van dentro de UN mismo contenedor (equipo-header) en vez de ser dos
        elementos con position:fixed independientes con un top:% cada uno. Así, si el título
@@ -246,15 +261,15 @@
   <section class="subview" id="view-sobre-mi">
     <div class="subview-inner">
       <p class="subview-eyebrow">Sobre mí</p>
-      <h1>David</h1>
+      <h1 data-scroll-stop="David">David</h1>
       <p class="lead">Cámara en mano, ideas en marcha.</p>
 
-      <div class="about-collage" id="aboutCollage">
+      <div class="about-collage" id="aboutCollage" data-scroll-stop="Fotos">
         <div class="about-collage-grid" id="aboutCollageGrid"></div>
         <p class="about-collage-hint" id="aboutCollageHint">Estas son fotos de ejemplo. Sube las tuyas desde <button type="button" id="aboutCollageGoAjustes">Ajustes</button>.</p>
       </div>
 
-      <p id="aboutPara1">Soy David, filmmaker, editor de vídeo y fotógrafo de Córdoba. Transformo ideas en imágenes que conectan, buscando siempre el equilibrio entre creatividad, emoción y autenticidad.</p>
+      <p id="aboutPara1" data-scroll-stop="Historia">Soy David, filmmaker, editor de vídeo y fotógrafo de Córdoba. Transformo ideas en imágenes que conectan, buscando siempre el equilibrio entre creatividad, emoción y autenticidad.</p>
       <p id="aboutPara2">Llevo años detrás de la cámara contando historias: desde piezas de marca hasta momentos personales que merecen quedar bien contados. Cada proyecto empieza igual, escuchando qué se quiere transmitir antes de pensar en un solo plano.</p>
       <p id="aboutPara3">Trabajo tanto en el rodaje como en la edición, así que puedo acompañar un proyecto de principio a fin: guion, dirección, cámara, montaje y color.</p>
       <p style="color:var(--dim); font-style:italic;">— Este texto es un punto de partida. Puedes decirme qué quieres contar aquí y lo dejamos a tu medida.</p>
@@ -265,7 +280,7 @@
   <section class="subview" id="view-ediciones">
     <div class="subview-inner ediciones-inner">
 
-      <div class="ediciones-hero-head">
+      <div class="ediciones-hero-head" data-scroll-stop="Ediciones">
         <h1 class="ediciones-hero-title"><span class="hero-word-light">Mis</span> <span class="hero-word-accent">ediciones</span></h1>
         <div class="ediciones-hero-rule"></div>
         <p class="ediciones-hero-sub">TRANSFORMO IDEAS<br>EN <span class="accent-word">IMÁGENES</span>.</p>
@@ -283,7 +298,7 @@
            engancha solo, sin tocar nada de JS. -->
       <div class="ba-gallery" id="baGallery">
 
-        <div class="ba-card" data-ba>
+        <div class="ba-card" data-ba data-scroll-stop="Comparación 1">
           <div class="ba-card-frame">
             <div class="ba-card-before" style="background-image:linear-gradient(160deg,#4a5258,#1b2023 55%,#0a0c0d);"></div>
             <div class="ba-card-after-clip">
@@ -295,7 +310,7 @@
           </div>
         </div>
 
-        <div class="ba-card" data-ba>
+        <div class="ba-card" data-ba data-scroll-stop="Comparación 2">
           <div class="ba-card-frame">
             <div class="ba-card-before" style="background-image:linear-gradient(160deg,#3d3f45,#17181b 60%,#08090a);"></div>
             <div class="ba-card-after-clip">
@@ -307,7 +322,7 @@
           </div>
         </div>
 
-        <div class="ba-card" data-ba>
+        <div class="ba-card" data-ba data-scroll-stop="Comparación 3">
           <div class="ba-card-frame">
             <div class="ba-card-before" style="background-image:linear-gradient(160deg,#484440,#1c1a17 58%,#0a0908);"></div>
             <div class="ba-card-after-clip">
@@ -580,6 +595,9 @@
 <script src="js/scroll-engine.js"></script>
 
 <script src="js/view-navigation.js?v=2"></script>
+
+<!-- ---------- Barra de progreso "por saltos" de las vistas secundarias ---------- -->
+<script src="js/subview-stops.js"></script>
 
 <!-- ---------- Menú horizontal de pestañas dentro de Ajustes ---------- -->
 <script src="js/settings-tabs.js"></script>
