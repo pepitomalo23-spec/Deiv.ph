@@ -1017,14 +1017,13 @@
     return 1 - easeOutCubic(t);
   }
 
-  // El botón de menú (3 rayitas) solo debe verse una vez terminada la
-  // intro de fotogramas: se oculta mientras stepIndex todavía no ha
-  // llegado a la última parada (WAYPOINTS.length - 1), exactamente el
-  // mismo criterio que ya usa sceneHint ("desliza") para saber si el
-  // recorrido sigue en marcha.
+  // El botón de menú (3 rayitas) solo debe ocultarse en la 1ª posición
+  // (la intro real, antes de que el usuario haya deslizado nada por
+  // primera vez). En cuanto se llega a la 2ª posición -ya "dentro" de la
+  // web, aunque el recorrido de fotos continúe- vuelve a verse.
   function updateIntroMenuVisibility(){
     if (!menuToggleBtn) return;
-    menuToggleBtn.classList.toggle('intro-hidden', stepIndex < WAYPOINTS.length - 1);
+    menuToggleBtn.classList.toggle('intro-hidden', stepIndex === 0);
   }
 
   function updateCaptionAndHint(progress){
