@@ -2076,8 +2076,13 @@
        si por lo que sea la foto no llega a cargar. En cuanto hay una foto
        real, la clase .has-photo (más abajo) toma el control del tamaño. */
     aspect-ratio:4/3;
-    /* Recuadro mucho más grande: antes 200-420px (40vh de tope). */
-    max-height:clamp(240px, 52vh, 560px);
+    /* Tope de alto más generoso: cuanto más alto se le deja crecer, más
+       ancho puede llegar a ocupar una foto vertical antes de tocar ese
+       tope (aspect-ratio auto, ver .has-photo más abajo) -así aprovecha
+       el margen lateral que le sobraba en vez de quedarse pequeña. Una
+       foto horizontal nunca se sale de la pantalla pase lo que pase,
+       porque sigue topando primero con max-width:100% (ver .has-photo). */
+    max-height:clamp(260px, 66vh, 680px);
     border-radius:18px;
   }
   /* ---------- Envoltorio del recuadro: efecto "hay más fotos detrás"
@@ -2126,7 +2131,14 @@
     z-index:-2;
   }
   @media (max-width:480px){
-    .as-ba-gallery .ba-card-frame{ aspect-ratio:5/4; max-height:40vh; }
+    /* Mismo criterio en móvil: más alto de tope (antes 40vh, se quedaba
+       muy corto con fotos verticales) para que la foto crezca y use el
+       ancho que le sobraba, sin dejar de caber en la pantalla -sigue
+       habiendo hueco debajo para el título, la frase y las etiquetas
+       SIN EDITAR/EDITADA, que son las que fijan cuánto puede crecer
+       realmente el bloque en total (ver postEndMax en scroll-engine.js,
+       que se recalcula solo). */
+    .as-ba-gallery .ba-card-frame{ aspect-ratio:5/4; max-height:56vh; }
     .as-ba-photo-wrap::before,
     .as-ba-photo-wrap::after{ border-radius:14px; }
     .as-ba-photo-wrap::before{ transform:rotate(-3deg) translate(-7px, 7px); }
