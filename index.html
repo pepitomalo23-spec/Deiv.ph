@@ -232,21 +232,23 @@
                  crearComparador en before-after-card.js). -->
             <div class="ba-card-handle"><div class="ba-card-handle-grip" data-no-scene-drag><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 3 12 9 6"/><polyline points="15 6 21 12 15 18"/></svg></div></div>
           </div>
-          <!-- Flechas pequeñas, superpuestas sobre las esquinas inferiores
-               del propio recuadro (antes iban fuera, a los lados, con un
-               margen grande reservado solo para ellas). -->
+        </div>
+        <!-- Flechas + etiquetas fuera del recuadro, en la misma fila de pie
+             de foto: flechas en los extremos, etiquetas SIN EDITAR/EDITADA
+             en el centro. Antes las flechas iban superpuestas sobre las
+             esquinas inferiores de la propia foto -tapando parte de ella-;
+             ahora, igual que las etiquetas, viven fuera, sin tapar nada. -->
+        <div class="as-ba-footer">
           <button type="button" class="as-ba-nav as-ba-nav--prev" id="asBaPrev" aria-label="Comparación anterior">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
+          <div class="as-ba-labels">
+            <span class="ba-card-label ba-card-label--before">SIN EDITAR</span>
+            <span class="ba-card-label ba-card-label--after">EDITADA</span>
+          </div>
           <button type="button" class="as-ba-nav as-ba-nav--next" id="asBaNext" aria-label="Siguiente comparación">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
-        </div>
-        <!-- Etiquetas fuera del recuadro, como pie de foto debajo (el
-             contenedor de arriba recorta overflow:hidden). -->
-        <div class="as-ba-labels">
-          <span class="ba-card-label ba-card-label--before">SIN EDITAR</span>
-          <span class="ba-card-label ba-card-label--after">EDITADA</span>
         </div>
       </div>
     </div>

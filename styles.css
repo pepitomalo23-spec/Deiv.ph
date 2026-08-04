@@ -2066,11 +2066,10 @@
   .after-story-sub .as-accent-word{ color:var(--accent); }
 
   /* ---------- Comparador antes/después ----------
-     A partir de ahora las flechas (as-ba-nav) van SUPERPUESTAS sobre las
-     esquinas inferiores del propio recuadro (ver más abajo) en vez de
-     vivir fuera de él, así que este contenedor ya no necesita reservarles
-     un margen lateral grande: el recuadro puede aprovechar todo el ancho
-     disponible. */
+     Las flechas (as-ba-nav) viven fuera del recuadro, en la fila de pie
+     de foto (.as-ba-footer, junto a las etiquetas), así que este
+     contenedor no necesita reservarles ningún margen lateral: el
+     recuadro puede aprovechar todo el ancho disponible. */
   .as-ba-gallery{
     position:relative;
     width:100%;
@@ -2168,15 +2167,24 @@
   .as-ba-gallery .ba-card-handle{
     background:rgba(255,255,255,0.55);
   }
-  /* Etiquetas SIN EDITAR / EDITADA como pie de foto, fuera del recuadro:
-     una fila debajo, cada una alineada bajo su lado (izquierda/derecha)
-     igual que antes cuando iban superpuestas. */
-  .as-ba-labels{
+  /* ---------- Pie de foto: flechas + etiquetas ----------
+     Fila fuera del recuadro (el recuadro recorta overflow:hidden, así que
+     nada de esto puede vivir dentro sin quedar cortado): flechas en los
+     extremos, etiquetas SIN EDITAR/EDITADA centradas entre ambas. */
+  .as-ba-footer{
     display:flex;
-    justify-content:space-between;
     align-items:center;
+    justify-content:space-between;
+    gap:12px;
     width:100%;
     margin-top:12px;
+  }
+  .as-ba-labels{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+    flex:1;
   }
   /* Antes iban en texto plano y sin fondo (heredado de superponerlas
      encima de la foto, donde hacía falta que "pesaran" poco); ahora que
@@ -2227,39 +2235,29 @@
     pointer-events:none;
   }
   /* ---------- Flechas de navegación (siguiente/anterior pareja) ----------
-     Antes vivían FUERA del recuadro, a los lados, obligando a dejarles un
-     margen lateral grande (hasta 64px por lado) que en pantallas
-     estrechas restaba mucho ancho útil a la foto. Ahora son mucho más
-     pequeñas y van SUPERPUESTAS sobre las esquinas inferiores del propio
-     recuadro (como en la mayoría de comparadores de fotos), así el
-     recuadro puede ocupar todo el ancho disponible y las flechas dejan de
-     "quitar sitio". */
+     Viven FUERA del recuadro, como parte de la fila de pie de foto
+     (.as-ba-footer, junto a .as-ba-labels): así nunca tapan la foto -antes
+     iban superpuestas sobre sus esquinas inferiores-. Se mantienen
+     pequeñas y circulares, ahora simplemente en flujo normal en vez de
+     ancladas con position:absolute. */
   .as-ba-nav{
-    position:absolute;
-    top:auto;
-    bottom:10px;
-    transform:none;
+    flex:none;
     width:30px;
     height:30px;
     border-radius:50%;
-    border:1px solid rgba(255,255,255,0.28);
-    background:rgba(10,10,10,0.4);
-    -webkit-backdrop-filter:blur(6px);
-    backdrop-filter:blur(6px);
-    color:#ffffff;
+    border:1px solid rgba(17,17,17,0.16);
+    background:rgba(17,17,17,0.06);
+    color:var(--fg);
     display:flex;
     align-items:center;
     justify-content:center;
     cursor:pointer;
     padding:0;
-    z-index:2;
     transition:background .2s ease, transform .2s ease;
   }
   .as-ba-nav svg{ width:14px; height:14px; }
-  .as-ba-nav:hover{ background:rgba(10,10,10,0.6); }
+  .as-ba-nav:hover{ background:rgba(17,17,17,0.12); }
   .as-ba-nav:active{ transform:scale(0.92); }
-  .as-ba-nav--prev{ left:10px; }
-  .as-ba-nav--next{ right:10px; }
 
   /* ---------- "Descubre mi trabajo": fila de categorías ---------- */
   .as-discover{ width:100%; }
