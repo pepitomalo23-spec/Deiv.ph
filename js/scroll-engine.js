@@ -411,6 +411,40 @@
   // frenado-, en vez de ir perdiendo velocidad poco a poco al final.
   const POST_END_SPEED_PX = 40;
 
+  // ---- Cache de la altura real de #afterStoryHeader ----
+  // FIX DE RENDIMIENTO: postEndMax() se llama en CADA evento de rueda/touch
+  // y en CADA frame de la inercia final (ver más abajo) -es decir, decenas
+  // de veces por segundo mientras se desliza por la 3ª posición hacia
+  // abajo-. Antes, cada llamada leía "afterStoryHeaderEl.scrollHeight" al
+  // vuelo: leer ese valor obliga al navegador a recalcular el layout de
+  // toda la página en ese mismo instante (un "reflow forzado") porque
+  // scrollHeight solo puede saberse con el layout ya hecho. Repetir esa
+  // lectura decenas de veces por segundo, justo en la sección con más
+  // contenido de la página (comparador, categorías, galería), es un motivo
+  // muy directo de que el deslizamiento se notara a tirones ahí.
+  // Solución: medir solo cuando el tamaño REAL cambia de verdad (con
+  // ResizeObserver, que avisa de forma asíncrona, fuera del camino
+  // caliente del gesto) y, mientras tanto, reutilizar ese valor ya
+  // calculado. postEndMax() pasa a ser una simple lectura de variable, sin
+  // ningún coste de layout, por muchas veces que se llame por segundo.
+  let cachedHeaderHeight = 0;
+  if (afterStoryHeaderEl){
+    cachedHeaderHeight = afterStoryHeaderEl.scrollHeight;
+    if (typeof ResizeObserver === 'function'){
+      const headerResizeObserver = new ResizeObserver(() => {
+        cachedHeaderHeight = afterStoryHeaderEl.scrollHeight;
+      });
+      headerResizeObserver.observe(afterStoryHeaderEl);
+    } else {
+      // Sin ResizeObserver (navegador muy antiguo): al menos se
+      // actualiza al redimensionar la ventana, aunque no ante cambios de
+      // contenido (p.ej. la galería cargando fotos de la nube).
+      window.addEventListener('resize', () => {
+        cachedHeaderHeight = afterStoryHeaderEl.scrollHeight;
+      });
+    }
+  }
+
   function postEndMax(){
     const vh = window.innerHeight || (sceneWrap ? sceneWrap.clientHeight : 0) || 800;
     // Tope base: una pantalla completa (comportamiento de siempre, válido
@@ -426,15 +460,15 @@
     // por el borde inferior de la pantalla: se veía cortada sin remedio,
     // deslizara lo que deslizara el usuario.
     //
-    // Solución: medir en tiempo real (scrollHeight, se recalcula cada vez
-    // que se llama a esta función, así que ya tiene en cuenta la galería
-    // una vez la ha pintado CloudDB) cuánto necesita subir el bloque -que
-    // arranca en top:105vh, ver CSS de .after-story-header- para que su
-    // borde inferior quede, como mucho, pegado (con un pequeño margen) al
-    // borde inferior de la pantalla, y usar ese valor si es mayor que una
+    // Se usa la altura cacheada (ver cachedHeaderHeight arriba: se
+    // mantiene al día sola vía ResizeObserver, sin coste en este punto)
+    // para saber cuánto necesita subir el bloque -que arranca en
+    // top:105vh, ver CSS de .after-story-header- para que su borde
+    // inferior quede, como mucho, pegado (con un pequeño margen) al borde
+    // inferior de la pantalla, y usar ese valor si es mayor que una
     // pantalla completa.
     if (afterStoryHeaderEl){
-      const headerHeight = afterStoryHeaderEl.scrollHeight;
+      const headerHeight = cachedHeaderHeight;
       const startTop = vh * 1.05;   // 105vh en px, ver .after-story-header
       const bottomMargin = vh * 0.04; // pequeño respiro bajo la galería
       const requiredOffset = (startTop + headerHeight) - vh + bottomMargin;
