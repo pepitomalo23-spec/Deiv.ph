@@ -2055,9 +2055,11 @@
   .after-story-sub .as-accent-word{ color:var(--accent); }
 
   /* ---------- Comparador antes/después ----------
-     Deja un margen a cada lado (padding) para que las flechas de
-     navegación (as-ba-nav, para pasar a la siguiente pareja de fotos)
-     quepan FUERA del recuadro sin salirse del ancho del bloque. */
+     A partir de ahora las flechas (as-ba-nav) van SUPERPUESTAS sobre las
+     esquinas inferiores del propio recuadro (ver más abajo) en vez de
+     vivir fuera de él, así que este contenedor ya no necesita reservarles
+     un margen lateral grande: el recuadro puede aprovechar todo el ancho
+     disponible. */
   .as-ba-gallery{
     position:relative;
     width:100%;
@@ -2066,11 +2068,6 @@
        (ver más abajo) para que este margen extra tenga sitio real. */
     max-width:920px;
     margin:0 auto;
-    /* Más hueco a los lados según crece el recuadro, para que las flechas
-       (as-ba-nav, ancladas a left:0/right:0 de ESTE contenedor) queden
-       más pegadas a los bordes reales del bloque en vez de quedarse cerca
-       del centro. */
-    padding:0 clamp(40px, 10vw, 64px);
     pointer-events:auto;
   }
   .as-ba-gallery .ba-card-frame{
@@ -2083,8 +2080,57 @@
     max-height:clamp(240px, 52vh, 560px);
     border-radius:18px;
   }
+  /* ---------- Envoltorio del recuadro: efecto "hay más fotos detrás"
+     ----------
+     Se amolda exactamente al tamaño real de .ba-card-frame (mismo truco
+     que ya usa .has-photo: ver más abajo) y, como NO recorta su
+     contenido, dos fotos "fantasma" del mismo tamaño pueden asomar por
+     los bordes, giradas ligeramente a cada lado -como una pila de fotos
+     físicas apoyadas una sobre otra-. Mismo efecto que ya tenía la
+     galería de la página "Ediciones" del menú (.ba-gallery .ba-card, ver
+     más arriba); aquí faltaba aplicarlo a este comparador. Van DETRÁS
+     (z-index negativo) y no reaccionan al ratón/toque. */
+  .as-ba-photo-wrap{
+    position:relative;
+    isolation:isolate;
+    width:100%;
+  }
+  .as-ba-photo-wrap:has(.ba-card-frame.has-photo){
+    /* En cuanto hay una foto real, el recuadro pasa a tener su ancho
+       "de contenido" (has-photo, ver más abajo); este envoltorio se
+       amolda a ese mismo ancho para que las fotos fantasma coincidan
+       exactamente con el tamaño real del recuadro, no con el ancho
+       completo del contenedor. */
+    width:fit-content;
+    margin:0 auto;
+  }
+  .as-ba-photo-wrap::before,
+  .as-ba-photo-wrap::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    border-radius:18px;
+    background:linear-gradient(155deg, #2a2a2a, #131313 70%);
+    border:1px solid rgba(255,255,255,0.1);
+    box-shadow:0 14px 34px rgba(0,0,0,0.4);
+    z-index:-1;
+    pointer-events:none;
+  }
+  .as-ba-photo-wrap::before{
+    transform:rotate(-3.5deg) translate(-10px, 10px);
+    opacity:0.85;
+  }
+  .as-ba-photo-wrap::after{
+    transform:rotate(3.5deg) translate(10px, 12px);
+    opacity:0.65;
+    z-index:-2;
+  }
   @media (max-width:480px){
     .as-ba-gallery .ba-card-frame{ aspect-ratio:5/4; max-height:40vh; }
+    .as-ba-photo-wrap::before,
+    .as-ba-photo-wrap::after{ border-radius:14px; }
+    .as-ba-photo-wrap::before{ transform:rotate(-3deg) translate(-7px, 7px); }
+    .as-ba-photo-wrap::after{ transform:rotate(3deg) translate(7px, 9px); }
   }
   /* Tirador más disimulado en el comparador de "Mis ediciones": círculo
      más pequeño, más transparente y con menos sombra que el estándar
@@ -2145,29 +2191,40 @@
     visibility:hidden;
     pointer-events:none;
   }
+  /* ---------- Flechas de navegación (siguiente/anterior pareja) ----------
+     Antes vivían FUERA del recuadro, a los lados, obligando a dejarles un
+     margen lateral grande (hasta 64px por lado) que en pantallas
+     estrechas restaba mucho ancho útil a la foto. Ahora son mucho más
+     pequeñas y van SUPERPUESTAS sobre las esquinas inferiores del propio
+     recuadro (como en la mayoría de comparadores de fotos), así el
+     recuadro puede ocupar todo el ancho disponible y las flechas dejan de
+     "quitar sitio". */
   .as-ba-nav{
     position:absolute;
-    top:50%;
-    transform:translateY(-50%);
-    width:clamp(30px, 7vw, 38px);
-    height:clamp(30px, 7vw, 38px);
+    top:auto;
+    bottom:10px;
+    transform:none;
+    width:30px;
+    height:30px;
     border-radius:50%;
-    border:1px solid rgba(17,17,17,0.15);
-    background:rgba(17,17,17,0.05);
+    border:1px solid rgba(255,255,255,0.28);
+    background:rgba(10,10,10,0.4);
     -webkit-backdrop-filter:blur(6px);
     backdrop-filter:blur(6px);
-    color:#111111;
+    color:#ffffff;
     display:flex;
     align-items:center;
     justify-content:center;
     cursor:pointer;
     padding:0;
+    z-index:2;
     transition:background .2s ease, transform .2s ease;
   }
-  .as-ba-nav:hover{ background:rgba(17,17,17,0.1); }
-  .as-ba-nav:active{ transform:translateY(-50%) scale(0.92); }
-  .as-ba-nav--prev{ left:0; }
-  .as-ba-nav--next{ right:0; }
+  .as-ba-nav svg{ width:14px; height:14px; }
+  .as-ba-nav:hover{ background:rgba(10,10,10,0.6); }
+  .as-ba-nav:active{ transform:scale(0.92); }
+  .as-ba-nav--prev{ left:10px; }
+  .as-ba-nav--next{ right:10px; }
 
   /* ---------- "Descubre mi trabajo": fila de categorías ---------- */
   .as-discover{ width:100%; }
