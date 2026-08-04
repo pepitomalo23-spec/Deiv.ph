@@ -84,6 +84,18 @@
     viewAjustes.classList.toggle('active', view === 'ajustes');
 
     if (!showingResumen) window.scrollTo(0, 0);
+    // FIX: cada .subview (Ediciones, Sobre mí, Ajustes) tiene su PROPIO
+    // scroll interno (overflow-y:auto), independiente del scroll de la
+    // página (window). Como el panel no se destruye al cerrarlo -solo se
+    // le pone display:none-, su scrollTop se queda tal cual estaba la
+    // última vez que se vio. Sin este reset, reabrir "Ediciones" después
+    // de haber bajado para ver el recuadro comparador la reabre A MITAD
+    // DE SCROLL: el título sale cortado arriba y el resto del contenido
+    // (subtítulo, recuadro) queda fuera de esa primera pantalla, dando la
+    // sensación de que "no carga nada" aunque en realidad solo está mal
+    // posicionada. Reseteamos el scrollTop de las 3 subvistas siempre que
+    // cambiamos de vista, así cada una se abre SIEMPRE desde arriba.
+    [viewSobreMi, viewEdiciones, viewAjustes].forEach(el => { if (el) el.scrollTop = 0; });
     if (!showingResumen && typeof window.__resetWhiteEnd === 'function') window.__resetWhiteEnd();
 
     // Al volver a mostrar la escena, nos aseguramos de que el canvas tenga
