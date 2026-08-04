@@ -1017,15 +1017,6 @@
     return 1 - easeOutCubic(t);
   }
 
-  // El botón de menú (3 rayitas) solo debe ocultarse en la 1ª posición
-  // (la intro real, antes de que el usuario haya deslizado nada por
-  // primera vez). En cuanto se llega a la 2ª posición -ya "dentro" de la
-  // web, aunque el recorrido de fotos continúe- vuelve a verse.
-  function updateIntroMenuVisibility(){
-    if (!menuToggleBtn) return;
-    menuToggleBtn.classList.toggle('intro-hidden', stepIndex === 0);
-  }
-
   function updateCaptionAndHint(progress){
     // progress: 0..1 a lo largo del tramo 0↔1 (0 = parada portada, texto
     // visible; 1 = parada 1, texto invisible). Si no se indica -fuera del
@@ -1179,7 +1170,6 @@
         // el aviso de "desliza" se muestra en cualquier parada que no sea la
         // última, para invitar a seguir deslizando
         sceneHint.classList.toggle('visible', stepIndex < WAYPOINTS.length - 1);
-        updateIntroMenuVisibility();
         updateEndOfPathUI();
 
         // Si durante esta animación llegó otro gesto (deslizar rápido), se
@@ -1309,7 +1299,6 @@
         updateCaptionAndHint();
         animating = false;
         sceneHint.classList.toggle('visible', stepIndex < WAYPOINTS.length - 1);
-        updateIntroMenuVisibility();
         updateEndOfPathUI();
         if (pendingDir !== 0){
           const dir = pendingDir;
@@ -1769,7 +1758,6 @@
     updateCaptionAndHint();
     fitBodyCaption();
     sceneHint.classList.add('visible');
-    updateIntroMenuVisibility();
     recomputeProgressSpan();
     updateEndOfPathUI();
     pushStep1Amount(stepIndex === 1 ? 1 : 0);
@@ -1785,6 +1773,11 @@
     waitForSiteAssets().then(() => {
       if (loaderSpinner) loaderSpinner.classList.remove('is-visible');
       loader.style.opacity = '0';
+      // La hamburguesa se mantenía oculta durante toda la pantalla de
+      // carga (ver clase inicial "intro-hidden" en el HTML); en cuanto
+      // esa pantalla empieza a desvanecerse, ya estamos "dentro" de la
+      // web propiamente dicha, así que se muestra.
+      if (menuToggleBtn) menuToggleBtn.classList.remove('intro-hidden');
       setTimeout(() => { loader.style.display = 'none'; }, 500);
     });
   });
