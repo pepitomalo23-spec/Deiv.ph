@@ -240,4 +240,21 @@
 
   renderAboutCollage();
   renderAjustesCollageGrid();
+
+  // ---- Pantalla de entrada: que espere también a estas fotos ----
+  // Igual que hace el carrusel de cámaras y la primera pareja del
+  // comparador (ver camera-carousel.js / comparison-pairs.js): si no se
+  // espera aquí, estas fotos solo empiezan a descargarse cuando el
+  // visitante entra por primera vez en "Sobre mí", y como son varias a
+  // la vez (hasta 6), la carga se nota mucho más que en el resto de
+  // pantallas -justo el fallo que se seguía viendo-. Se preparan TODAS,
+  // no solo la primera, porque el collage entero se muestra de golpe en
+  // cuanto se abre esa vista.
+  if (typeof registerAssetReady === 'function'){
+    const readyForCollage = (window.CloudDB ? window.CloudDB.ready : Promise.resolve())
+      .then(() => (typeof preloadImages === 'function')
+        ? preloadImages(loadImages().map(item => item.img))
+        : null);
+    registerAssetReady(readyForCollage);
+  }
 })();

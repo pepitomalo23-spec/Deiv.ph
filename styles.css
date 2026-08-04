@@ -784,6 +784,17 @@
     gap:5px;
     cursor:pointer;
     padding:0;
+    opacity:1;
+    transition:opacity .35s ease;
+  }
+  /* Mientras se está reproduciendo la intro de fotogramas (todavía no se
+     ha llegado a la última parada del recorrido, ver stepIndex en
+     scroll-engine.js) el botón de menú se oculta: no tiene sentido poder
+     abrir el menú a mitad de la intro. En cuanto se llega a esa última
+     parada (ya "dentro" de la web) vuelve a aparecer. */
+  .menu-toggle.intro-hidden{
+    opacity:0;
+    pointer-events:none;
   }
   .menu-toggle span{
     display:block;

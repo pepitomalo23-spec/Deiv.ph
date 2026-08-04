@@ -6,6 +6,7 @@
   const loaderFill = document.getElementById('loaderFill');
   const loaderSpinner = document.getElementById('loaderSpinner');
   const sceneHint = document.getElementById('sceneHint');
+  const menuToggleBtn = document.getElementById('menuToggle');
   const sceneProgress = document.getElementById('sceneProgress');
   const themeColorMeta = document.getElementById('themeColorMeta');
   const sceneTitle = document.getElementById('sceneTitle');
@@ -1016,6 +1017,16 @@
     return 1 - easeOutCubic(t);
   }
 
+  // El botón de menú (3 rayitas) solo debe verse una vez terminada la
+  // intro de fotogramas: se oculta mientras stepIndex todavía no ha
+  // llegado a la última parada (WAYPOINTS.length - 1), exactamente el
+  // mismo criterio que ya usa sceneHint ("desliza") para saber si el
+  // recorrido sigue en marcha.
+  function updateIntroMenuVisibility(){
+    if (!menuToggleBtn) return;
+    menuToggleBtn.classList.toggle('intro-hidden', stepIndex < WAYPOINTS.length - 1);
+  }
+
   function updateCaptionAndHint(progress){
     // progress: 0..1 a lo largo del tramo 0↔1 (0 = parada portada, texto
     // visible; 1 = parada 1, texto invisible). Si no se indica -fuera del
@@ -1169,6 +1180,7 @@
         // el aviso de "desliza" se muestra en cualquier parada que no sea la
         // última, para invitar a seguir deslizando
         sceneHint.classList.toggle('visible', stepIndex < WAYPOINTS.length - 1);
+        updateIntroMenuVisibility();
         updateEndOfPathUI();
 
         // Si durante esta animación llegó otro gesto (deslizar rápido), se
@@ -1298,6 +1310,7 @@
         updateCaptionAndHint();
         animating = false;
         sceneHint.classList.toggle('visible', stepIndex < WAYPOINTS.length - 1);
+        updateIntroMenuVisibility();
         updateEndOfPathUI();
         if (pendingDir !== 0){
           const dir = pendingDir;
@@ -1757,6 +1770,7 @@
     updateCaptionAndHint();
     fitBodyCaption();
     sceneHint.classList.add('visible');
+    updateIntroMenuVisibility();
     recomputeProgressSpan();
     updateEndOfPathUI();
     pushStep1Amount(stepIndex === 1 ? 1 : 0);

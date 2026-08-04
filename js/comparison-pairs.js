@@ -628,20 +628,23 @@
     fillExpandEditor();
   }
 
-  // ---- Pantalla de entrada: que espere a esta foto ----
-  // La pareja que se ve nada más entrar (currentPairs[0]) es la que
-  // importa para no dejar el recuadro en blanco: se espera a que llegue
-  // el contenido de la nube (o de inmediato si no hay CloudDB) y, ya con
-  // las URLs reales, a que esas dos fotos concretas terminen de
-  // descargarse. Ver waitForSiteAssets() en scroll-engine.js.
+  // ---- Pantalla de entrada: que espere a estas fotos ----
+  // Antes solo se esperaba a la pareja que se ve nada más entrar
+  // (currentPairs[0]), así que en cuanto se abría "Mis ediciones" el
+  // resto -la segunda pareja del comparador y, sobre todo, las 5 fotos
+  // de la galería que se expande, que se ven TODAS a la vez en la
+  // rejilla- seguían sin descargar y tardaban de más, el fallo que se
+  // seguía viendo. Ahora se espera a todo el contenido de esta pantalla,
+  // igual que ya hace el carrusel de cámaras con las suyas.
   if (typeof registerAssetReady === 'function'){
-    const readyForFirstPair = (window.CloudDB ? window.CloudDB.ready : Promise.resolve())
+    const readyForEdiciones = (window.CloudDB ? window.CloudDB.ready : Promise.resolve())
       .then(() => {
         if (typeof preloadImages !== 'function') return null;
-        const p = currentPairs[0] || {};
         const optimize = (u) => (u && typeof optimizeCloudinaryUrl === 'function') ? optimizeCloudinaryUrl(u, BA_CARD_IMAGE_WIDTH) : u;
-        return preloadImages([optimize(p.before), optimize(p.after)]);
+        const pairUrls = currentPairs.reduce((acc, p) => acc.concat([optimize(p.before), optimize(p.after)]), []);
+        const expandUrls = currentExpand.map(c => c.img);
+        return preloadImages(pairUrls.concat(expandUrls));
       });
-    registerAssetReady(readyForFirstPair);
+    registerAssetReady(readyForEdiciones);
   }
 })();
