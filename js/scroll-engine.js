@@ -1287,13 +1287,22 @@
     // Misma cantidad (0 = fuera del tramo de la 2ª posición, 1 = asentado
     // en ella) también gobierna el aclarado del fotograma en drawCover, así
     // ambos efectos -recuadro Antes/Después y brillo de la foto- quedan
-    // perfectamente sincronizados sin recalcular nada por separado.
-    photoBrightAmount = amount;
+    // sincronizados. A diferencia del recuadro (que sí sigue "amount" tal
+    // cual, de forma lineal), el brillo NO debe notarse durante todo el
+    // trayecto: solo tiene que encenderse cuando ya se ha llegado "mucho"
+    // -bien asentado en la 2ª posición-, así que se remapea con un umbral:
+    // por debajo de PHOTO_BRIGHTEN_START no hay brillo en absoluto, y de
+    // ahí a 1 sube rápido hasta el máximo.
+    const raw = Math.max(0, amount - PHOTO_BRIGHTEN_START) / (1 - PHOTO_BRIGHTEN_START);
+    photoBrightAmount = Math.min(1, raw);
     if (typeof window.__setStep1Amount === 'function') window.__setStep1Amount(amount);
   }
-  // Cuánto se aclara la foto como máximo al estar asentado del todo en la
-  // 2ª posición (0.22 = +22% de brillo). Se mantiene sutil a propósito.
-  const PHOTO_BRIGHTEN_MAX = 0.22;
+  // A partir de qué "cercanía" a la 2ª posición (0..1) empieza a encenderse
+  // el brillo: 0.7 = solo en el último 30% del trayecto de llegada/salida.
+  const PHOTO_BRIGHTEN_START = 0.7;
+  // Cuánto se aclara la foto como máximo, ya asentado del todo en la
+  // 2ª posición (0.4 = +40% de brillo). Subido porque con 0.22 no se notaba.
+  const PHOTO_BRIGHTEN_MAX = 0.4;
 
   // Difumina rápido el bloque "Proyectos" (ahora en la 2ª posición, no la
   // 1ª) en cuanto se nota intención de deslizar hacia la 3ª parada, mucho
