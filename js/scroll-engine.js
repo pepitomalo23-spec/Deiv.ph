@@ -338,7 +338,17 @@
       dy = ch - dh;
     }
     ctx.globalAlpha = alpha;
+    // Aclarado del fotograma en la 2ª posición: reutiliza photoBrightAmount
+    // (misma proximidad 0→1 a la parada 1 que ya alimenta el recuadro
+    // Antes/Después, ver step1AmountFromAxis/pushStep1Amount más abajo), así
+    // que el aclarado avanza y retrocede exactamente al mismo ritmo del
+    // gesto, y solo existe en el tramo que toca la 2ª posición -en cualquier
+    // otro tramo photoBrightAmount vale 0 y el filtro no llega a notarse-.
+    if (photoBrightAmount > 0){
+      ctx.filter = `brightness(${1 + photoBrightAmount * PHOTO_BRIGHTEN_MAX})`;
+    }
     ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+    if (photoBrightAmount > 0) ctx.filter = 'none';
     ctx.globalAlpha = 1;
 
     // Se expone dónde ha quedado dibujada la foto en pantalla (en tablet/
@@ -352,6 +362,7 @@
   }
 
   let currentFrameExact = 0; // frame realmente dibujado (unidades de índice de frame, no fracción)
+  let photoBrightAmount = 0; // 0..1: cuánto se aclara el fotograma; solo >0 en el tramo de la 2ª posición (ver pushStep1Amount)
   let animating = false;     // mientras es true, un gesto nuevo no interrumpe el salto en curso...
   let pendingDir = 0;        // ...pero SÍ se guarda aquí (-1 / 0 / +1) para dispararse solo en cuanto termine.
                              // Antes, deslizar rápido (nuevo gesto llegando durante la animación) hacía que
@@ -1273,8 +1284,16 @@
     return 0;                          // este tramo no toca la parada 1
   }
   function pushStep1Amount(amount){
+    // Misma cantidad (0 = fuera del tramo de la 2ª posición, 1 = asentado
+    // en ella) también gobierna el aclarado del fotograma en drawCover, así
+    // ambos efectos -recuadro Antes/Después y brillo de la foto- quedan
+    // perfectamente sincronizados sin recalcular nada por separado.
+    photoBrightAmount = amount;
     if (typeof window.__setStep1Amount === 'function') window.__setStep1Amount(amount);
   }
+  // Cuánto se aclara la foto como máximo al estar asentado del todo en la
+  // 2ª posición (0.22 = +22% de brillo). Se mantiene sutil a propósito.
+  const PHOTO_BRIGHTEN_MAX = 0.22;
 
   // Difumina rápido el bloque "Proyectos" (ahora en la 2ª posición, no la
   // 1ª) en cuanto se nota intención de deslizar hacia la 3ª parada, mucho
