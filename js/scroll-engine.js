@@ -1219,7 +1219,7 @@
         // el aviso de "desliza" se muestra en cualquier parada que no sea la
         // última, para invitar a seguir deslizando
         sceneHint.classList.toggle('visible', stepIndex < WAYPOINTS.length - 1);
-        if (proyectosHeaderEl) proyectosHeaderEl.classList.toggle('visible', stepIndex === 0);
+        if (proyectosHeaderEl) proyectosHeaderEl.classList.toggle('visible', stepIndex === 1); // Proyectos ahora en la 2ª posición, no la 1ª
         updateEndOfPathUI();
 
         // Si durante esta animación llegó otro gesto (deslizar rápido), se
@@ -1276,14 +1276,15 @@
     if (typeof window.__setStep1Amount === 'function') window.__setStep1Amount(amount);
   }
 
-  // Difumina rápido el bloque "Proyectos" (1ª posición) en cuanto se nota
-  // intención de deslizar hacia la 2ª parada, mucho antes de llegar a
-  // ella -no un fundido lento que dura todo el trayecto-. "low" es la
-  // parada más baja del tramo (0 o 1 según se venga o se vaya) y "p" el
-  // progreso 0→1 a lo largo de ese mismo eje (mismo significado que
-  // localP en applySegmentProgress y que "p" en el step() de jumpTo).
+  // Difumina rápido el bloque "Proyectos" (ahora en la 2ª posición, no la
+  // 1ª) en cuanto se nota intención de deslizar hacia la 3ª parada, mucho
+  // antes de llegar a ella -no un fundido lento que dura todo el
+  // trayecto-. "low" es la parada más baja del tramo (1 o 2 según se
+  // venga o se vaya) y "p" el progreso 0→1 a lo largo de ese mismo eje
+  // (mismo significado que localP en applySegmentProgress y que "p" en el
+  // step() de jumpTo).
   function updateProyectosFade(low, p){
-    if (!proyectosHeaderEl || low !== 0) return;
+    if (!proyectosHeaderEl || low !== 1) return;
     const fastP = Math.min(1, p * 3.5);
     proyectosHeaderEl.style.opacity = String(1 - fastP);
   }
@@ -1362,7 +1363,7 @@
         updateCaptionAndHint();
         animating = false;
         sceneHint.classList.toggle('visible', stepIndex < WAYPOINTS.length - 1);
-        if (proyectosHeaderEl) proyectosHeaderEl.classList.toggle('visible', stepIndex === 0);
+        if (proyectosHeaderEl) proyectosHeaderEl.classList.toggle('visible', stepIndex === 1); // Proyectos ahora en la 2ª posición, no la 1ª
         updateEndOfPathUI();
         if (pendingDir !== 0){
           const dir = pendingDir;
@@ -1829,7 +1830,9 @@
     updateCaptionAndHint();
     fitBodyCaption();
     sceneHint.classList.add('visible');
-    if (proyectosHeaderEl) proyectosHeaderEl.classList.add('visible');
+    // Proyectos vive ahora en la 2ª posición (stepIndex === 1), no en la
+    // 1ª: al cargar la página (stepIndex arranca en 0) no debe estar
+    // visible todavía.
     recomputeProgressSpan();
     updateEndOfPathUI();
     pushStep1Amount(stepIndex === 1 ? 1 : 0);
