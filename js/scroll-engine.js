@@ -1199,8 +1199,9 @@
       // "p" aquí ya es el progreso a lo largo del eje baja→alta parada
       // (igual que localP en applySegmentProgress), así que sirve tal
       // cual para el mismo cálculo de difuminado del recuadro Antes/Después.
-      pushStep1Amount(step1AmountFromAxis(low, high, p));
-      updateProyectosFade(low, p);
+      const step1AmtJ = step1AmountFromAxis(low, high, p);
+      pushStep1Amount(step1AmtJ);
+      updateProyectosFade(step1AmtJ);
 
       if (t < 1){
         requestAnimationFrame(step);
@@ -1306,17 +1307,18 @@
   // 2ª posición (0.4 = +40% de brillo). Subido porque con 0.22 no se notaba.
   const PHOTO_BRIGHTEN_MAX = 0.4;
 
-  // Difumina rápido el bloque "Proyectos" (ahora en la 2ª posición, no la
-  // 1ª) en cuanto se nota intención de deslizar hacia la 3ª parada, mucho
-  // antes de llegar a ella -no un fundido lento que dura todo el
-  // trayecto-. "low" es la parada más baja del tramo (1 o 2 según se
-  // venga o se vaya) y "p" el progreso 0→1 a lo largo de ese mismo eje
-  // (mismo significado que localP en applySegmentProgress y que "p" en el
-  // step() de jumpTo).
-  function updateProyectosFade(low, p){
-    if (!proyectosHeaderEl || low !== 1) return;
-    const fastP = Math.min(1, p * 3.5);
-    proyectosHeaderEl.style.opacity = String(1 - fastP);
+  // Muestra/oculta rápido el bloque "Proyectos" (2ª posición): en vez de un
+  // fundido lento que dura todo el trayecto entre paradas, solo aparece de
+  // verdad en el último tramo -muy cerca de la 2ª posición- y desaparece
+  // igual de rápido en cuanto se nota intención de irse hacia cualquier
+  // lado (1ª o 3ª parada). "amount" es la misma cercanía 0→1 a la parada 1
+  // que ya calcula step1AmountFromAxis (0 = lejos, en cualquier dirección;
+  // 1 = asentado del todo en la 2ª posición), así que un único número basta
+  // para cubrir ambos lados del tramo sin lógica separada para cada uno.
+  function updateProyectosFade(amount){
+    if (!proyectosHeaderEl) return;
+    const fastAmt = Math.min(1, amount * 3.5);
+    proyectosHeaderEl.style.opacity = String(fastAmt);
   }
 
   function applySegmentProgress(fromStep, toStep, p){
@@ -1330,7 +1332,7 @@
     updateProgressTrack(fromStep + (toStep - fromStep) * p);
     syncRealScrollForStepPosition(fromStep + (toStep - fromStep) * p);
     pushStep1Amount(step1AmountFromAxis(low, high, localP));
-    updateProyectosFade(low, localP);
+    updateProyectosFade(step1AmountFromAxis(low, high, localP));
   }
 
   // Termina, animado, el tramo que ya se venía arrastrando: sigue desde
@@ -1866,6 +1868,7 @@
     recomputeProgressSpan();
     updateEndOfPathUI();
     pushStep1Amount(stepIndex === 1 ? 1 : 0);
+    updateProyectosFade(stepIndex === 1 ? 1 : 0);
     setPageBgColor(PAGE_BG_WHITE);
 
     // La intro ya terminó y se ha quedado congelada en su último
