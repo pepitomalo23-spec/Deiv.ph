@@ -1,5 +1,5 @@
 :root{
-    --bg:#ffffff;
+    --bg:#000000;
     --fg:#111111;
     --accent:#ff5a1f;
     --dim:#6b6b66;
@@ -312,7 +312,11 @@
        claramente por debajo de .scene-wrap (z-index:2) y por encima del
        fondo de la página, que es justo el orden que necesitamos. */
     z-index:1;
-    background:#ffffff;
+    /* PRUEBA DIAGNÓSTICA: era #ffffff (blanco). Lo pasamos a negro
+       temporalmente para confirmar visualmente que ESTE es el panel
+       responsable del "recuadro blanco" que aparece detrás de la barra
+       de Safari. Si se confirma, el siguiente paso es transparent. */
+    background:#000000;
     /* Misma capa GPU estable que .scene-wrap (ver ahí el porqué): así la
        costura entre ambas nunca se recompone con un subpíxel de más o de
        menos de un frame a otro. */
