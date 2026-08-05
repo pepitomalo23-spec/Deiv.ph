@@ -1302,19 +1302,22 @@
   const PHOTO_BRIGHTEN_MAX = 0.4;
 
   // Muestra/oculta rápido el bloque "Proyectos" (2ª posición): en vez de un
-  // fundido lento que dura todo el trayecto entre paradas, solo aparece de
-  // verdad muy cerca de la 2ª posición y desaparece mucho antes -en cuanto
-  // se nota la más mínima intención de irse hacia cualquier lado (1ª o 3ª
-  // parada)-. "amount" es la misma cercanía 0→1 a la parada 1 que ya
+  // fundido lento que dura todo el trayecto entre paradas, se apaga poco a
+  // poco (nunca de golpe) pero completamente ANTES de llegar a la parada
+  // vecina -así nunca llega a verse ni un poco en la 1ª ni en la 3ª
+  // posición-. "amount" es la misma cercanía 0→1 a la parada 1 que ya
   // calcula step1AmountFromAxis (0 = lejos, en cualquier dirección; 1 =
-  // asentado del todo en la 2ª posición); el factor alto (8) concentra
-  // toda la aparición/desaparición en un tramo muy estrecho, justo
-  // pegado a la parada, así que un único número basta para cubrir ambos
-  // lados sin lógica separada para cada uno.
+  // asentado del todo en la 2ª posición). PROYECTOS_FADE_WINDOW controla lo
+  // ancho de esa zona de fundido (0.35 = el último/primer 35% del trayecto
+  // hacia cada lado); dentro de esa zona se aplica un "smoothstep" en vez
+  // de una rampa lineal, para que el fundido se note gradual y no como un
+  // corte seco.
+  const PROYECTOS_FADE_WINDOW = 0.35;
   function updateProyectosFade(amount){
     if (!proyectosHeaderEl) return;
-    const fastAmt = Math.min(1, amount * 8);
-    proyectosHeaderEl.style.opacity = String(fastAmt);
+    const t = Math.min(1, amount / PROYECTOS_FADE_WINDOW);
+    const smooth = t * t * (3 - 2 * t); // smoothstep: gradual en los dos extremos
+    proyectosHeaderEl.style.opacity = String(smooth);
   }
 
   function applySegmentProgress(fromStep, toStep, p){
