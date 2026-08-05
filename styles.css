@@ -1808,7 +1808,12 @@
        #asExpandWrap (ver .as-expand más abajo, pointer-events:auto)
        vuelve a aceptar toques, para poder tocar las tarjetas. */
     pointer-events:none;
-    transition:opacity .2s ease;
+    /* SIN transition en opacity: el propio JS (updateProyectosFade, ver
+       scroll-engine.js) ya recalcula y fija la opacidad en cada fotograma
+       de la animación con su propia curva rápida; una transición CSS
+       encima de eso perseguía un valor que cambia 60 veces por segundo y
+       el resultado era un desaparecer visiblemente más lento de lo que
+       marca esa curva. */
   }
   .proyectos-header.visible{ opacity:1; }
   /* Solo el texto, sin plaquita/recuadro detrás: cursiva serif (mismo
