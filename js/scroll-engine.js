@@ -338,17 +338,19 @@
       dy = ch - dh;
     }
     ctx.globalAlpha = alpha;
-    // Aclarado del fotograma en la 2ª posición: reutiliza photoBrightAmount
-    // (misma proximidad 0→1 a la parada 1 que ya alimenta el recuadro
-    // Antes/Después, ver step1AmountFromAxis/pushStep1Amount más abajo), así
-    // que el aclarado avanza y retrocede exactamente al mismo ritmo del
-    // gesto, y solo existe en el tramo que toca la 2ª posición -en cualquier
-    // otro tramo photoBrightAmount vale 0 y el filtro no llega a notarse-.
-    if (photoBrightAmount > 0){
-      ctx.filter = `brightness(${1 + photoBrightAmount * PHOTO_BRIGHTEN_MAX})`;
-    }
     ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
-    if (photoBrightAmount > 0) ctx.filter = 'none';
+    // Aclarado del fotograma en la 2ª posición: en vez de ctx.filter (poco
+    // fiable en iOS/Safari -en muchos dispositivos no hace absolutamente
+    // nada-), se superpone un velo blanco semitransparente justo encima de
+    // la foto ya dibujada (mismo rectángulo dx/dy/dw/dh). Esto sí funciona
+    // igual en todos los navegadores, sin depender de soporte de filtros.
+    // photoBrightAmount (0..1) es la misma proximidad a la parada 1 que ya
+    // alimenta el recuadro Antes/Después (ver pushStep1Amount más abajo).
+    if (photoBrightAmount > 0){
+      ctx.globalAlpha = alpha * photoBrightAmount * PHOTO_BRIGHTEN_MAX;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(dx, dy, dw, dh);
+    }
     ctx.globalAlpha = 1;
 
     // Se expone dónde ha quedado dibujada la foto en pantalla (en tablet/
