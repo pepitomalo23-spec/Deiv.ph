@@ -2253,24 +2253,41 @@
     gap:10px;
     flex:1;
   }
-  /* Antes iban en texto plano y sin fondo (heredado de superponerlas
-     encima de la foto, donde hacía falta que "pesaran" poco); ahora que
-     viven fuera, como una fila de pie de foto, pasan a ser dos pastillas
-     rellenas -"SIN EDITAR" en oscuro neutro, "EDITADA" en el color de
-     acento de la web- para que se lean mejor y queden más resultonas. */
+  /* Ahora sin recuadro/pastilla: solo texto, con una micro-marca de color a
+     la izquierda (un guioncito) que diferencia "sin editar" (gris neutro)
+     de "editada" (color de acento) de un vistazo, sin necesitar ningún
+     fondo -más limpio y ligero que la pastilla rellena anterior-. */
   .as-ba-labels .ba-card-label{
     position:static;
+    background:none;
     backdrop-filter:none;
     -webkit-backdrop-filter:none;
-    padding:7px 16px;
-    border-radius:20px;
-    color:#ffffff;
-    box-shadow:0 4px 12px rgba(0,0,0,0.12);
+    padding:0;
+    border-radius:0;
+    box-shadow:none;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    font-size:0.68rem;
+    font-weight:600;
+    letter-spacing:0.12em;
+  }
+  .as-ba-labels .ba-card-label::before{
+    content:'';
+    width:11px;
+    height:1.5px;
+    flex:none;
   }
   .as-ba-labels .ba-card-label--before{
-    background:rgba(17,17,17,0.78);
+    color:var(--dim);
+  }
+  .as-ba-labels .ba-card-label--before::before{
+    background:var(--dim);
   }
   .as-ba-labels .ba-card-label--after{
+    color:var(--accent);
+  }
+  .as-ba-labels .ba-card-label--after::before{
     background:var(--accent);
   }
   /* FIX: antes la forma real de la foto se calculaba a mano en JS
