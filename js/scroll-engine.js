@@ -338,7 +338,17 @@
       dy = ch - dh;
     }
     ctx.globalAlpha = alpha;
+    // Aclarado del fotograma en la 2ª posición: reutiliza photoBrightAmount
+    // (misma proximidad 0→1 a la parada 1 que ya alimenta el recuadro
+    // Antes/Después, ver step1AmountFromAxis/pushStep1Amount más abajo), así
+    // que el aclarado avanza y retrocede exactamente al mismo ritmo del
+    // gesto, y solo existe en el tramo que toca la 2ª posición -en cualquier
+    // otro tramo photoBrightAmount vale 0 y el filtro no llega a notarse-.
+    if (photoBrightAmount > 0){
+      ctx.filter = `brightness(${1 + photoBrightAmount * PHOTO_BRIGHTEN_MAX})`;
+    }
     ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+    if (photoBrightAmount > 0) ctx.filter = 'none';
     ctx.globalAlpha = 1;
 
     // Se expone dónde ha quedado dibujada la foto en pantalla (en tablet/
@@ -352,6 +362,7 @@
   }
 
   let currentFrameExact = 0; // frame realmente dibujado (unidades de índice de frame, no fracción)
+  let photoBrightAmount = 0; // 0..1: cuánto se aclara el fotograma; solo >0 en el tramo de la 2ª posición (ver pushStep1Amount)
   let animating = false;     // mientras es true, un gesto nuevo no interrumpe el salto en curso...
   let pendingDir = 0;        // ...pero SÍ se guarda aquí (-1 / 0 / +1) para dispararse solo en cuanto termine.
                              // Antes, deslizar rápido (nuevo gesto llegando durante la animación) hacía que
@@ -1219,7 +1230,7 @@
         // el aviso de "desliza" se muestra en cualquier parada que no sea la
         // última, para invitar a seguir deslizando
         sceneHint.classList.toggle('visible', stepIndex < WAYPOINTS.length - 1);
-        if (proyectosHeaderEl) proyectosHeaderEl.classList.toggle('visible', stepIndex === 0);
+        if (proyectosHeaderEl) proyectosHeaderEl.classList.toggle('visible', stepIndex === 1); // Proyectos ahora en la 2ª posición, no la 1ª
         updateEndOfPathUI();
 
         // Si durante esta animación llegó otro gesto (deslizar rápido), se
@@ -1273,17 +1284,35 @@
     return 0;                          // este tramo no toca la parada 1
   }
   function pushStep1Amount(amount){
+    // Misma cantidad (0 = fuera del tramo de la 2ª posición, 1 = asentado
+    // en ella) también gobierna el aclarado del fotograma en drawCover, así
+    // ambos efectos -recuadro Antes/Después y brillo de la foto- quedan
+    // sincronizados. A diferencia del recuadro (que sí sigue "amount" tal
+    // cual, de forma lineal), el brillo NO debe notarse durante todo el
+    // trayecto: solo tiene que encenderse cuando ya se ha llegado "mucho"
+    // -bien asentado en la 2ª posición-, así que se remapea con un umbral:
+    // por debajo de PHOTO_BRIGHTEN_START no hay brillo en absoluto, y de
+    // ahí a 1 sube rápido hasta el máximo.
+    const raw = Math.max(0, amount - PHOTO_BRIGHTEN_START) / (1 - PHOTO_BRIGHTEN_START);
+    photoBrightAmount = Math.min(1, raw);
     if (typeof window.__setStep1Amount === 'function') window.__setStep1Amount(amount);
   }
+  // A partir de qué "cercanía" a la 2ª posición (0..1) empieza a encenderse
+  // el brillo: 0.7 = solo en el último 30% del trayecto de llegada/salida.
+  const PHOTO_BRIGHTEN_START = 0.7;
+  // Cuánto se aclara la foto como máximo, ya asentado del todo en la
+  // 2ª posición (0.4 = +40% de brillo). Subido porque con 0.22 no se notaba.
+  const PHOTO_BRIGHTEN_MAX = 0.4;
 
-  // Difumina rápido el bloque "Proyectos" (1ª posición) en cuanto se nota
-  // intención de deslizar hacia la 2ª parada, mucho antes de llegar a
-  // ella -no un fundido lento que dura todo el trayecto-. "low" es la
-  // parada más baja del tramo (0 o 1 según se venga o se vaya) y "p" el
-  // progreso 0→1 a lo largo de ese mismo eje (mismo significado que
-  // localP en applySegmentProgress y que "p" en el step() de jumpTo).
+  // Difumina rápido el bloque "Proyectos" (ahora en la 2ª posición, no la
+  // 1ª) en cuanto se nota intención de deslizar hacia la 3ª parada, mucho
+  // antes de llegar a ella -no un fundido lento que dura todo el
+  // trayecto-. "low" es la parada más baja del tramo (1 o 2 según se
+  // venga o se vaya) y "p" el progreso 0→1 a lo largo de ese mismo eje
+  // (mismo significado que localP en applySegmentProgress y que "p" en el
+  // step() de jumpTo).
   function updateProyectosFade(low, p){
-    if (!proyectosHeaderEl || low !== 0) return;
+    if (!proyectosHeaderEl || low !== 1) return;
     const fastP = Math.min(1, p * 3.5);
     proyectosHeaderEl.style.opacity = String(1 - fastP);
   }
@@ -1362,7 +1391,7 @@
         updateCaptionAndHint();
         animating = false;
         sceneHint.classList.toggle('visible', stepIndex < WAYPOINTS.length - 1);
-        if (proyectosHeaderEl) proyectosHeaderEl.classList.toggle('visible', stepIndex === 0);
+        if (proyectosHeaderEl) proyectosHeaderEl.classList.toggle('visible', stepIndex === 1); // Proyectos ahora en la 2ª posición, no la 1ª
         updateEndOfPathUI();
         if (pendingDir !== 0){
           const dir = pendingDir;
@@ -1829,7 +1858,9 @@
     updateCaptionAndHint();
     fitBodyCaption();
     sceneHint.classList.add('visible');
-    if (proyectosHeaderEl) proyectosHeaderEl.classList.add('visible');
+    // Proyectos vive ahora en la 2ª posición (stepIndex === 1), no en la
+    // 1ª: al cargar la página (stepIndex arranca en 0) no debe estar
+    // visible todavía.
     recomputeProgressSpan();
     updateEndOfPathUI();
     pushStep1Amount(stepIndex === 1 ? 1 : 0);
