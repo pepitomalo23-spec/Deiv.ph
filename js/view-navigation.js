@@ -84,6 +84,10 @@
     viewAjustes.classList.toggle('active', view === 'ajustes');
 
     if (!showingResumen) window.scrollTo(0, 0);
+    // FIX: cada .subview tiene su PROPIO scroll interno (overflow-y:auto),
+    // independiente del scroll de window, y no se destruye al cerrarse
+    // (display:none), así que sin esto se reabre a mitad de scroll.
+    [viewSobreMi, viewEdiciones, viewAjustes].forEach(el => { if (el) el.scrollTop = 0; });
     if (!showingResumen && typeof window.__resetWhiteEnd === 'function') window.__resetWhiteEnd();
 
     // Al volver a mostrar la escena, nos aseguramos de que el canvas tenga
