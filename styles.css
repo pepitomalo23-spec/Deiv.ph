@@ -844,6 +844,17 @@
     cursor:pointer;
     transition:background .2s ease, color .2s ease;
   }
+  .menu-item-label{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .menu-item-icon{
+    flex:none;
+    width:18px;
+    height:18px;
+    opacity:0.7;
+  }
   /* "Ajustes" es un panel de administración (sube fotos, etc.), no algo
      pensado para cualquier visitante. Se queda oculto por defecto y solo
      se muestra en el dispositivo del admin (ver el script de admin). */
@@ -932,6 +943,53 @@
     font-style:italic;
     color:var(--dim);
     font-size:1.2rem;
+  }
+
+  /* ---------- Sobre mí: bloque de contacto ---------- */
+  .contact-block{
+    margin-top:28px;
+    padding-top:26px;
+    border-top:1px solid rgba(0,0,0,0.1);
+  }
+  .contact-eyebrow{
+    font-family:'Fraunces','Georgia',serif;
+    font-style:italic;
+    font-size:0.82rem;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--dim);
+    margin:0 0 12px;
+  }
+  .contact-links{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .contact-link{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:#fff;
+    border:1px solid rgba(0,0,0,0.14);
+    border-radius:999px;
+    padding:10px 16px;
+    font-family:'Fraunces','Georgia',serif;
+    font-size:0.86rem;
+    color:var(--fg);
+    text-decoration:none;
+    transition:border-color .2s ease, color .2s ease, box-shadow .2s ease;
+  }
+  .contact-link:hover{
+    border-color:rgba(255,90,31,0.5);
+    color:var(--accent);
+    box-shadow:0 2px 10px rgba(255,90,31,0.12);
+  }
+  .contact-link-icon{ flex:none; width:16px; height:16px; }
+  .contact-note{
+    margin:12px 0 0;
+    font-size:0.82rem;
+    font-style:italic;
+    color:var(--dim);
   }
 
   /* ---------- Sobre mí: collage animado de fotos ---------- */
@@ -1701,6 +1759,9 @@
     margin-top:18px;
   }
   .ajustes-clear{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
     margin-top:20px;
     background:#fff;
     border:1px solid rgba(0,0,0,0.14);
@@ -1713,6 +1774,7 @@
     cursor:pointer;
     transition:border-color .2s ease, color .2s ease, box-shadow .2s ease;
   }
+  .ajustes-clear-icon{ flex:none; width:15px; height:15px; }
   .ajustes-clear:hover{
     border-color:rgba(255,90,31,0.5);
     color:var(--accent);
@@ -2723,6 +2785,9 @@
     margin-bottom:8px;
   }
   .cuenta-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
     background:#fff;
     border:1px solid rgba(0,0,0,0.14);
     border-radius:999px;
@@ -2734,6 +2799,7 @@
     cursor:pointer;
     transition:border-color .2s ease, color .2s ease, box-shadow .2s ease;
   }
+  .cuenta-btn-icon{ flex:none; width:15px; height:15px; }
   .cuenta-btn:hover{ border-color:rgba(255,90,31,0.5); color:var(--accent); box-shadow:0 2px 10px rgba(255,90,31,0.12); }
   .cuenta-btn--danger:hover{ border-color:#c0392b; color:#c0392b; box-shadow:none; }
   .cuenta-form{ margin-top:18px; }
@@ -2747,6 +2813,50 @@
     font-family:inherit;
     margin-bottom:9px;
   }
+  /* Campo de contraseña + botón de ojo (mostrar/ocultar) superpuesto a
+     la derecha, dentro del propio input. */
+  .cuenta-pass-field{ position:relative; }
+  .cuenta-pass-field input{ padding-right:42px; }
+  .cuenta-pass-toggle{
+    position:absolute;
+    top:0;
+    right:0;
+    bottom:9px;
+    width:38px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:none;
+    border:none;
+    padding:0;
+    margin:0;
+    cursor:pointer;
+    color:var(--dim);
+  }
+  .cuenta-pass-toggle:hover{ color:var(--accent); }
+  /* Icono de ojo/ojo-tachado dibujado en CSS puro (sin depender de JS
+     para inyectar SVG): dos capas superpuestas, se alterna cuál se ve
+     con la clase .is-visible que pone view-navigation... */
+  .cuenta-pass-toggle::before,
+  .cuenta-pass-toggle::after{
+    content:"";
+    position:absolute;
+    width:17px;
+    height:17px;
+    background-repeat:no-repeat;
+    background-position:center;
+    background-size:contain;
+  }
+  .cuenta-pass-toggle::before{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15.58 12C15.58 13.98 13.98 15.58 12 15.58C10.02 15.58 8.42 13.98 8.42 12C8.42 10.02 10.02 8.42 12 8.42C13.98 8.42 15.58 10.02 15.58 12Z'/%3E%3Cpath d='M12 20.27C15.53 20.27 18.82 18.19 21.11 14.59C22.01 13.18 22.01 10.81 21.11 9.4C18.82 5.8 15.53 3.72 12 3.72C8.47 3.72 5.18 5.8 2.89 9.4C1.99 10.81 1.99 13.18 2.89 14.59C5.18 18.19 8.47 20.27 12 20.27Z'/%3E%3C/svg%3E");
+    opacity:0.65;
+  }
+  .cuenta-pass-toggle::after{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.53 9.47L9.47 14.53C8.82 13.88 8.42 12.99 8.42 12C8.42 10.02 10.02 8.42 12 8.42C12.99 8.42 13.88 8.82 14.53 9.47Z'/%3E%3Cpath d='M17.82 5.77C16.07 4.45 14.07 3.73 12 3.73C8.47 3.73 5.18 5.81 2.89 9.41C1.99 10.82 1.99 13.19 2.89 14.6C3.68 15.84 4.6 16.91 5.6 17.77'/%3E%3Cpath d='M8.42 19.53C9.56 20.01 10.77 20.27 12 20.27C15.53 20.27 18.82 18.19 21.11 14.59C22.01 13.18 22.01 10.81 21.11 9.4C20.78 8.88 20.42 8.39 20.05 7.93'/%3E%3Cpath d='M15.51 12.7C15.25 14.11 14.1 15.26 12.69 15.52'/%3E%3Cpath d='M9.47 14.53L2 22'/%3E%3Cpath d='M22 2L14.53 9.47'/%3E%3C/svg%3E");
+    opacity:0;
+  }
+  .cuenta-pass-toggle[aria-pressed="true"]::before{ opacity:0; }
+  .cuenta-pass-toggle[aria-pressed="true"]::after{ opacity:0.65; }
   .cuenta-msg{
     font-size:0.8rem;
     margin:8px 0 0;
@@ -2960,6 +3070,14 @@
     border:1px solid var(--adm-border) !important;
     color:var(--adm-fg) !important;
     font-family:inherit !important;
+  }
+  #view-ajustes .cuenta-pass-toggle{ color:var(--adm-dim); }
+  #view-ajustes .cuenta-pass-toggle:hover{ color:var(--adm-accent); }
+  #view-ajustes .cuenta-pass-toggle::before{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15.58 12C15.58 13.98 13.98 15.58 12 15.58C10.02 15.58 8.42 13.98 8.42 12C8.42 10.02 10.02 8.42 12 8.42C13.98 8.42 15.58 10.02 15.58 12Z'/%3E%3Cpath d='M12 20.27C15.53 20.27 18.82 18.19 21.11 14.59C22.01 13.18 22.01 10.81 21.11 9.4C18.82 5.8 15.53 3.72 12 3.72C8.47 3.72 5.18 5.8 2.89 9.4C1.99 10.81 1.99 13.18 2.89 14.59C5.18 18.19 8.47 20.27 12 20.27Z'/%3E%3C/svg%3E");
+  }
+  #view-ajustes .cuenta-pass-toggle::after{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.53 9.47L9.47 14.53C8.82 13.88 8.42 12.99 8.42 12C8.42 10.02 10.02 8.42 12 8.42C12.99 8.42 13.88 8.82 14.53 9.47Z'/%3E%3Cpath d='M17.82 5.77C16.07 4.45 14.07 3.73 12 3.73C8.47 3.73 5.18 5.81 2.89 9.41C1.99 10.82 1.99 13.19 2.89 14.6C3.68 15.84 4.6 16.91 5.6 17.77'/%3E%3Cpath d='M8.42 19.53C9.56 20.01 10.77 20.27 12 20.27C15.53 20.27 18.82 18.19 21.11 14.59C22.01 13.18 22.01 10.81 21.11 9.4C20.78 8.88 20.42 8.39 20.05 7.93'/%3E%3Cpath d='M15.51 12.7C15.25 14.11 14.1 15.26 12.69 15.52'/%3E%3Cpath d='M9.47 14.53L2 22'/%3E%3Cpath d='M22 2L14.53 9.47'/%3E%3C/svg%3E");
   }
   #view-ajustes textarea:focus,
   #view-ajustes .cuenta-form input:focus{

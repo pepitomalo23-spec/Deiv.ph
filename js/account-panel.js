@@ -1,4 +1,19 @@
 (function(){
+  // Botones de mostrar/ocultar contraseña: independientes de CloudDB,
+  // deben funcionar aunque la nube no esté disponible.
+  document.querySelectorAll('.cuenta-pass-toggle').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const input = document.getElementById(btn.getAttribute('data-target'));
+      if (!input) return;
+      const showing = input.type === 'text';
+      input.type = showing ? 'password' : 'text';
+      btn.setAttribute('aria-pressed', showing ? 'false' : 'true');
+      btn.setAttribute('aria-label', showing ? 'Mostrar contraseña' : 'Ocultar contraseña');
+    });
+  });
+})();
+
+(function(){
   if (!window.CloudDB) return;
 
   const historialList  = document.getElementById('historialList');
