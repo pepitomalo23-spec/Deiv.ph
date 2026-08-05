@@ -1290,34 +1290,30 @@
     // Misma cantidad (0 = fuera del tramo de la 2ª posición, 1 = asentado
     // en ella) también gobierna el aclarado del fotograma en drawCover, así
     // ambos efectos -recuadro Antes/Después y brillo de la foto- quedan
-    // sincronizados. A diferencia del recuadro (que sí sigue "amount" tal
-    // cual, de forma lineal), el brillo NO debe notarse durante todo el
-    // trayecto: solo tiene que encenderse cuando ya se ha llegado "mucho"
-    // -bien asentado en la 2ª posición-, así que se remapea con un umbral:
-    // por debajo de PHOTO_BRIGHTEN_START no hay brillo en absoluto, y de
-    // ahí a 1 sube rápido hasta el máximo.
-    const raw = Math.max(0, amount - PHOTO_BRIGHTEN_START) / (1 - PHOTO_BRIGHTEN_START);
-    photoBrightAmount = Math.min(1, raw);
+    // sincronizados. El brillo sigue "amount" TAL CUAL, sin ningún umbral
+    // ni remapeo: así el aclarado avanza poco a poco durante todo el
+    // trayecto de llegada, y se retira igual de poco a poco al irse -nunca
+    // de golpe/"de tirón"-, con el mismo ritmo exacto del gesto.
+    photoBrightAmount = amount;
     if (typeof window.__setStep1Amount === 'function') window.__setStep1Amount(amount);
   }
-  // A partir de qué "cercanía" a la 2ª posición (0..1) empieza a encenderse
-  // el brillo: 0.7 = solo en el último 30% del trayecto de llegada/salida.
-  const PHOTO_BRIGHTEN_START = 0.7;
   // Cuánto se aclara la foto como máximo, ya asentado del todo en la
-  // 2ª posición (0.4 = +40% de brillo). Subido porque con 0.22 no se notaba.
+  // 2ª posición (0.4 = +40% de brillo).
   const PHOTO_BRIGHTEN_MAX = 0.4;
 
   // Muestra/oculta rápido el bloque "Proyectos" (2ª posición): en vez de un
   // fundido lento que dura todo el trayecto entre paradas, solo aparece de
-  // verdad en el último tramo -muy cerca de la 2ª posición- y desaparece
-  // igual de rápido en cuanto se nota intención de irse hacia cualquier
-  // lado (1ª o 3ª parada). "amount" es la misma cercanía 0→1 a la parada 1
-  // que ya calcula step1AmountFromAxis (0 = lejos, en cualquier dirección;
-  // 1 = asentado del todo en la 2ª posición), así que un único número basta
-  // para cubrir ambos lados del tramo sin lógica separada para cada uno.
+  // verdad muy cerca de la 2ª posición y desaparece mucho antes -en cuanto
+  // se nota la más mínima intención de irse hacia cualquier lado (1ª o 3ª
+  // parada)-. "amount" es la misma cercanía 0→1 a la parada 1 que ya
+  // calcula step1AmountFromAxis (0 = lejos, en cualquier dirección; 1 =
+  // asentado del todo en la 2ª posición); el factor alto (8) concentra
+  // toda la aparición/desaparición en un tramo muy estrecho, justo
+  // pegado a la parada, así que un único número basta para cubrir ambos
+  // lados sin lógica separada para cada uno.
   function updateProyectosFade(amount){
     if (!proyectosHeaderEl) return;
-    const fastAmt = Math.min(1, amount * 3.5);
+    const fastAmt = Math.min(1, amount * 8);
     proyectosHeaderEl.style.opacity = String(fastAmt);
   }
 
