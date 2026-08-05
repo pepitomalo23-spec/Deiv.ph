@@ -496,14 +496,7 @@
   function setPageBgColor(rgbArr){
     const c = `rgb(${rgbArr[0]},${rgbArr[1]},${rgbArr[2]})`;
     document.documentElement.style.setProperty('--bg', c);
-    // FIX: antes esto igualaba también el color de la barra de Safari
-    // (meta theme-color) al color de cada foto/escena, para que la barra
-    // "se fundiera" con el contenido. Ahora, a petición expresa, la barra
-    // de Safari se queda SIEMPRE en negro (fijado en el HTML), sin
-    // depender de en qué punto del scroll esté el usuario ni de qué foto
-    // se esté mostrando -así detrás de la barra siempre se ve negro,
-    // pase lo que pase con el fondo real de la página (--bg, que sigue
-    // funcionando exactamente igual que antes para todo lo demás).
+    if (themeColorMeta) themeColorMeta.setAttribute('content', c);
   }
 
   // FIX: antes este tinte (blanco -> gris oscuro/negro) era el ÚNICO efecto
