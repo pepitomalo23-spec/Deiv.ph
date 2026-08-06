@@ -29,7 +29,6 @@
   const asBaBeforeEl = document.getElementById('asBaBefore');
   const asBaAfterEl = document.getElementById('asBaAfter');
   const asBaFrameEl = asBaBeforeEl ? asBaBeforeEl.closest('.ba-card-frame') : null;
-  const asBaSizerEl = document.getElementById('asBaSizer');
   const asBaPrevBtn = document.getElementById('asBaPrev');
   const asBaNextBtn = document.getElementById('asBaNext');
   let aseIndex = 0;
@@ -55,26 +54,101 @@
     el.style.backgroundImage = cloudLoaded ? placeholder : 'none';
   }
 
-  // FIX: la versión anterior calculaba la proporción real de la foto "a
-  // mano" -cargándola en un Image() aparte, leyendo naturalWidth/Height en
-  // su evento onload y escribiendo el resultado como "aspect-ratio" del
-  // recuadro-. Ese cálculo manual dependía de que el evento onload llegara
-  // a tiempo y de comparar cadenas de texto para saber si seguía siendo la
-  // foto vigente; si algo fallaba por el camino, el recuadro se quedaba
-  // con la proporción de repuesto (4/3) aunque la foto real fuera vertical,
-  // y aparecían bandas negras a los lados sin que se notara ningún cambio.
+  // FIX 2: la versión anterior dejaba que el recuadro se amoldara a la
+  // foto con un truco de CSS (width:max-content en el recuadro + una
+  // <img> oculta -#asBaSizer- que cargaba la misma foto para que el
+  // navegador "prestara" su tamaño real). En algunos móviles ese cálculo
+  // encadenado (el ancho del recuadro depende del ancho de la img oculta,
+  // que depende del ancho del recuadro...) no terminaba de resolverse
+  // bien: el recuadro se quedaba a 0 o con la proporción de repuesto, así
+  // que la foto no llegaba a verse, y con fotos muy anchas el resultado
+  // dependía de qué media query de móvil ganara la pulsada de
+  // especificidad, así que a veces se recortaba.
   //
-  // Ahora, en vez de calcular la proporción nosotros, dejamos que la
-  // proporción real de la foto sea la del sitio: #asBaSizer es una <img>
-  // oculta (visibility:hidden) que carga la misma foto que se ve; el
-  // navegador ya sabe su ancho/alto real en cuanto la decodifica, así que
-  // el recuadro (.ba-card-frame.has-photo, ver styles.css) se amolda a su
-  // tamaño de forma nativa, sin ningún cálculo ni caché propios.
+  // Ahora el tamaño se calcula a mano, con números reales, en
+  // sizeFrameToPhoto: mucho más predecible y sin depender de ningún
+  // comportamiento "raro" del navegador. asBaWrapEl es el envoltorio que
+  // pinta las "fotos fantasma" de detrás (ver .as-ba-photo-wrap en
+  // styles.css); se mueve al mismo ancho que el recuadro para que esas
+  // fotos fantasma sigan coincidiendo con su tamaño real.
+  const asBaWrapEl = asBaFrameEl ? asBaFrameEl.closest('.as-ba-photo-wrap') : null;
+
+  function sizeFrameToPhoto(naturalW, naturalH){
+    if (!asBaFrameEl) return;
+    if (!naturalW || !naturalH){
+      // Sin foto real todavía (o falló la carga): se vuelve al tamaño de
+      // repuesto que ya define el CSS (aspect-ratio 4/3, o 5/4 en móvil).
+      asBaFrameEl.style.width = '';
+      asBaFrameEl.style.height = '';
+      if (asBaWrapEl) asBaWrapEl.style.width = '';
+      return;
+    }
+    const container = asBaFrameEl.closest('.as-ba-gallery') || asBaFrameEl.parentElement;
+    const availWidth = (container && container.clientWidth) || window.innerWidth;
+    // Mismo tope de alto que ya usaba el CSS (clamp en escritorio, dvh en
+    // móvil): se lee el que esté vigente ahora mismo en vez de duplicar
+    // ese número aquí, así que si algún día cambia el CSS, este cálculo
+    // lo sigue automáticamente.
+    const maxHeightPx = parseFloat(getComputedStyle(asBaFrameEl).maxHeight) || Math.round(window.innerHeight * 0.6);
+    const ratio = naturalW / naturalH;
+    let width = maxHeightPx * ratio;
+    let height = maxHeightPx;
+    // Foto muy ancha: si a la altura máxima no cabría de ancho en la
+    // pantalla, se manda por el ancho disponible en su lugar (nunca se
+    // sale ni se recorta, solo se queda algo menos alta).
+    if (availWidth && width > availWidth){
+      width = availWidth;
+      height = width / ratio;
+    }
+    width = Math.round(width);
+    height = Math.round(height);
+    asBaFrameEl.style.width = width + 'px';
+    asBaFrameEl.style.height = height + 'px';
+    if (asBaWrapEl) asBaWrapEl.style.width = width + 'px';
+  }
+
+  // Vuelve a encajar la foto vigente si cambia el tamaño de la ventana
+  // (girar el móvil, teclado que aparece/desaparece, etc.): sin esto, el
+  // recuadro se quedaba con el tamaño calculado para la orientación
+  // anterior hasta que se cambiaba de pareja.
+  let lastPhotoRatio = null;
+  let refitTimer = null;
+  function refitFramePhoto(){
+    if (!lastPhotoRatio) return;
+    sizeFrameToPhoto(lastPhotoRatio.w, lastPhotoRatio.h);
+  }
+  window.addEventListener('resize', () => {
+    clearTimeout(refitTimer);
+    refitTimer = setTimeout(refitFramePhoto, 120);
+  });
+  window.addEventListener('orientationchange', refitFramePhoto);
+
+  // Token de carrera: si el usuario pasa a la siguiente pareja antes de
+  // que termine de cargar la foto anterior, la respuesta tardía de esa
+  // foto vieja se ignora en vez de aplicarse por encima de la nueva.
+  let frameRequestSeq = 0;
   function setFrameAspect(url){
     if (!asBaFrameEl) return;
     const fast = url && typeof optimizeCloudinaryUrl === 'function' ? optimizeCloudinaryUrl(url, BA_CARD_IMAGE_WIDTH) : url;
-    if (asBaSizerEl) asBaSizerEl.src = fast || '';
     asBaFrameEl.classList.toggle('has-photo', !!url);
+    const myToken = ++frameRequestSeq;
+    if (!fast){
+      lastPhotoRatio = null;
+      sizeFrameToPhoto(0, 0);
+      return;
+    }
+    const probe = new Image();
+    probe.onload = function(){
+      if (myToken !== frameRequestSeq) return;
+      lastPhotoRatio = { w: probe.naturalWidth, h: probe.naturalHeight };
+      sizeFrameToPhoto(probe.naturalWidth, probe.naturalHeight);
+    };
+    probe.onerror = function(){
+      if (myToken !== frameRequestSeq) return;
+      lastPhotoRatio = null;
+      sizeFrameToPhoto(0, 0);
+    };
+    probe.src = fast;
   }
 
   function renderPairsPublic(i){

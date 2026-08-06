@@ -2177,15 +2177,14 @@
     isolation:isolate;
     width:100%;
   }
-  .as-ba-photo-wrap:has(.ba-card-frame.has-photo){
-    /* En cuanto hay una foto real, el recuadro pasa a tener su ancho
-       "de contenido" (has-photo, ver más abajo); este envoltorio se
-       amolda a ese mismo ancho para que las fotos fantasma coincidan
-       exactamente con el tamaño real del recuadro, no con el ancho
-       completo del contenedor. */
-    width:fit-content;
-    margin:0 auto;
-  }
+  /* El ancho exacto de este envoltorio (para que las "fotos fantasma" de
+     detrás coincidan con el tamaño real de la foto, y no con el ancho
+     completo del contenedor) lo pone directamente en JS sizeFrameToPhoto
+     (ver comparison-pairs.js), con el mismo número de píxeles que el
+     recuadro. Antes se intentaba con un selector CSS :has(), que no
+     todos los móviles soportaban igual de bien -de ahí que a veces el
+     recuadro se viera con el tamaño equivocado-; calcularlo a mano en JS
+     funciona igual en cualquier dispositivo. */
   .as-ba-photo-wrap::before,
   .as-ba-photo-wrap::after{
     content:'';
@@ -2220,8 +2219,11 @@
        real visible, sin que la barra de Safari lo falsee) en vez de vh a
        secas, y con un tope bastante generoso -aquí "grande" gana sobre
        "conservador"-. aspect-ratio 5/4 es solo el valor de repuesto sin
-       foto real; en cuanto hay foto (.has-photo) su propia proporción
-       manda y este alto sigue siendo el tope real que puede alcanzar. */
+       foto real; en cuanto hay foto, sizeFrameToPhoto (JS) fija el ancho
+       y el alto exactos como estilo propio del recuadro, así que manda
+       por encima de este aspect-ratio -pero sigue leyendo este mismo
+       max-height como su tope real, así que el alto máximo alcanzable en
+       móvil se define aquí igual que antes-. */
     .as-ba-gallery .ba-card-frame{ aspect-ratio:5/4; max-height:64vh; max-height:64dvh; }
     .as-ba-photo-wrap::before,
     .as-ba-photo-wrap::after{ border-radius:14px; }
@@ -2304,33 +2306,19 @@
   .as-ba-labels .ba-card-label--after::before{
     background:var(--accent);
   }
-  /* FIX: antes la forma real de la foto se calculaba a mano en JS
-     (cargando la foto aparte, leyendo su ancho/alto y escribiendo el
-     resultado como "aspect-ratio" del recuadro) Y ese resultado chocaba
-     con un "width:100%" fijo -con fotos verticales, ese cálculo casi
-     nunca terminaba de aplicarse a tiempo o de encajar, y el recuadro se
-     quedaba con la proporción de repuesto (4/3, apaisada) aunque la foto
-     fuera vertical: de ahí las bandas negras a los lados.
-     Ahora, en vez de calcular nada, dejamos que sea el propio navegador
-     quien mida la foto: #asBaSizer es una <img> oculta con la misma foto
-     (ver setFrameAspect en comparison-pairs.js); "width:max-content" hace
-     que el recuadro se amolde exactamente al tamaño que esa imagen ocupa
-     -su forma real, vertical, horizontal o cuadrada-, sin cálculos
-     propios ni margen de error. */
+  /* FIX 2: en cuanto hay foto real, sizeFrameToPhoto (comparison-pairs.js)
+     calcula su ancho y su alto exactos en píxeles -respetando siempre el
+     tope de alto de abajo y el ancho disponible, sin recortar nunca- y
+     los escribe directamente como estilo del propio recuadro; por eso
+     aquí ya no hace falta ni "aspect-ratio:auto" ni el truco de
+     "width:max-content" (dependía de que el navegador resolviera un
+     cálculo de tamaño encadenado con una imagen oculta, y en algunos
+     móviles no terminaba de encajar: a veces la foto no llegaba a verse,
+     otras veces se recortaba). max-width:100% se deja solo como red de
+     seguridad por si el cálculo en JS aún no ha llegado. */
   .as-ba-gallery .ba-card-frame.has-photo{
-    aspect-ratio:auto;
-    width:max-content;
     max-width:100%;
     margin:0 auto;
-  }
-  .ba-card-frame-sizer{
-    display:block;
-    width:auto;
-    height:auto;
-    max-width:100%;
-    max-height:inherit;
-    visibility:hidden;
-    pointer-events:none;
   }
   /* ---------- Flechas de navegación (siguiente/anterior pareja) ----------
      Viven FUERA del recuadro, como parte de la fila de pie de foto
