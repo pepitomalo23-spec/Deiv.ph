@@ -2393,12 +2393,12 @@
     height:42px;
     border:none;
     background:none;
-    color:#fff;
     display:flex;
     align-items:center;
     justify-content:center;
     cursor:pointer;
     padding:0;
+    color:#000;
     transition:opacity .2s ease, transform .2s ease;
     /* Refuerzo para móvil: no fiarse de que pointer-events:auto llegue
        heredado desde el ancestro (.as-ba-gallery) -aquí se fija de forma
