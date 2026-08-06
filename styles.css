@@ -2515,6 +2515,14 @@
   .as-ba-gallery.is-fullscreen .ba-card-frame{
     border-radius:0;
   }
+  /* Sin flechas en pantalla completa: el usuario las pidió fuera para
+     aprovechar el máximo tamaño posible (ya no hay que reservarles hueco
+     a los lados, ver NAV_CLEARANCE en comparison-pairs.js). Para cambiar
+     de pareja hay que salir y volver a entrar -es la foto sola, al
+     máximo, lo que se pidió-. */
+  .as-ba-gallery.is-fullscreen .as-ba-nav{
+    display:none;
+  }
   /* Efecto "hay más fotos detrás" (las dos copias giradas que asoman
      por los bordes, ver .as-ba-photo-wrap::before/::after más abajo):
      tiene sentido como adorno cuando el recuadro es una tarjeta más
@@ -2526,11 +2534,10 @@
   .as-ba-gallery.is-fullscreen .as-ba-photo-wrap::after{
     display:none;
   }
-  /* Pantalla completa = solo la foto y la barrita de arrastre (más las
-     flechas para cambiar de pareja, que siguen haciendo falta). El pie
-     con las etiquetas SIN EDITAR/EDITADA es aquí ruido de más, así que
-     se oculta del todo -no hace falta tocar sus estilos de color, ver
-     más abajo, quedan sin uso-. */
+  /* Pantalla completa = solo la foto y la barrita de arrastre, sin
+     flechas (ver .as-ba-gallery.is-fullscreen .as-ba-nav más arriba) ni
+     pie de foto. El pie con las etiquetas SIN EDITAR/EDITADA es aquí
+     ruido de más, así que se oculta del todo. */
   .as-ba-gallery.is-fullscreen .as-ba-footer{
     display:none;
   }

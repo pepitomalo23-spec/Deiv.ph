@@ -96,7 +96,11 @@
     // pegado casi al borde del escenario- para no comerle demasiado sitio
     // a la foto; en pantallas normales se deja más aire entre flecha y
     // foto.
-    const NAV_CLEARANCE = window.innerWidth <= 480 ? 44 : 56;
+    // En pantalla completa las flechas se ocultan del todo (ver
+    // setAsBaFullscreen/CSS .is-fullscreen .as-ba-nav): sin ellas no hay
+    // nada que "esquivar", así que aquí no se reserva ningún hueco y una
+    // foto ancha puede llegar de verdad al borde del móvil.
+    const NAV_CLEARANCE = asBaFullscreenOpen ? 0 : (window.innerWidth <= 480 ? 44 : 56);
     const availWidth = Math.max(0, rawAvailWidth - (NAV_CLEARANCE * 2));
     // Mismo tope de alto que ya usaba el CSS (clamp en escritorio, dvh en
     // móvil): se lee el que esté vigente ahora mismo en vez de duplicar
