@@ -2179,7 +2179,18 @@
   .as-ba-stage{
     width:100%;
     display:flex;
-    align-items:center;
+    /* FIX: antes centraba la foto verticalmente dentro del hueco fijo
+       (align-items:center). Si la foto era más baja que el máximo -una
+       panorámica, por ejemplo- quedaba un margen en blanco arriba Y
+       abajo; el de abajo caía justo pegado a las flechas, y ese trozo en
+       blanco seguía teniendo activo el gesto normal de deslizar la
+       página (no es parte del botón, aunque esté al lado): tocar ahí
+       "al lado" del botón disparaba el gesto en vez de pulsarlo, y daba
+       la sensación de que las flechas no respondían.
+       Con flex-end la foto se ancla siempre abajo del hueco: el margen
+       en blanco (si lo hay) se queda arriba, lejos de los botones, y
+       justo debajo de la foto no hay ya ningún hueco "fantasma". */
+    align-items:flex-end;
     justify-content:center;
     height:var(--as-ba-frame-max-h);
   }
@@ -2375,10 +2386,11 @@
      ancladas con position:absolute. */
   .as-ba-nav{
     flex:none;
-    /* Un pelín más grande que antes (30px -> 36px): más fácil de acertar
-       con el dedo sin llegar a ser un botón grande de verdad. */
-    width:36px;
-    height:36px;
+    /* El círculo visible ES la zona de toque real (ver más abajo, ya no
+       hay ninguna zona invisible aparte): 42px, cómodo para el dedo sin
+       ser un botón grande de verdad. */
+    width:42px;
+    height:42px;
     border-radius:50%;
     /* Menos "cantoso": se quita el borde marcado y se deja solo un
        relleno muy suave -el círculo se nota al tocarlo/pasar el ratón,
@@ -2404,17 +2416,17 @@
     pointer-events:auto;
     touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
-    /* Zona de toque real más grande que el círculo visible (44px, el
-       mínimo recomendado para el dedo) sin agrandar el círculo en sí,
-       para que sea más fácil acertar en pantallas pequeñas. */
-    position:relative;
   }
-  .as-ba-nav::after{
-    content:'';
-    position:absolute;
-    inset:-6px;
-  }
-  .as-ba-nav svg{ width:15px; height:15px; }
+  /* FIX: antes había una zona de toque invisible más grande que el
+     círculo (::after con inset:-6px) para facilitar el acierto en móvil.
+     Esa zona invisible se salía del propio círculo -y a veces del hueco
+     entre botón y etiqueta- así que se sentía como un "botón fantasma":
+     a veces tocar justo al lado del círculo (fuera de lo que se ve) SÍ
+     lo activaba, y otras veces (fuera de ese margen) no pasaba nada o
+     disparaba el gesto de deslizar la página. Ahora no hay ninguna zona
+     extra: el círculo que se ve (42px, ya de buen tamaño para el dedo)
+     es exactamente lo único que responde al toque, sin sorpresas. */
+  .as-ba-nav svg{ width:16px; height:16px; }
   .as-ba-nav:hover{ background:rgba(17,17,17,0.09); }
   .as-ba-nav:active{ background:rgba(17,17,17,0.13); transform:scale(0.92); }
 
