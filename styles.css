@@ -2379,41 +2379,27 @@
     transform:translateY(-50%);
     z-index:5;
     left:0;
-    /* Fondo más presente que el de .as-ba-nav base (0.045 de opacidad):
-       aquella opacidad tan baja funcionaba sobre el fondo liso de la
-       página; aquí, al vivir junto a la foto sobre distintos fondos, un
-       blanco translúcido con sombra propia se distingue en cualquier
-       caso. */
-    background:rgba(255,255,255,0.85);
-    color:#111;
-    border:1px solid rgba(0,0,0,0.06);
-    box-shadow:0 4px 14px rgba(0,0,0,0.28);
   }
-  .as-ba-stage .as-ba-nav:hover{ background:rgba(255,255,255,0.97); }
-  .as-ba-stage .as-ba-nav:active{ background:rgba(255,255,255,1); transform:translateY(-50%) scale(0.92); }
   .as-ba-stage .as-ba-nav--prev{ left:0; }
   .as-ba-stage .as-ba-nav--next{ right:0; left:auto; }
   .as-ba-nav{
     flex:none;
-    /* El círculo visible ES la zona de toque real (ver más abajo, ya no
-       hay ninguna zona invisible aparte): 42px, cómodo para el dedo sin
-       ser un botón grande de verdad. */
+    /* Mismo espacio de toque que antes (42px), pero ya SIN el círculo de
+       fondo: ahora el botón es transparente del todo y lo único visible
+       es la propia flecha (el SVG, ver más abajo) centrada dentro de ese
+       mismo hueco -por eso el tamaño total no cambia, solo se le quita el
+       "envoltorio" visual-. */
     width:42px;
     height:42px;
-    border-radius:50%;
-    /* Menos "cantoso": se quita el borde marcado y se deja solo un
-       relleno muy suave -el círculo se nota al tocarlo/pasar el ratón,
-       pero en reposo casi no compite visualmente con la foto ni con las
-       etiquetas SIN EDITAR/EDITADA de al lado. */
     border:none;
-    background:rgba(17,17,17,0.045);
-    color:var(--fg);
+    background:none;
+    color:#fff;
     display:flex;
     align-items:center;
     justify-content:center;
     cursor:pointer;
     padding:0;
-    transition:background .2s ease, transform .2s ease;
+    transition:opacity .2s ease, transform .2s ease;
     /* Refuerzo para móvil: no fiarse de que pointer-events:auto llegue
        heredado desde el ancestro (.as-ba-gallery) -aquí se fija de forma
        directa e inequívoca sobre el propio botón-. touch-action:manipulation
@@ -2433,11 +2419,22 @@
      a veces tocar justo al lado del círculo (fuera de lo que se ve) SÍ
      lo activaba, y otras veces (fuera de ese margen) no pasaba nada o
      disparaba el gesto de deslizar la página. Ahora no hay ninguna zona
-     extra: el círculo que se ve (42px, ya de buen tamaño para el dedo)
-     es exactamente lo único que responde al toque, sin sorpresas. */
-  .as-ba-nav svg{ width:16px; height:16px; }
-  .as-ba-nav:hover{ background:rgba(17,17,17,0.09); }
-  .as-ba-nav:active{ background:rgba(17,17,17,0.13); transform:scale(0.92); }
+     extra: el hueco de 42px (invisible, sin círculo) es exactamente lo
+     único que responde al toque, sin sorpresas. */
+  .as-ba-nav svg{
+    width:20px;
+    height:20px;
+    /* Sombra propia en vez de fondo: sin el círculo blanco de detrás, la
+       flecha necesita algo que la haga legible sobre CUALQUIER foto (una
+       foto clara la dejaría casi invisible si fuera solo blanco liso).
+       drop-shadow dibuja un halo oscuro sutil alrededor del propio trazo
+       -sigue exactamente la forma de la flecha, a diferencia de
+       text-shadow/box-shadow, que dibujarían un cuadrado-. */
+    filter:drop-shadow(0 1px 3px rgba(0,0,0,0.85)) drop-shadow(0 0 6px rgba(0,0,0,0.35));
+  }
+  .as-ba-nav:hover{ opacity:0.75; }
+  .as-ba-nav:active{ opacity:0.55; transform:scale(0.9); }
+
 
   /* ---------- "Descubre mi trabajo": fila de categorías ---------- */
   .as-discover{ width:100%; }
