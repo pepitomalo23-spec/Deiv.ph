@@ -220,6 +220,64 @@
   bindTapSafety(asBaPrevBtn, () => renderPairsPublic(aseIndex - 1));
   bindTapSafety(asBaNextBtn, () => renderPairsPublic(aseIndex + 1));
 
+  /* ================= Pantalla completa del comparador =================
+     Mismo comparador (misma barrita de arrastre, mismas flechas
+     siguiente/anterior), solo que agrandado a un overlay que cubre toda
+     la pantalla -no es una vista ni unas imágenes aparte, así que no
+     hace falta duplicar nada: basta con mover el propio nodo
+     .as-ba-gallery-.
+     Por qué se REPARENTA en vez de solo añadir position:fixed: este
+     comparador vive dentro de #afterStoryHeader, que tiene su propio
+     transform (translate, ver .after-story-header en styles.css) para
+     acompañar el gesto de scroll de la historia -y un ancestro con
+     transform rompe position:fixed para sus descendientes (quedaría
+     "fijo" respecto a ese ancestro, no respecto a la ventana, así que
+     nunca llegaría a cubrir toda la pantalla). Sacándolo a <body> ese
+     problema desaparece, y al cerrar se devuelve exactamente a su sitio
+     original (mismo padre, mismo hermano siguiente) para no alterar el
+     resto del layout. */
+  const asBaGalleryEl = document.getElementById('asBaGallery');
+  const asBaExpandBtn = document.getElementById('asBaExpand');
+  const AS_BA_EXPAND_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>';
+  const AS_BA_COLLAPSE_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v3a2 2 0 0 1-2 2H4"/><path d="M15 3v3a2 2 0 0 0 2 2h3"/><path d="M9 21v-3a2 2 0 0 0-2-2H4"/><path d="M15 21v-3a2 2 0 0 1 2-2h3"/></svg>';
+  let asBaFullscreenOpen = false;
+  let asBaOriginalParent = null;
+  let asBaOriginalNextSibling = null;
+
+  function setAsBaFullscreen(open){
+    if (!asBaGalleryEl || !asBaExpandBtn || open === asBaFullscreenOpen) return;
+    asBaFullscreenOpen = open;
+    if (open){
+      // Guarda dónde vivía (su padre real y el hermano justo después,
+      // que puede ser null si era el último hijo) para poder devolverlo
+      // exactamente al mismo sitio al cerrar.
+      asBaOriginalParent = asBaGalleryEl.parentNode;
+      asBaOriginalNextSibling = asBaGalleryEl.nextSibling;
+      document.body.appendChild(asBaGalleryEl);
+    } else if (asBaOriginalParent){
+      asBaOriginalParent.insertBefore(asBaGalleryEl, asBaOriginalNextSibling);
+    }
+    asBaGalleryEl.classList.toggle('is-fullscreen', open);
+    document.body.classList.toggle('as-ba-fullscreen-open', open);
+    asBaExpandBtn.innerHTML = open ? AS_BA_COLLAPSE_ICON : AS_BA_EXPAND_ICON;
+    asBaExpandBtn.setAttribute('aria-label', open ? 'Salir de pantalla completa' : 'Ver a pantalla completa');
+    // --as-ba-frame-max-h cambia al entrar/salir (ver styles.css), así
+    // que hay que volver a encajar la foto a su nuevo alto máximo -si no,
+    // se quedaría con el tamaño calculado para el modo normal hasta el
+    // siguiente cambio de pareja o de tamaño de ventana-. Un frame de
+    // margen para que el navegador ya haya aplicado la clase (y por
+    // tanto la nueva variable CSS) antes de medir.
+    requestAnimationFrame(refitFramePhoto);
+  }
+
+  bindTapSafety(asBaExpandBtn, () => setAsBaFullscreen(!asBaFullscreenOpen));
+
+  // Tecla Escape como salida rápida, además del propio botón (que hace
+  // de "cerrar" una vez dentro, ver el cambio de icono arriba).
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && asBaFullscreenOpen) setAsBaFullscreen(false);
+  });
+
   const pairListEl = document.getElementById('pairEditorList');
   const pairEmptyEl = document.getElementById('pairEditorEmpty');
   const pairAddBtn = document.getElementById('pairAddBtn');

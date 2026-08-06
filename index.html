@@ -250,6 +250,14 @@
                    crearComparador en before-after-card.js). -->
               <div class="ba-card-handle"><div class="ba-card-handle-grip" data-no-scene-drag><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 3 12 9 6"/><polyline points="15 6 21 12 15 18"/></svg></div></div>
             </div>
+            <!-- Botón de pantalla completa: agranda el mismo comparador (con
+                 su misma barrita de arrastre y las flechas de siguiente/
+                 anterior) a un overlay a pantalla completa, en vez de abrir
+                 una vista aparte -ver setAsBaFullscreen en
+                 comparison-pairs.js-. -->
+            <button type="button" class="as-ba-expand" id="asBaExpand" data-no-scene-drag aria-label="Ver a pantalla completa">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+            </button>
           </div>
           <button type="button" class="as-ba-nav as-ba-nav--next" id="asBaNext" data-no-scene-drag aria-label="Siguiente comparación">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>

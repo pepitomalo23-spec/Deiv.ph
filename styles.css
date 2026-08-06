@@ -2435,6 +2435,103 @@
   .as-ba-nav:hover{ opacity:0.75; }
   .as-ba-nav:active{ opacity:0.55; transform:scale(0.9); }
 
+  /* ---------- Botón de pantalla completa ----------
+     Círculo pequeño en la esquina del recuadro (con su propio fondo
+     semitransparente, a diferencia de as-ba-nav: aquí SÍ hace falta
+     porque vive encima de la foto, no fuera de ella, y necesita
+     distinguirse en cualquier imagen). Al pulsarlo, JS mueve el propio
+     .as-ba-gallery (comparador completo, con barrita y flechas
+     incluidas) a un overlay a pantalla completa -ver
+     setAsBaFullscreen en comparison-pairs.js-. */
+  .as-ba-expand{
+    position:absolute;
+    top:10px;
+    right:10px;
+    z-index:6;
+    width:34px;
+    height:34px;
+    border:none;
+    border-radius:50%;
+    background:rgba(0,0,0,0.45);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+    pointer-events:auto;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+    transition:opacity .2s ease, transform .2s ease, background .2s ease;
+  }
+  .as-ba-expand svg{ display:block; }
+  .as-ba-expand:hover{ background:rgba(0,0,0,0.65); }
+  .as-ba-expand:active{ transform:scale(0.9); }
+
+  /* ---------- Overlay a pantalla completa ----------
+     Mismo comparador, sacado del flujo normal (JS lo reparenta a
+     <body>: .after-story-header, su contenedor de siempre, tiene un
+     transform propio -ver .after-story-header más arriba- y un
+     ancestro con transform rompe position:fixed para sus hijos, así
+     que fixed aquí dentro no llegaría a cubrir toda la pantalla; por
+     eso el JS lo mueve de sitio en vez de fijarlo tal cual). El resto
+     -barrita de arrastre, flechas siguiente/anterior, etiquetas- es el
+     mismo HTML/JS de siempre, solo que a un tamaño mucho mayor gracias
+     a --as-ba-frame-max-h, que aquí se sobrescribe. */
+  .as-ba-gallery.is-fullscreen{
+    position:fixed;
+    inset:0;
+    z-index:3000;
+    max-width:none;
+    width:100vw;
+    height:100vh;
+    height:100dvh;
+    margin:0;
+    background:#000;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    --as-ba-frame-max-h: min(88vh, 88dvh);
+  }
+  .as-ba-gallery.is-fullscreen .as-ba-card{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  /* Etiquetas SIN EDITAR/EDITADA: "sin editar" usa var(--dim), un gris
+     pensado para el fondo blanco/claro habitual de la página -sobre
+     el negro del overlay se vería casi ilegible-, así que aquí se
+     aclara a blanco translúcido; "editada" (var(--accent), naranja) ya
+     se lee bien sobre negro y se deja tal cual. */
+  .as-ba-gallery.is-fullscreen .ba-card-label--before,
+  .as-ba-gallery.is-fullscreen .ba-card-label--before::before{
+    color:rgba(255,255,255,0.7);
+    background:rgba(255,255,255,0.7);
+  }
+  .as-ba-gallery.is-fullscreen .as-ba-labels .ba-card-label--before{
+    background:none;
+  }
+  /* El propio botón se reposiciona a la esquina del VIEWPORT (ya no de
+     la foto, que en pantalla completa puede ser más pequeña que el
+     hueco disponible) y pasa a servir también de botón de cierre -el
+     icono y el aria-label los cambia setAsBaFullscreen al abrir/cerrar-. */
+  .as-ba-gallery.is-fullscreen .as-ba-expand{
+    position:fixed;
+    top:max(14px, env(safe-area-inset-top));
+    right:max(14px, env(safe-area-inset-right));
+    z-index:3002;
+    width:40px;
+    height:40px;
+    background:rgba(255,255,255,0.12);
+  }
+  .as-ba-gallery.is-fullscreen .as-ba-expand:hover{ background:rgba(255,255,255,0.22); }
+  /* Bloquea el scroll de la página de fondo mientras el overlay está
+     abierto (lo pone/quita el mismo JS que reparenta el comparador). */
+  body.as-ba-fullscreen-open{ overflow:hidden; }
+
 
   /* ---------- "Descubre mi trabajo": fila de categorías ---------- */
   .as-discover{ width:100%; }
