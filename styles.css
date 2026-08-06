@@ -2492,27 +2492,27 @@
     flex-direction:column;
     align-items:center;
     justify-content:center;
-    padding:16px;
-    --as-ba-frame-max-h: min(88vh, 88dvh);
+    padding:0;
+    /* Sin pie de foto que reservar (las etiquetas se ocultan aquí
+       debajo), así la foto puede aprovechar prácticamente todo el alto
+       de la pantalla: solo queda fuera un margen mínimo. */
+    --as-ba-frame-max-h: min(96vh, 96dvh);
   }
   .as-ba-gallery.is-fullscreen .as-ba-card{
     width:100%;
+    height:100%;
     display:flex;
     flex-direction:column;
     align-items:center;
+    justify-content:center;
   }
-  /* Etiquetas SIN EDITAR/EDITADA: "sin editar" usa var(--dim), un gris
-     pensado para el fondo blanco/claro habitual de la página -sobre
-     el negro del overlay se vería casi ilegible-, así que aquí se
-     aclara a blanco translúcido; "editada" (var(--accent), naranja) ya
-     se lee bien sobre negro y se deja tal cual. */
-  .as-ba-gallery.is-fullscreen .ba-card-label--before,
-  .as-ba-gallery.is-fullscreen .ba-card-label--before::before{
-    color:rgba(255,255,255,0.7);
-    background:rgba(255,255,255,0.7);
-  }
-  .as-ba-gallery.is-fullscreen .as-ba-labels .ba-card-label--before{
-    background:none;
+  /* Pantalla completa = solo la foto y la barrita de arrastre (más las
+     flechas para cambiar de pareja, que siguen haciendo falta). El pie
+     con las etiquetas SIN EDITAR/EDITADA es aquí ruido de más, así que
+     se oculta del todo -no hace falta tocar sus estilos de color, ver
+     más abajo, quedan sin uso-. */
+  .as-ba-gallery.is-fullscreen .as-ba-footer{
+    display:none;
   }
   /* El propio botón se reposiciona a la esquina del VIEWPORT (ya no de
      la foto, que en pantalla completa puede ser más pequeña que el
