@@ -2282,35 +2282,14 @@
   .as-ba-gallery .ba-card-handle{
     background:rgba(255,255,255,0.55);
   }
-  /* ---------- Pie de foto: flechas + etiquetas ----------
-     Fila fuera del recuadro (el recuadro recorta overflow:hidden, así que
-     nada de esto puede vivir dentro sin quedar cortado): flechas en los
-     extremos, etiquetas SIN EDITAR/EDITADA centradas entre ambas. */
-  /* Solución de raíz (más simple y a prueba de dispositivo que calcular
-     márgenes de seguridad): las flechas ya NO viven en los extremos del
-     todo -pegadas al borde de la pantalla, donde chocaban con el gesto
-     nativo de "deslizar desde el borde" de Safari/iOS-, sino juntas en el
-     centro, a los lados de las etiquetas. Así quedan lejos de cualquier
-     borde en cualquier dispositivo, sin depender de ningún cálculo de
-     padding ni de lo ancho que sea la pantalla. */
+  /* ---------- Pie de foto: solo etiquetas ----------
+     Las flechas ya no van aquí -se movieron a los laterales del recuadro,
+     ver ".as-ba-photo-wrap .as-ba-nav" más abajo-; esta fila ahora solo
+     centra SIN EDITAR/EDITADA debajo de la foto. */
   .as-ba-footer{
     display:flex;
     align-items:center;
     justify-content:center;
-    /* Poco hueco entre botón y etiqueta -"pegados"-: antes había 18px
-       tanto entre botón/etiqueta como dentro de las etiquetas, dando la
-       sensación de un grupo suelto; ahora el hueco grande solo separa el
-       bloque de "antes" del de "después" (dentro de .as-ba-labels), y
-       cada flecha queda pegada a su etiqueta más cercana. */
-    gap:8px;
-    /* Ancho "de su contenido" y centrado, en vez de 100% del bloque:
-       antes, al ocupar todo el ancho de .as-ba-card (hasta 920px en
-       escritorio), las flechas quedaban muy abiertas hacia los bordes
-       -lejos de las palabras SIN EDITAR/EDITADA, y en el móvil muy cerca
-       del borde físico de la pantalla, lo que además hacía que costara
-       acertarlas-. Con ancho de contenido, el grupo entero (flecha,
-       palabras, flecha) se queda compacto y centrado, siempre en el
-       mismo sitio sea cual sea la foto de encima. */
     width:fit-content;
     margin:12px auto 0;
   }
@@ -2379,11 +2358,45 @@
     margin:0 auto;
   }
   /* ---------- Flechas de navegación (siguiente/anterior pareja) ----------
-     Viven FUERA del recuadro, como parte de la fila de pie de foto
-     (.as-ba-footer, junto a .as-ba-labels): así nunca tapan la foto -antes
-     iban superpuestas sobre sus esquinas inferiores-. Se mantienen
-     pequeñas y circulares, ahora simplemente en flujo normal en vez de
-     ancladas con position:absolute. */
+     Ahora en los LATERALES del recuadro: ancladas con position:absolute
+     dentro de .as-ba-photo-wrap (que ya es position:relative y NO recorta
+     su contenido, ver más arriba), centradas verticalmente respecto a la
+     foto y asomando un poco hacia fuera de cada lado -mitad sobre el
+     borde del recuadro, mitad fuera-, igual que las flechas de un carrusel
+     de fotos típico. Como .as-ba-photo-wrap se amolda al ancho real de la
+     foto (JS, sizeFrameToPhoto), las flechas se quedan siempre pegadas al
+     borde de LA FOTO, no al borde de la columna entera. */
+  .as-ba-photo-wrap .as-ba-nav{
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    z-index:5;
+    /* Sombra propia (antes no hacía falta, porque vivían sobre fondo liso
+       fuera del recuadro; ahora, al asomar sobre la foto/el borde, un
+       poco de sombra ayuda a que se distingan de cualquier foto clara). */
+    box-shadow:0 4px 14px rgba(0,0,0,0.28);
+    /* Fondo más presente que el de .as-ba-nav base (0.045 de opacidad):
+       aquella opacidad tan baja funcionaba sobre el fondo liso de la
+       página, pero aquí el círculo cae sobre la propia foto -y una foto
+       puede ser oscura o clara-, así que necesita un blanco translúcido
+       que se note en cualquier caso, con su propio borde sutil. */
+    background:rgba(255,255,255,0.85);
+    color:#111;
+    border:1px solid rgba(0,0,0,0.06);
+  }
+  .as-ba-photo-wrap .as-ba-nav:hover{ background:rgba(255,255,255,0.97); }
+  .as-ba-photo-wrap .as-ba-nav:active{ background:rgba(255,255,255,1); transform:translateY(-50%) scale(0.92); }
+  .as-ba-photo-wrap .as-ba-nav--prev{ left:-16px; }
+  .as-ba-photo-wrap .as-ba-nav--next{ right:-16px; }
+  @media (max-width:480px){
+    /* Menos "vuelo" hacia fuera en pantallas estrechas: si la foto llega
+       a ocupar casi todo el ancho disponible, -16px podría empujar la
+       flecha muy cerca del borde físico de la pantalla (el gesto nativo
+       de "volver atrás" de Safari/iOS vive justo ahí). Con -8px queda
+       más pegada al propio recuadro y a salvo de ese borde. */
+    .as-ba-photo-wrap .as-ba-nav--prev{ left:-8px; }
+    .as-ba-photo-wrap .as-ba-nav--next{ right:-8px; }
+  }
   .as-ba-nav{
     flex:none;
     /* El círculo visible ES la zona de toque real (ver más abajo, ya no
