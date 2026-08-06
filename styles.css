@@ -2184,18 +2184,17 @@
     position:relative;
     width:100%;
     display:flex;
-    /* FIX: antes centraba la foto verticalmente dentro del hueco fijo
-       (align-items:center). Si la foto era más baja que el máximo -una
-       panorámica, por ejemplo- quedaba un margen en blanco arriba Y
-       abajo; el de abajo caía justo pegado a las flechas, y ese trozo en
-       blanco seguía teniendo activo el gesto normal de deslizar la
-       página (no es parte del botón, aunque esté al lado): tocar ahí
-       "al lado" del botón disparaba el gesto en vez de pulsarlo, y daba
-       la sensación de que las flechas no respondían.
-       Con flex-end la foto se ancla siempre abajo del hueco: el margen
-       en blanco (si lo hay) se queda arriba, lejos de los botones, y
-       justo debajo de la foto no hay ya ningún hueco "fantasma". */
-    align-items:flex-end;
+    /* Foto centrada verticalmente dentro del hueco fijo: antes iba anclada
+       abajo (align-items:flex-end) para que el margen en blanco -si la
+       foto era más baja que el máximo, una panorámica por ejemplo- no
+       cayera pegado a la fila de botones de abajo (entonces las flechas
+       vivían en el pie de foto, debajo del recuadro). Ahora que las
+       flechas ya NO están debajo sino ancladas a los LATERALES de este
+       mismo escenario (as-ba-nav, top:50% de aquí abajo) ese problema ya
+       no aplica -y además centrar la foto es lo que hace que su mitad
+       real coincida con el top:50% de las flechas, en vez de con la
+       mitad de un hueco vacío-. */
+    align-items:center;
     justify-content:center;
     height:var(--as-ba-frame-max-h);
   }

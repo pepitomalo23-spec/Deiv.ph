@@ -62,6 +62,16 @@
       if (e.key === 'ArrowLeft'){ setPos(pos - 5); e.preventDefault(); }
       else if (e.key === 'ArrowRight'){ setPos(pos + 5); e.preventDefault(); }
     });
+    // Reinicio del tirador al centro, expuesto en el propio frame para que
+    // otro script pueda llamarlo (lo usa comparison-pairs.js cada vez que
+    // se cambia de pareja con las flechas siguiente/anterior): sin esto,
+    // la barra se quedaba donde el usuario la hubiera dejado en la FOTO
+    // ANTERIOR -si alguien la arrastraba del todo a un lado y luego
+    // cambiaba de pareja, la nueva foto aparecía ya "revelada" del todo
+    // por ese lado, dando la sensación de que el tirador no respondía en
+    // esa foto en concreto (en realidad sí funcionaba, solo que arrancaba
+    // ya desplazado del centro).
+    frame.__baResetCompare = () => setPos(50);
   }
 
   // ================= -1) Flechas del comparador de la 4ª posición =================

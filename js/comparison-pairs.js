@@ -187,6 +187,12 @@
     // esa no existe), dentro del máximo de alto que ya definía el CSS.
     if (asBaFrameEl) asBaFrameEl.classList.toggle('is-loading', !cloudLoaded && !pair.before && !pair.after);
     setFrameAspect(pair.after || pair.before || null);
+    // Reinicia la barra de comparar al centro en cada cambio de pareja
+    // (ver __baResetCompare en before-after-card.js): así el tirador
+    // siempre "funciona" de forma predecible en todas las fotos, en vez
+    // de heredar la posición en la que se hubiera quedado en la pareja
+    // anterior.
+    if (asBaFrameEl && typeof asBaFrameEl.__baResetCompare === 'function') asBaFrameEl.__baResetCompare();
   }
   // Red de seguridad para móvil: en algunos Safari/iOS, si el toque queda
   // cerca del límite de lo que el gesto de scroll de la página vigila a
