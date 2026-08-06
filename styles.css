@@ -2176,6 +2176,12 @@
     position:relative;
     isolation:isolate;
     width:100%;
+    /* Siempre centrado horizontalmente dentro de .as-ba-card, tenga la
+       foto la forma que tenga: antes se centraba solo mientras el ancho
+       era 100% (sin foto) -en cuanto sizeFrameToPhoto (JS) le pone un
+       ancho exacto en píxeles, sin este margin:auto se quedaba pegado al
+       borde izquierdo en vez de centrado-. */
+    margin:0 auto;
   }
   /* El ancho exacto de este envoltorio (para que las "fotos fantasma" de
      detrás coincidan con el tamaño real de la foto, y no con el ancho
@@ -2259,8 +2265,17 @@
     align-items:center;
     justify-content:center;
     gap:18px;
-    width:100%;
-    margin-top:12px;
+    /* Ancho fijo y centrado en vez de 100% del bloque: antes, al ocupar
+       todo el ancho de .as-ba-card (hasta 920px en escritorio), las
+       flechas quedaban muy abiertas hacia los bordes -lejos de la foto,
+       sobre todo con fotos verticales, más estrechas que ese ancho- y
+       además cambiaban de sitio de una pareja a otra porque el hueco
+       entre ellas (as-ba-labels, flex:1) se repartía distinto según el
+       ancho de la foto de encima. Con un tope fijo aquí, las flechas se
+       quedan siempre en el mismo sitio, más recogidas, sea cual sea la
+       forma de la foto. */
+    width:min(420px, 92%);
+    margin:12px auto 0;
   }
   .as-ba-labels{
     display:flex;
