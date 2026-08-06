@@ -2215,7 +2215,10 @@
        SIN EDITAR/EDITADA, que son las que fijan cuánto puede crecer
        realmente el bloque en total (ver postEndMax en scroll-engine.js,
        que se recalcula solo). */
-    .as-ba-gallery .ba-card-frame{ aspect-ratio:5/4; max-height:56vh; }
+    /* Se reduce de 56vh a 44vh: en pantallas de móvil se veía demasiado
+       grande, casi ocupando la pantalla entera de lado a lado -aquí es
+       solo un adelanto/teaser, no la galería completa de "Ediciones"-. */
+    .as-ba-gallery .ba-card-frame{ aspect-ratio:5/4; max-height:44vh; }
     .as-ba-photo-wrap::before,
     .as-ba-photo-wrap::after{ border-radius:14px; }
     .as-ba-photo-wrap::before{ transform:rotate(-3deg) translate(-7px, 7px); }
@@ -2245,6 +2248,21 @@
     gap:12px;
     width:100%;
     margin-top:12px;
+  }
+  @media (max-width:600px){
+    /* FIX: en móvil, el margen que deja el contenedor (.after-story-header,
+       width:min(94vw,...)) hasta el borde real de la pantalla es de solo
+       ~3vw (11-15px en un iPhone normal) -eso cae DENTRO de la franja que
+       Safari/iOS reserva para su propio gesto nativo de "deslizar desde el
+       borde para volver atrás" (o cambiar de pestaña). Con tan poco margen,
+       tocar o arrastrar ligeramente la flecha "anterior" -pegada al lado
+       izquierdo- podía ser interceptado por ESE gesto del navegador en vez
+       de llegar a nuestro botón, así que nunca se recibía el toque. Este
+       padding empuja ambas flechas más hacia dentro, lejos de esa franja,
+       sin mover ni el tamaño ni la posición de la foto ni de las
+       etiquetas (que siguen centradas igual, ver justify-content:
+       space-between arriba). */
+    padding:0 22px;
   }
   .as-ba-labels{
     display:flex;
