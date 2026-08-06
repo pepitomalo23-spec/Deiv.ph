@@ -202,24 +202,38 @@
              -pero al tocar cualquier OTRA parte de la foto, el gesto de
              deslizar la historia funciona con normalidad, como en el
              resto de la página. -->
-        <!-- Envoltorio del recuadro (as-ba-photo-wrap): se amolda exactamente
-             al tamaño real del recuadro (igual que antes) pero, a diferencia
-             de .ba-card-frame, NO recorta su contenido (no tiene
-             overflow:hidden) -por eso las dos fotos "fantasma" de detrás
-             (::before/::after, efecto "pila de fotos", ver styles.css)
-             pueden asomar un poco por los bordes en vez de quedar cortadas,
-             y las flechas (as-ba-nav, ver más abajo) pueden anclarse a las
-             esquinas del recuadro real sea cual sea su tamaño. -->
-        <div class="as-ba-photo-wrap">
-          <div class="ba-card-frame">
-            <div class="ba-card-before" id="asBaBefore" style="background-image:linear-gradient(160deg,#4a4d4f,#202325 55%,#0c0d0e);"></div>
-            <div class="ba-card-after-clip">
-              <div class="ba-card-after" id="asBaAfter" style="background-image:linear-gradient(150deg,#ffb27a 0%,#ff5a1f 32%,#7a2708 62%,#180a04 100%);"></div>
+        <!-- Escenario de altura fija (as-ba-stage): antes la fila de
+             botones venía justo después del recuadro en el flujo normal,
+             así que si una foto era más baja que otra (una vertical
+             recortada frente a una panorámica, por ejemplo) toda la fila
+             de abajo subía o bajaba con ella -dando la sensación de que
+             los botones "se movían" de una pareja a otra-. Ahora el
+             recuadro vive dentro de un hueco de altura SIEMPRE igual
+             (misma altura que el tope máximo que ya tenía, ver
+             .as-ba-stage en styles.css) y se centra dentro de ese hueco
+             con flexbox; la fila de botones, al ir justo después de un
+             hueco de altura constante, se queda siempre en el mismo
+             sitio, cambie lo que cambie la foto de dentro. -->
+        <div class="as-ba-stage">
+          <!-- Envoltorio del recuadro (as-ba-photo-wrap): se amolda exactamente
+               al tamaño real del recuadro (igual que antes) pero, a diferencia
+               de .ba-card-frame, NO recorta su contenido (no tiene
+               overflow:hidden) -por eso las dos fotos "fantasma" de detrás
+               (::before/::after, efecto "pila de fotos", ver styles.css)
+               pueden asomar un poco por los bordes en vez de quedar cortadas,
+               y las flechas (as-ba-nav, ver más abajo) pueden anclarse a las
+               esquinas del recuadro real sea cual sea su tamaño. -->
+          <div class="as-ba-photo-wrap">
+            <div class="ba-card-frame">
+              <div class="ba-card-before" id="asBaBefore" style="background-image:linear-gradient(160deg,#4a4d4f,#202325 55%,#0c0d0e);"></div>
+              <div class="ba-card-after-clip">
+                <div class="ba-card-after" id="asBaAfter" style="background-image:linear-gradient(150deg,#ffb27a 0%,#ff5a1f 32%,#7a2708 62%,#180a04 100%);"></div>
+              </div>
+              <!-- data-no-scene-drag SOLO en el círculo: es el único punto
+                   por el que se puede arrastrar el comparador (ver
+                   crearComparador en before-after-card.js). -->
+              <div class="ba-card-handle"><div class="ba-card-handle-grip" data-no-scene-drag><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 3 12 9 6"/><polyline points="15 6 21 12 15 18"/></svg></div></div>
             </div>
-            <!-- data-no-scene-drag SOLO en el círculo: es el único punto
-                 por el que se puede arrastrar el comparador (ver
-                 crearComparador en before-after-card.js). -->
-            <div class="ba-card-handle"><div class="ba-card-handle-grip" data-no-scene-drag><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 3 12 9 6"/><polyline points="15 6 21 12 15 18"/></svg></div></div>
           </div>
         </div>
         <!-- Flechas + etiquetas fuera del recuadro, en la misma fila de pie

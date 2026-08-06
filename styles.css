@@ -2146,6 +2146,12 @@
     max-width:920px;
     margin:0 auto;
     pointer-events:auto;
+    /* Un único número para el alto máximo de la foto, compartido por el
+       recuadro (.ba-card-frame) y por el escenario que lo envuelve
+       (.as-ba-stage, más abajo): así los dos se mueven siempre a la vez
+       si algún día cambia este valor, en vez de tener que acordarse de
+       actualizarlo en dos sitios. */
+    --as-ba-frame-max-h: clamp(260px, 66vh, 680px);
   }
   .as-ba-gallery .ba-card-frame{
     /* Proporción de repuesto: se usa solo mientras no hay ninguna foto
@@ -2159,8 +2165,23 @@
        el margen lateral que le sobraba en vez de quedarse pequeña. Una
        foto horizontal nunca se sale de la pantalla pase lo que pase,
        porque sigue topando primero con max-width:100% (ver .has-photo). */
-    max-height:clamp(260px, 66vh, 680px);
+    max-height:var(--as-ba-frame-max-h);
     border-radius:18px;
+  }
+  /* ---------- Escenario de altura fija ----------
+     Hueco con SIEMPRE la misma altura (el mismo número que el tope de
+     arriba), donde se centra el recuadro -sea cual sea la forma real de
+     la foto de dentro-. Antes la fila de botones de abajo (.as-ba-footer)
+     iba justo después del recuadro en el flujo normal, así que su
+     posición vertical dependía de lo alta que fuera cada foto y "saltaba"
+     al cambiar de pareja; al vivir siempre justo después de este hueco de
+     altura constante, se queda fija en el mismo sitio pase lo que pase. */
+  .as-ba-stage{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    height:var(--as-ba-frame-max-h);
   }
   /* ---------- Envoltorio del recuadro: efecto "hay más fotos detrás"
      ----------
@@ -2230,7 +2251,8 @@
        por encima de este aspect-ratio -pero sigue leyendo este mismo
        max-height como su tope real, así que el alto máximo alcanzable en
        móvil se define aquí igual que antes-. */
-    .as-ba-gallery .ba-card-frame{ aspect-ratio:5/4; max-height:64vh; max-height:64dvh; }
+    .as-ba-gallery{ --as-ba-frame-max-h:64vh; --as-ba-frame-max-h:64dvh; }
+    .as-ba-gallery .ba-card-frame{ aspect-ratio:5/4; }
     .as-ba-photo-wrap::before,
     .as-ba-photo-wrap::after{ border-radius:14px; }
     .as-ba-photo-wrap::before{ transform:rotate(-3deg) translate(-7px, 7px); }
@@ -2264,25 +2286,35 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:18px;
-    /* Ancho fijo y centrado en vez de 100% del bloque: antes, al ocupar
-       todo el ancho de .as-ba-card (hasta 920px en escritorio), las
-       flechas quedaban muy abiertas hacia los bordes -lejos de la foto,
-       sobre todo con fotos verticales, más estrechas que ese ancho- y
-       además cambiaban de sitio de una pareja a otra porque el hueco
-       entre ellas (as-ba-labels, flex:1) se repartía distinto según el
-       ancho de la foto de encima. Con un tope fijo aquí, las flechas se
-       quedan siempre en el mismo sitio, más recogidas, sea cual sea la
-       forma de la foto. */
-    width:min(420px, 92%);
+    /* Poco hueco entre botón y etiqueta -"pegados"-: antes había 18px
+       tanto entre botón/etiqueta como dentro de las etiquetas, dando la
+       sensación de un grupo suelto; ahora el hueco grande solo separa el
+       bloque de "antes" del de "después" (dentro de .as-ba-labels), y
+       cada flecha queda pegada a su etiqueta más cercana. */
+    gap:8px;
+    /* Ancho "de su contenido" y centrado, en vez de 100% del bloque:
+       antes, al ocupar todo el ancho de .as-ba-card (hasta 920px en
+       escritorio), las flechas quedaban muy abiertas hacia los bordes
+       -lejos de las palabras SIN EDITAR/EDITADA, y en el móvil muy cerca
+       del borde físico de la pantalla, lo que además hacía que costara
+       acertarlas-. Con ancho de contenido, el grupo entero (flecha,
+       palabras, flecha) se queda compacto y centrado, siempre en el
+       mismo sitio sea cual sea la foto de encima. */
+    width:fit-content;
     margin:12px auto 0;
   }
   .as-ba-labels{
     display:flex;
     justify-content:center;
     align-items:center;
-    gap:10px;
-    flex:1;
+    /* Antes con gap:10px; ahora un pelín más, ya que las flechas se han
+       acercado mucho (as-ba-footer) y conviene que "SIN EDITAR" y
+       "EDITADA" sigan distinguiéndose bien entre sí como grupo aparte. */
+    gap:14px;
+    /* flex:1 ya no hace falta: antes empujaba las flechas hasta los
+       extremos de un footer a ancho completo (100%); ahora el footer es
+       "de su contenido" (ver as-ba-footer) así que este hueco solo debe
+       medir lo que ocupa el propio texto. */
   }
   /* Ahora sin recuadro/pastilla: solo texto, con una micro-marca de color a
      la izquierda (un guioncito) que diferencia "sin editar" (gris neutro)
