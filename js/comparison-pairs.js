@@ -84,7 +84,20 @@
       return;
     }
     const container = asBaFrameEl.closest('.as-ba-gallery') || asBaFrameEl.parentElement;
-    const availWidth = (container && container.clientWidth) || window.innerWidth;
+    const rawAvailWidth = (container && container.clientWidth) || window.innerWidth;
+    // Se reserva sitio a los dos lados para las flechas anteriores/
+    // siguiente (as-ba-nav), que ahora viven FUERA de la foto, anclada
+    // cada una al borde del escenario (.as-ba-stage, ver styles.css) y no
+    // al de la propia foto. Sin este descuento, una foto muy panorámica
+    // podría llegar a ocupar todo el ancho del escenario y solaparse con
+    // las flechas; con él, la foto nunca crece más allá del hueco que
+    // dejan libre a cada lado (círculo de la flecha + un pequeño margen).
+    // En pantallas estrechas se dejan un poco más ajustadas -circulo
+    // pegado casi al borde del escenario- para no comerle demasiado sitio
+    // a la foto; en pantallas normales se deja más aire entre flecha y
+    // foto.
+    const NAV_CLEARANCE = window.innerWidth <= 480 ? 44 : 56;
+    const availWidth = Math.max(0, rawAvailWidth - (NAV_CLEARANCE * 2));
     // Mismo tope de alto que ya usaba el CSS (clamp en escritorio, dvh en
     // móvil): se lee el que esté vigente ahora mismo en vez de duplicar
     // ese número aquí, así que si algún día cambia el CSS, este cálculo

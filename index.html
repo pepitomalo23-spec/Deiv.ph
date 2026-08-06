@@ -215,26 +215,31 @@
              hueco de altura constante, se queda siempre en el mismo
              sitio, cambie lo que cambie la foto de dentro. -->
         <div class="as-ba-stage">
+          <!-- Flechas ancladas al ESCENARIO (as-ba-stage), no al envoltorio
+               de la foto (as-ba-photo-wrap): as-ba-stage tiene SIEMPRE la
+               misma altura (var(--as-ba-frame-max-h), fija sea cual sea la
+               foto -ver comentario más arriba-), así que top:50% aquí es
+               siempre "la mitad del recuadro/dispositivo", constante entre
+               una pareja y otra. Si fueran hijas de as-ba-photo-wrap (que
+               se amolda al tamaño real de cada foto) su centro vertical
+               cambiaría de una foto vertical a una panorámica -exactamente
+               el mismo problema de "los botones se mueven" que ya se
+               resolvió para el pie de foto, ver el comentario de arriba-.
+               En horizontal quedan ancladas al borde del ESCENARIO (que
+               ocupa el ancho completo del comparador), no al de la foto
+               -que puede ser más estrecha si es vertical-, así se quedan
+               siempre fuera de la imagen, nunca encima. -->
+          <button type="button" class="as-ba-nav as-ba-nav--prev" id="asBaPrev" data-no-scene-drag aria-label="Comparación anterior">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
           <!-- Envoltorio del recuadro (as-ba-photo-wrap): se amolda exactamente
                al tamaño real del recuadro (igual que antes) pero, a diferencia
                de .ba-card-frame, NO recorta su contenido (no tiene
                overflow:hidden) -por eso las dos fotos "fantasma" de detrás
                (::before/::after, efecto "pila de fotos", ver styles.css)
-               pueden asomar un poco por los bordes en vez de quedar cortadas,
-               y las flechas (as-ba-nav, ver más abajo) pueden anclarse a las
-               esquinas del recuadro real sea cual sea su tamaño. -->
+               pueden asomar un poco por los bordes en vez de quedar
+               cortadas-. -->
           <div class="as-ba-photo-wrap">
-            <!-- Flechas en los LATERALES del recuadro (antes vivían debajo,
-                 en la fila de pie de foto junto a las etiquetas). Van aquí
-                 dentro de .as-ba-photo-wrap -que no recorta su contenido,
-                 ver más arriba- para poder asomar a los lados del recuadro
-                 real sea cual sea su tamaño (ba-card-frame sí tiene
-                 overflow:hidden, por eso no pueden ir dentro de él).
-                 data-no-scene-drag evita que, al tocarlas, se dispare el
-                 gesto de deslizar la historia. -->
-            <button type="button" class="as-ba-nav as-ba-nav--prev" id="asBaPrev" data-no-scene-drag aria-label="Comparación anterior">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-            </button>
             <div class="ba-card-frame">
               <div class="ba-card-before" id="asBaBefore" style="background-image:linear-gradient(160deg,#4a4d4f,#202325 55%,#0c0d0e);"></div>
               <div class="ba-card-after-clip">
@@ -245,10 +250,10 @@
                    crearComparador en before-after-card.js). -->
               <div class="ba-card-handle"><div class="ba-card-handle-grip" data-no-scene-drag><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 3 12 9 6"/><polyline points="15 6 21 12 15 18"/></svg></div></div>
             </div>
-            <button type="button" class="as-ba-nav as-ba-nav--next" id="asBaNext" data-no-scene-drag aria-label="Siguiente comparación">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
           </div>
+          <button type="button" class="as-ba-nav as-ba-nav--next" id="asBaNext" data-no-scene-drag aria-label="Siguiente comparación">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
         </div>
         <!-- Pie de foto: ahora solo las etiquetas SIN EDITAR/EDITADA
              centradas (las flechas se movieron a los laterales del

@@ -2177,6 +2177,11 @@
      al cambiar de pareja; al vivir siempre justo después de este hueco de
      altura constante, se queda fija en el mismo sitio pase lo que pase. */
   .as-ba-stage{
+    /* position:relative: ancla real de las flechas (as-ba-nav, ver más
+       abajo) -su altura NUNCA cambia (height:var(--as-ba-frame-max-h)),
+       así que un top:50% aquí es siempre la misma "media altura", pase lo
+       que pase con el tamaño de la foto de cada pareja. */
+    position:relative;
     width:100%;
     display:flex;
     /* FIX: antes centraba la foto verticalmente dentro del hueco fijo
@@ -2284,7 +2289,7 @@
   }
   /* ---------- Pie de foto: solo etiquetas ----------
      Las flechas ya no van aquí -se movieron a los laterales del recuadro,
-     ver ".as-ba-photo-wrap .as-ba-nav" más abajo-; esta fila ahora solo
+     ver ".as-ba-stage .as-ba-nav" más abajo-; esta fila ahora solo
      centra SIN EDITAR/EDITADA debajo de la foto. */
   .as-ba-footer{
     display:flex;
@@ -2358,45 +2363,37 @@
     margin:0 auto;
   }
   /* ---------- Flechas de navegación (siguiente/anterior pareja) ----------
-     Ahora en los LATERALES del recuadro: ancladas con position:absolute
-     dentro de .as-ba-photo-wrap (que ya es position:relative y NO recorta
-     su contenido, ver más arriba), centradas verticalmente respecto a la
-     foto y asomando un poco hacia fuera de cada lado -mitad sobre el
-     borde del recuadro, mitad fuera-, igual que las flechas de un carrusel
-     de fotos típico. Como .as-ba-photo-wrap se amolda al ancho real de la
-     foto (JS, sizeFrameToPhoto), las flechas se quedan siempre pegadas al
-     borde de LA FOTO, no al borde de la columna entera. */
-  .as-ba-photo-wrap .as-ba-nav{
+     FUERA de la imagen y siempre a la misma altura: ancladas con
+     position:absolute a .as-ba-stage (no a .as-ba-photo-wrap, que se
+     amolda a cada foto y por tanto cambiaría de tamaño/posición de una
+     pareja a otra -ver comentario en .as-ba-stage-). Como .as-ba-stage
+     tiene una altura fija (el "hueco" que ya existía para que la fila de
+     abajo no saltase), top:50% aquí equivale a "la mitad del recuadro",
+     siempre en el mismo sitio, sea la foto vertical, horizontal o
+     cuadrada. En horizontal se anclan al borde del ESCENARIO completo (que
+     ocupa todo el ancho del comparador), no al de la foto -que puede ser
+     más estrecha si es vertical-, así quedan SIEMPRE fuera de la imagen,
+     nunca encima ni tapándola. */
+  .as-ba-stage .as-ba-nav{
     position:absolute;
     top:50%;
     transform:translateY(-50%);
     z-index:5;
-    /* Sombra propia (antes no hacía falta, porque vivían sobre fondo liso
-       fuera del recuadro; ahora, al asomar sobre la foto/el borde, un
-       poco de sombra ayuda a que se distingan de cualquier foto clara). */
-    box-shadow:0 4px 14px rgba(0,0,0,0.28);
+    left:0;
     /* Fondo más presente que el de .as-ba-nav base (0.045 de opacidad):
        aquella opacidad tan baja funcionaba sobre el fondo liso de la
-       página, pero aquí el círculo cae sobre la propia foto -y una foto
-       puede ser oscura o clara-, así que necesita un blanco translúcido
-       que se note en cualquier caso, con su propio borde sutil. */
+       página; aquí, al vivir junto a la foto sobre distintos fondos, un
+       blanco translúcido con sombra propia se distingue en cualquier
+       caso. */
     background:rgba(255,255,255,0.85);
     color:#111;
     border:1px solid rgba(0,0,0,0.06);
+    box-shadow:0 4px 14px rgba(0,0,0,0.28);
   }
-  .as-ba-photo-wrap .as-ba-nav:hover{ background:rgba(255,255,255,0.97); }
-  .as-ba-photo-wrap .as-ba-nav:active{ background:rgba(255,255,255,1); transform:translateY(-50%) scale(0.92); }
-  .as-ba-photo-wrap .as-ba-nav--prev{ left:-16px; }
-  .as-ba-photo-wrap .as-ba-nav--next{ right:-16px; }
-  @media (max-width:480px){
-    /* Menos "vuelo" hacia fuera en pantallas estrechas: si la foto llega
-       a ocupar casi todo el ancho disponible, -16px podría empujar la
-       flecha muy cerca del borde físico de la pantalla (el gesto nativo
-       de "volver atrás" de Safari/iOS vive justo ahí). Con -8px queda
-       más pegada al propio recuadro y a salvo de ese borde. */
-    .as-ba-photo-wrap .as-ba-nav--prev{ left:-8px; }
-    .as-ba-photo-wrap .as-ba-nav--next{ right:-8px; }
-  }
+  .as-ba-stage .as-ba-nav:hover{ background:rgba(255,255,255,0.97); }
+  .as-ba-stage .as-ba-nav:active{ background:rgba(255,255,255,1); transform:translateY(-50%) scale(0.92); }
+  .as-ba-stage .as-ba-nav--prev{ left:0; }
+  .as-ba-stage .as-ba-nav--next{ right:0; left:auto; }
   .as-ba-nav{
     flex:none;
     /* El círculo visible ES la zona de toque real (ver más abajo, ya no
