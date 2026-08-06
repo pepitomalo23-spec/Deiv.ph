@@ -2494,9 +2494,10 @@
     justify-content:center;
     padding:0;
     /* Sin pie de foto que reservar (las etiquetas se ocultan aquí
-       debajo), así la foto puede aprovechar prácticamente todo el alto
-       de la pantalla: solo queda fuera un margen mínimo. */
-    --as-ba-frame-max-h: min(96vh, 96dvh);
+       debajo) y sin ningún margen: la foto ocupa el alto completo de
+       la pantalla, al máximo. */
+    --as-ba-frame-max-h: 100vh;
+    --as-ba-frame-max-h: 100dvh;
   }
   .as-ba-gallery.is-fullscreen .as-ba-card{
     width:100%;
@@ -2505,6 +2506,25 @@
     flex-direction:column;
     align-items:center;
     justify-content:center;
+  }
+  .as-ba-gallery.is-fullscreen .as-ba-stage{
+    height:100%;
+  }
+  /* Sin margen ni esquinas redondeadas: aquí ya no es una "tarjeta"
+     flotando sobre la página, es la foto a pantalla completa. */
+  .as-ba-gallery.is-fullscreen .ba-card-frame{
+    border-radius:0;
+  }
+  /* Efecto "hay más fotos detrás" (las dos copias giradas que asoman
+     por los bordes, ver .as-ba-photo-wrap::before/::after más abajo):
+     tiene sentido como adorno cuando el recuadro es una tarjeta más
+     dentro de la página, pero aquí -foto sola, a pantalla completa, sin
+     margen- ese "detrás" ya no cabe (se saldría de la pantalla) y
+     además el usuario pidió expresamente que no aparente que hay más
+     fotos. Se apaga solo en este modo. */
+  .as-ba-gallery.is-fullscreen .as-ba-photo-wrap::before,
+  .as-ba-gallery.is-fullscreen .as-ba-photo-wrap::after{
+    display:none;
   }
   /* Pantalla completa = solo la foto y la barrita de arrastre (más las
      flechas para cambiar de pareja, que siguen haciendo falta). El pie
