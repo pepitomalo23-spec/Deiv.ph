@@ -2208,17 +2208,21 @@
     z-index:-2;
   }
   @media (max-width:480px){
-    /* Mismo criterio en móvil: más alto de tope (antes 40vh, se quedaba
-       muy corto con fotos verticales) para que la foto crezca y use el
-       ancho que le sobraba, sin dejar de caber en la pantalla -sigue
-       habiendo hueco debajo para el título, la frase y las etiquetas
-       SIN EDITAR/EDITADA, que son las que fijan cuánto puede crecer
-       realmente el bloque en total (ver postEndMax en scroll-engine.js,
-       que se recalcula solo). */
-    /* Se reduce de 56vh a 44vh: en pantallas de móvil se veía demasiado
-       grande, casi ocupando la pantalla entera de lado a lado -aquí es
-       solo un adelanto/teaser, no la galería completa de "Ediciones"-. */
-    .as-ba-gallery .ba-card-frame{ aspect-ratio:5/4; max-height:44vh; }
+    /* Ahora que las flechas ya no viven en el borde (se movieron al
+       centro, junto a las etiquetas), el contenedor puede usar casi todo
+       el ancho de la pantalla sin ningún riesgo de gesto de borde -antes
+       94vw era además la restricción real que limitaba el tamaño de la
+       foto (por delante incluso del alto máximo), así que ensancharlo es
+       lo que de verdad la hace más grande en móvil-.
+       Se sube también el ancho de todo el bloque (título, foto, etc.). */
+    .after-story-header{ width:98vw; }
+    /* Todo lo grande que permita el dispositivo: se apoya en dvh (alto
+       real visible, sin que la barra de Safari lo falsee) en vez de vh a
+       secas, y con un tope bastante generoso -aquí "grande" gana sobre
+       "conservador"-. aspect-ratio 5/4 es solo el valor de repuesto sin
+       foto real; en cuanto hay foto (.has-photo) su propia proporción
+       manda y este alto sigue siendo el tope real que puede alcanzar. */
+    .as-ba-gallery .ba-card-frame{ aspect-ratio:5/4; max-height:64vh; max-height:64dvh; }
     .as-ba-photo-wrap::before,
     .as-ba-photo-wrap::after{ border-radius:14px; }
     .as-ba-photo-wrap::before{ transform:rotate(-3deg) translate(-7px, 7px); }
@@ -2241,28 +2245,20 @@
      Fila fuera del recuadro (el recuadro recorta overflow:hidden, así que
      nada de esto puede vivir dentro sin quedar cortado): flechas en los
      extremos, etiquetas SIN EDITAR/EDITADA centradas entre ambas. */
+  /* Solución de raíz (más simple y a prueba de dispositivo que calcular
+     márgenes de seguridad): las flechas ya NO viven en los extremos del
+     todo -pegadas al borde de la pantalla, donde chocaban con el gesto
+     nativo de "deslizar desde el borde" de Safari/iOS-, sino juntas en el
+     centro, a los lados de las etiquetas. Así quedan lejos de cualquier
+     borde en cualquier dispositivo, sin depender de ningún cálculo de
+     padding ni de lo ancho que sea la pantalla. */
   .as-ba-footer{
     display:flex;
     align-items:center;
-    justify-content:space-between;
-    gap:12px;
+    justify-content:center;
+    gap:18px;
     width:100%;
     margin-top:12px;
-  }
-  @media (max-width:600px){
-    /* FIX: en móvil, el margen que deja el contenedor (.after-story-header,
-       width:min(94vw,...)) hasta el borde real de la pantalla es de solo
-       ~3vw (11-15px en un iPhone normal) -eso cae DENTRO de la franja que
-       Safari/iOS reserva para su propio gesto nativo de "deslizar desde el
-       borde para volver atrás" (o cambiar de pestaña). Con tan poco margen,
-       tocar o arrastrar ligeramente la flecha "anterior" -pegada al lado
-       izquierdo- podía ser interceptado por ESE gesto del navegador en vez
-       de llegar a nuestro botón, así que nunca se recibía el toque. Este
-       padding empuja ambas flechas más hacia dentro, lejos de esa franja,
-       sin mover ni el tamaño ni la posición de la foto ni de las
-       etiquetas (que siguen centradas igual, ver justify-content:
-       space-between arriba). */
-    padding:0 22px;
   }
   .as-ba-labels{
     display:flex;
