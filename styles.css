@@ -2328,11 +2328,17 @@
      ancladas con position:absolute. */
   .as-ba-nav{
     flex:none;
-    width:30px;
-    height:30px;
+    /* Un pelín más grande que antes (30px -> 36px): más fácil de acertar
+       con el dedo sin llegar a ser un botón grande de verdad. */
+    width:36px;
+    height:36px;
     border-radius:50%;
-    border:1px solid rgba(17,17,17,0.16);
-    background:rgba(17,17,17,0.06);
+    /* Menos "cantoso": se quita el borde marcado y se deja solo un
+       relleno muy suave -el círculo se nota al tocarlo/pasar el ratón,
+       pero en reposo casi no compite visualmente con la foto ni con las
+       etiquetas SIN EDITAR/EDITADA de al lado. */
+    border:none;
+    background:rgba(17,17,17,0.045);
     color:var(--fg);
     display:flex;
     align-items:center;
@@ -2359,11 +2365,11 @@
   .as-ba-nav::after{
     content:'';
     position:absolute;
-    inset:-7px;
+    inset:-6px;
   }
-  .as-ba-nav svg{ width:14px; height:14px; }
-  .as-ba-nav:hover{ background:rgba(17,17,17,0.12); }
-  .as-ba-nav:active{ transform:scale(0.92); }
+  .as-ba-nav svg{ width:15px; height:15px; }
+  .as-ba-nav:hover{ background:rgba(17,17,17,0.09); }
+  .as-ba-nav:active{ background:rgba(17,17,17,0.13); transform:scale(0.92); }
 
   /* ---------- "Descubre mi trabajo": fila de categorías ---------- */
   .as-discover{ width:100%; }
