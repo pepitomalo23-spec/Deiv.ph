@@ -101,8 +101,31 @@
     if (asBaFrameEl) asBaFrameEl.classList.toggle('is-loading', !cloudLoaded && !pair.before && !pair.after);
     setFrameAspect(pair.after || pair.before || null);
   }
-  if (asBaPrevBtn) asBaPrevBtn.addEventListener('click', () => renderPairsPublic(aseIndex - 1));
-  if (asBaNextBtn) asBaNextBtn.addEventListener('click', () => renderPairsPublic(aseIndex + 1));
+  // Red de seguridad para móvil: en algunos Safari/iOS, si el toque queda
+  // cerca del límite de lo que el gesto de scroll de la página vigila a
+  // nivel de window (ver onTouchStart/onTouchMove en scroll-engine.js), el
+  // "click" sintético puede no llegar a disparar aunque el botón sea el
+  // objetivo real del toque. Escuchando "touchend" directamente en el
+  // propio botón nos aseguramos de que el cambio de imagen ocurra siempre,
+  // sin depender de que ese click sintético llegue o no. stopPropagation
+  // evita que el mismo toque se cuente dos veces si el click sí llega.
+  function bindTapSafety(btn, action){
+    if (!btn) return;
+    let handled = false;
+    btn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      handled = true;
+      action();
+      setTimeout(() => { handled = false; }, 400);
+    }, { passive:false });
+    btn.addEventListener('click', (e) => {
+      if (handled) { e.preventDefault(); return; }
+      action();
+    });
+  }
+  bindTapSafety(asBaPrevBtn, () => renderPairsPublic(aseIndex - 1));
+  bindTapSafety(asBaNextBtn, () => renderPairsPublic(aseIndex + 1));
 
   const pairListEl = document.getElementById('pairEditorList');
   const pairEmptyEl = document.getElementById('pairEditorEmpty');

@@ -2338,6 +2338,26 @@
     cursor:pointer;
     padding:0;
     transition:background .2s ease, transform .2s ease;
+    /* Refuerzo para móvil: no fiarse de que pointer-events:auto llegue
+       heredado desde el ancestro (.as-ba-gallery) -aquí se fija de forma
+       directa e inequívoca sobre el propio botón-. touch-action:manipulation
+       evita que Safari/iOS espere a descartar un doble-toque de zoom antes
+       de disparar el click (ese retraso, sumado a cualquier otro gesto de
+       la página, es una causa típica de "botón que no responde solo en
+       móvil"), y quita el resaltado gris que Safari pinta por defecto al
+       tocar. */
+    pointer-events:auto;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+    /* Zona de toque real más grande que el círculo visible (44px, el
+       mínimo recomendado para el dedo) sin agrandar el círculo en sí,
+       para que sea más fácil acertar en pantallas pequeñas. */
+    position:relative;
+  }
+  .as-ba-nav::after{
+    content:'';
+    position:absolute;
+    inset:-7px;
   }
   .as-ba-nav svg{ width:14px; height:14px; }
   .as-ba-nav:hover{ background:rgba(17,17,17,0.12); }
