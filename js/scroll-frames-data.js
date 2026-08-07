@@ -1,4 +1,4 @@
-const FRAME_COUNT = 130; // toma única y continua (fotógrafo -> cambio de lente -> solo cámaras), sustituye a los dos clips cosidos anteriores (31+104)
+const FRAME_COUNT = 135; // 31 del video original + 104 del golpe nuevo en mayor calidad (confirmado: los 135 fotogramas están presentes y son válidos)
 const FRAMES_B64 = [
   "assets/frames/frame001.jpg",
   "assets/frames/frame002.jpg",
@@ -129,5 +129,10 @@ const FRAMES_B64 = [
   "assets/frames/frame127.jpg",
   "assets/frames/frame128.jpg",
   "assets/frames/frame129.jpg",
-  "assets/frames/frame130.jpg"
+  "assets/frames/frame130.jpg",
+  "assets/frames/frame131.jpg",
+  "assets/frames/frame132.jpg",
+  "assets/frames/frame133.jpg",
+  "assets/frames/frame134.jpg",
+  "assets/frames/frame135.jpg"
 ];
