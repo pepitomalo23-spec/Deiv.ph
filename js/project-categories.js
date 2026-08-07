@@ -32,7 +32,7 @@
     ).join('');
   }
 
-  function openLightbox(cat){
+  function openLightbox(cat, btn){
     if (!lightboxEl || !cat) return;
     if (lightboxTitleEl) lightboxTitleEl.textContent = cat.label || '';
     const photos = Array.isArray(cat.photos) ? cat.photos.filter(Boolean) : [];
@@ -44,6 +44,13 @@
     lightboxEl.classList.add('is-open');
     lightboxEl.setAttribute('aria-hidden', 'false');
     document.body.classList.add('as-cat-lightbox-open');
+    // Resalta en naranja el botón de la categoría que está abierta ahora
+    // mismo (ver .as-cat-btn.is-active en styles.css), y quita ese
+    // resalte de cualquier otro botón que lo tuviera puesto.
+    if (catButtonsEl){
+      catButtonsEl.querySelectorAll('.as-cat-btn.is-active').forEach(el => el.classList.remove('is-active'));
+    }
+    if (btn) btn.classList.add('is-active');
   }
 
   function closeLightbox(){
@@ -51,6 +58,9 @@
     lightboxEl.classList.remove('is-open');
     lightboxEl.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('as-cat-lightbox-open');
+    if (catButtonsEl){
+      catButtonsEl.querySelectorAll('.as-cat-btn.is-active').forEach(el => el.classList.remove('is-active'));
+    }
   }
 
   if (catButtonsEl){
@@ -58,7 +68,7 @@
       const btn = e.target.closest('.as-cat-btn');
       if (!btn) return;
       const cat = currentCategories.find(c => c.id === btn.dataset.id);
-      if (cat) openLightbox(cat);
+      if (cat) openLightbox(cat, btn);
     });
   }
   if (lightboxCloseBtn) lightboxCloseBtn.addEventListener('click', closeLightbox);
