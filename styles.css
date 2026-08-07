@@ -2576,7 +2576,7 @@
     flex-direction:column;
     overflow-y:auto;
     -webkit-overflow-scrolling:touch;
-    padding:56px 14px 24px;
+    padding:56px 20px 28px;
     box-sizing:border-box;
   }
   .as-cat-lightbox.is-open{ display:flex; }
@@ -2614,8 +2614,8 @@
   }
   .as-cat-lightbox-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
-    gap:10px;
+    grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));
+    gap:18px;
     max-width:1400px;
     width:100%;
     margin:0 auto;
@@ -2624,7 +2624,7 @@
     display:block;
     width:100%;
     height:auto;
-    border-radius:6px;
+    border-radius:8px;
     background:rgba(255,255,255,0.06);
   }
   .as-cat-lightbox-empty{
@@ -2655,20 +2655,51 @@
     background:rgba(17,17,17,0.2);
     margin:8px auto 14px;
   }
+  /* ---------- Título + botones de categorías de "Proyectos" ----------
+     A diferencia del resto de #proyectosHeader (que cuelga cerca del
+     título "Proyectos", abajo), este bloque se saca arriba del todo con
+     su propio position:fixed -mismo top/left que usa el botón de menú,
+     pero a la izquierda-, aunque sigue viviendo dentro de
+     #proyectosHeader para heredar su misma visibilidad (ver JS en
+     scroll-engine.js: pointer-events y opacity se controlan siempre
+     desde el ancestro; aquí solo se le añade pointer-events:auto para
+     poder tocarlo cuando sí es visible, igual que ya hacía .as-expand). */
+  .as-cat-top{
+    position:fixed;
+    top:22px;
+    left:22px;
+    z-index:25;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:8px;
+    pointer-events:auto;
+  }
+  .as-cat-top-title{
+    margin:0;
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:600;
+    font-style:italic;
+    font-size:clamp(0.85rem, 2.6vw, 1rem);
+    color:#111111;
+    text-shadow:0 1px 3px rgba(255,255,255,0.35), 0 2px 14px rgba(255,255,255,0.25);
+  }
+  /* Sin categorías creadas todavía, no tiene sentido mostrar el título
+     "Fotos" solo, sin ningún botón debajo -lo oculta project-categories.js
+     poniendo display:none en todo #asCatTop en ese caso. */
+  @media (max-width:480px){
+    .as-cat-top{ top:18px; left:18px; }
+  }
+
   /* ---------- Botones de categorías de "Proyectos" (Deportes, Fiestas...)
      ----------
-     Fila de píldoras pequeñas, arriba a la izquierda del bloque (mismo
-     align-items:flex-start que .proyectos-header, ver más arriba): cada
-     una es una categoría creada desde Ajustes → Proyectos. Si no hay
-     ninguna, el JS deja este contenedor vacío y, al no tener contenido,
-     no ocupa hueco visual. */
+     Fila de píldoras pequeñas. Cada una es una categoría creada desde
+     Ajustes → Proyectos. Si no hay ninguna, el JS deja todo #asCatTop
+     (título incluido) oculto. */
   .as-cat-buttons{
     display:flex;
     flex-wrap:wrap;
     gap:8px;
-    width:100%;
-    margin-bottom:clamp(6px, 1.2vh, 12px);
-    pointer-events:auto;
   }
   .as-cat-btn{
     flex:none;

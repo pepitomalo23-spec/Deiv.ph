@@ -17,6 +17,7 @@
   let currentCategories = []; // última versión confirmada, la que viene de la nube
 
   // ================= Vista pública: botones + galería a pantalla completa =================
+  const catTopEl = document.getElementById('asCatTop');
   const catButtonsEl = document.getElementById('asCatButtons');
   const lightboxEl = document.getElementById('asCatLightbox');
   const lightboxTitleEl = document.getElementById('asCatLightboxTitle');
@@ -25,6 +26,7 @@
 
   function renderCatButtonsPublic(){
     if (!catButtonsEl) return;
+    if (catTopEl) catTopEl.style.display = currentCategories.length ? '' : 'none';
     catButtonsEl.innerHTML = currentCategories.map(c =>
       '<button type="button" class="as-cat-btn" data-id="' + escapeAttr(c.id) + '">' + escapeHtml(c.label || 'Sin nombre') + '</button>'
     ).join('');

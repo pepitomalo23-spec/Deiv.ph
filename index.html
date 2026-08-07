@@ -183,12 +183,24 @@
   <div class="proyectos-header" id="proyectosHeader">
     <h2 class="proyectos-title">Proyectos</h2>
 
-    <!-- Botones de categorías (Deportes, Fiestas...): se crean/editan desde
-         Ajustes → Proyectos (ver project-categories.js). Si no hay ninguna
-         categoría creada todavía, esta fila se queda vacía y no ocupa
-         espacio. Al tocar un botón se abre #asCatLightbox con todas las
-         fotos de esa categoría, a pantalla completa. -->
-    <div class="as-cat-buttons" id="asCatButtons"></div>
+    <!-- Título + botones de categorías (Deportes, Fiestas...): se crean/
+         editan desde Ajustes → Proyectos (ver project-categories.js). Vive
+         dentro de #proyectosHeader para heredar su misma clase "visible"
+         (la pone/quita scroll-engine.js: así este bloque solo se ve -y solo
+         se puede tocar- en la misma franja de scroll que el resto de
+         "Proyectos", aunque aquí se reposicione arriba del todo con su
+         propio position:fixed -ver .as-cat-top en styles.css: al no tener
+         #proyectosHeader ningún transform propio, un fixed dentro de él se
+         sigue colocando respecto a la ventana con normalidad-).
+         data-no-scene-drag en todo el bloque (título + fila de botones):
+         sin esto, tocar el título o el hueco entre botones -que no son
+         <button>, así que no quedan excluidos solo por serlo- se
+         interpretaba como un gesto de scroll de la historia y el scroll
+         se quedaba "peleando" entre los dos. -->
+    <div class="as-cat-top" id="asCatTop" data-no-scene-drag>
+      <p class="as-cat-top-title" id="asCatTopTitle">Fotos</p>
+      <div class="as-cat-buttons" id="asCatButtons"></div>
+    </div>
 
     <div class="as-expand" id="asExpandWrap">
       <div class="as-expand-grid" id="asExpandGrid"></div>
