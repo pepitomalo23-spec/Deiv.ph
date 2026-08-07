@@ -2700,26 +2700,28 @@
   .as-cat-buttons{
     display:flex;
     flex-wrap:wrap;
-    gap:8px;
+    gap:18px;
   }
   .as-cat-btn{
     flex:none;
-    border:1px solid rgba(17,17,17,0.45);
+    border:none;
+    border-bottom:2px solid transparent;
     background:transparent;
     color:#111111;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-    font-size:1.05rem;
+    font-size:0.95rem;
     font-weight:600;
-    letter-spacing:0.03em;
-    padding:12px 24px;
-    border-radius:999px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    padding:2px 1px 6px;
+    border-radius:0;
     cursor:pointer;
     touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
-    transition:background .2s ease, transform .15s ease, border-color .2s ease;
+    transition:border-color .25s ease, color .25s ease, transform .15s ease;
   }
-  .as-cat-btn:hover{ background:rgba(17,17,17,0.06); border-color:rgba(17,17,17,0.7); }
-  .as-cat-btn:active{ transform:scale(0.95); }
+  .as-cat-btn:hover{ color:var(--accent); border-bottom-color:var(--accent); }
+  .as-cat-btn:active{ transform:scale(0.96); }
 
   /* ---------- Galería que se expande (tarjetas estrechas -> foto grande
      con texto al pasar el ratón / tocar) ----------
