@@ -3605,6 +3605,58 @@
      que deja la foto en la vista previa se ve igual que en la web-. */
   .disc-editor-box.has-image{ border-style:solid; border-color:rgba(17,17,17,0.14); background-color:#ffffff; }
   .disc-editor-box.is-uploading{ cursor:default; }
+  /* Con foto puesta, el recuadro entero se puede arrastrar con la mano
+     para reencuadrarla (ver attachFreeReposition en thumb-reposition.js
+     y su uso en comparison-pairs.js): cursor de "coger" en vez del de
+     "puntero", sin selección de texto ni gestos táctiles del navegador
+     de por medio mientras se arrastra. */
+  .disc-editor-box.has-image{ cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none; }
+  .disc-editor-box.has-image.is-dragging{ cursor:grabbing; }
+  /* Pista visual de que la foto se puede arrastrar: un icono de "mover"
+     que solo aparece al pasar el ratón (pantallas con hover real) o uno
+     fijo y pequeño en la esquina en pantallas táctiles -mismo patrón que
+     .ajustes-thumb-move/-hint, ver más arriba en este archivo-. */
+  @media (hover:hover) and (pointer:fine){
+    .disc-editor-move{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(0,0,0,0);
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s ease, background .2s ease;
+    }
+    .disc-editor-box:hover .disc-editor-move{
+      opacity:1;
+      background:rgba(0,0,0,0.16);
+    }
+    .disc-editor-hint{ display:none; }
+  }
+  @media not all and (hover:hover) and (pointer:fine){
+    .disc-editor-move{ display:none; }
+    .disc-editor-hint{
+      position:absolute;
+      left:7px;
+      bottom:7px;
+      width:22px;
+      height:22px;
+      border-radius:50%;
+      background:rgba(0,0,0,0.4);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;
+    }
+    .disc-editor-hint svg{ width:12px; height:12px; color:#fff; }
+  }
+  .disc-editor-move svg{
+    width:20px;
+    height:20px;
+    color:#fff;
+    filter:drop-shadow(0 1px 3px rgba(0,0,0,0.5));
+  }
   .disc-editor-fields{ flex:1 1 220px; min-width:200px; display:flex; flex-direction:column; gap:6px; }
   .disc-editor-fields input{
     padding:8px 11px;

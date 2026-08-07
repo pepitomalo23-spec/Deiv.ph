@@ -5,6 +5,18 @@
       <circle cx="8.5" cy="10" r="1.5"/>
       <path d="M21 15l-5-5-4 4-3-3-5 5"/>
     </svg>`;
+  // Icono de "mover" (cuatro flechas) que indica que una foto se puede
+  // arrastrar para reencuadrarla: mismo dibujo que ya se usa en el
+  // carrusel de cámaras (ver camera-carousel.js), reutilizado aquí para
+  // el recuadro de vista previa de la galería de "Proyectos".
+  const MOVE_ICON = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3v18M3 12h18M7 7l-4 5 4 5M17 7l4 5-4 5M7 7l5-4 5 4M7 17l5 4 5-4"/>
+    </svg>`;
+  const MOVE_ICON_SMALL = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 5v14M8 9l4-4 4 4M8 15l4 4 4-4"/>
+    </svg>`;
 
   /* =================================================================
      2) Comparaciones antes/después (el carrusel con flechas de la 4ª
@@ -480,11 +492,11 @@
     'linear-gradient(160deg,#6b5b8f,#2b2140 55%,#0d0a15)'
   ];
   const DEFAULT_EXPAND = [
-    { id:'exp-1', label:'Bodas', phrase:'Cada instante, para siempre.', img:null, posY:50, fit:'cover' },
-    { id:'exp-2', label:'Festivales', phrase:'Luz, sonido y energía.', img:null, posY:50, fit:'cover' },
-    { id:'exp-3', label:'Retratos', phrase:'Una mirada, mil historias.', img:null, posY:50, fit:'cover' },
-    { id:'exp-4', label:'Deportivos', phrase:'La acción, congelada.', img:null, posY:50, fit:'cover' },
-    { id:'exp-5', label:'Viajes', phrase:'El mundo, a través del lente.', img:null, posY:50, fit:'cover' }
+    { id:'exp-1', label:'Bodas', phrase:'Cada instante, para siempre.', img:null, posX:50, posY:50, fit:'cover' },
+    { id:'exp-2', label:'Festivales', phrase:'Luz, sonido y energía.', img:null, posX:50, posY:50, fit:'cover' },
+    { id:'exp-3', label:'Retratos', phrase:'Una mirada, mil historias.', img:null, posX:50, posY:50, fit:'cover' },
+    { id:'exp-4', label:'Deportivos', phrase:'La acción, congelada.', img:null, posX:50, posY:50, fit:'cover' },
+    { id:'exp-5', label:'Viajes', phrase:'El mundo, a través del lente.', img:null, posX:50, posY:50, fit:'cover' }
   ];
 
   const expandGrid = document.getElementById('asExpandGrid');
@@ -502,14 +514,22 @@
      escala SIEMPRE al mismo alto (el de la tarjeta, que no cambia) y
      solo se revela más o menos anchura a los lados -nunca se reescala-,
      así se ve igual de "tamaño" en cualquier dispositivo y al abrirse/
-     cerrarse. El modo "Ver foto entera" (fit:'contain') no se toca: ahí
-     sí queda margen alrededor de la foto y el usuario controla su
-     posición vertical con posY. */
+     cerrarse.
+     posX/posY: dónde queda encajada la foto dentro del recuadro. En
+     Ajustes (ver attachFreeReposition) se arrastra la foto DIRECTAMENTE
+     sobre el recuadro de vista previa -que ya reproduce el mismo
+     recorte que la web- para moverla libremente hasta donde se quiera,
+     tanto en modo "Cubrir recuadro" (posX mueve qué franja horizontal
+     se ve; posY no tiene margen que recorrer porque el alto ya llena el
+     recuadro entero) como en "Ver foto entera" (posX/posY mueven la
+     foto dentro del margen que deja alrededor). */
   function expandCardBgStyle(c){
     if (!c.img) return '';
+    const posX = c.posX != null ? c.posX : 50;
+    const posY = c.posY != null ? c.posY : (c.fit === 'contain' ? 35 : 50);
     return 'background-image:url(\'' + escapeAttr(c.img) + '\');' +
       'background-size:' + (c.fit === 'contain' ? 'contain' : 'auto 100%') + ';' +
-      'background-position:center ' + (c.fit === 'contain' ? (c.posY != null ? c.posY : 35) : 50) + '%';
+      'background-position:' + posX + '% ' + posY + '%';
   }
 
   function renderExpandPublic(){
@@ -615,37 +635,44 @@
     expListEl.innerHTML = expDraft.map((c, i) => {
       const isUploading = expUploadingIndex === i;
       const fit = c.fit === 'contain' ? 'contain' : 'cover';
+      const hasImage = !!(c.img && !isUploading);
       let boxInner;
       if (isUploading) boxInner = '<span>Subiendo…</span>';
       else if (!c.img) boxInner = PLACEHOLDER_ICON;
-      else boxInner = '';
+      // Con foto puesta, el propio recuadro ES el control de encuadre
+      // (ver attachFreeReposition más abajo): estos dos iconos solo son
+      // la pista visual de que se puede arrastrar (uno aparece al pasar
+      // el ratón, el otro se queda fijo en pantallas táctiles, mismo
+      // patrón que .ajustes-thumb-move/-hint).
+      else boxInner = (
+        '<div class="disc-editor-move" aria-hidden="true">' + MOVE_ICON + '</div>' +
+        '<div class="disc-editor-hint" aria-hidden="true">' + MOVE_ICON_SMALL + '</div>'
+      );
       // La vista previa usa la MISMA función que la tarjeta real
       // (expandCardBgStyle) en vez de un <img> aparte con object-fit: así
       // el recuadro de Ajustes muestra pixel a pixel el mismo recorte (o
       // el mismo margen, en modo "Ver foto entera") que luego se ve en la
       // web, y no una versión aproximada que podía no coincidir.
-      const previewBg = (!isUploading && c.img) ? expandCardBgStyle(c) : '';
+      const previewBg = hasImage ? expandCardBgStyle(c) : '';
       return (
         '<div class="disc-editor-item" data-index="' + i + '">' +
-          '<div class="disc-editor-box' + (c.img && !isUploading ? ' has-image' : '') + (isUploading ? ' is-uploading' : '') +
-            '" data-index="' + i + '" style="' + previewBg + '" role="button" tabindex="0" aria-label="Subir foto para ' + escapeAttr(c.label) + '">' +
+          '<div class="disc-editor-box' + (hasImage ? ' has-image' : '') + (isUploading ? ' is-uploading' : '') +
+            '" data-index="' + i + '" style="' + previewBg + '" role="button" tabindex="0" aria-label="' +
+            (hasImage ? 'Arrastra para ajustar el encuadre, o toca sin arrastrar para cambiar la foto de ' + escapeAttr(c.label) : 'Subir foto para ' + escapeAttr(c.label)) +
+            '">' +
             boxInner +
           '</div>' +
           '<div class="disc-editor-fields">' +
             '<input type="text" class="disc-editor-label" value="' + escapeAttr(c.label) + '" placeholder="Nombre (ej. Bodas)">' +
             '<input type="text" class="disc-editor-phrase" value="' + escapeAttr(c.phrase || '') + '" placeholder="Frase corta">' +
-            '<div class="disc-editor-range-row' + (fit === 'cover' ? ' is-disabled' : '') + '">' +
-              '<label for="expPos' + i + '">Encuadre ↕</label>' +
-              '<input type="range" id="expPos' + i + '" class="disc-editor-pos" min="0" max="100" value="' + (c.posY != null ? c.posY : 35) + '"' + (fit === 'cover' ? ' disabled title="Solo se aplica en modo &quot;Ver foto entera&quot;"' : '') + '>' +
-            '</div>' +
             '<div class="disc-editor-fit-row">' +
               '<span>Ajuste de la foto</span>' +
               '<button type="button" class="disc-editor-fit-btn' + (fit === 'cover' ? ' active' : '') + '" data-fit="cover">Cubrir recuadro</button>' +
               '<button type="button" class="disc-editor-fit-btn' + (fit === 'contain' ? ' active' : '') + '" data-fit="contain">Ver foto entera</button>' +
             '</div>' +
             '<p class="disc-editor-fit-hint">' + (fit === 'contain'
-              ? 'Se ve la foto entera, con margen alrededor si no encaja justa.'
-              : 'La foto llena todo el recuadro sin cambiar de tamaño entre dispositivos; puede recortar algo de los bordes.') + '</p>' +
+              ? 'Se ve la foto entera, con margen alrededor si no encaja justa. Arrástrala en el recuadro de arriba para colocarla donde quieras.'
+              : 'La foto llena todo el recuadro sin cambiar de tamaño entre dispositivos. Arrástrala en el recuadro de arriba para elegir qué parte se ve.') + '</p>' +
           '</div>' +
           '<div class="pair-editor-actions">' +
             '<button type="button" class="pair-editor-move" data-dir="up" ' + (i === 0 ? 'disabled' : '') + ' aria-label="Mover foto hacia arriba">↑</button>' +
@@ -656,6 +683,31 @@
       );
     }).join('');
     if (expEmptyEl) expEmptyEl.style.display = expDraft.length ? 'none' : '';
+
+    // Conecta el arrastre libre (X + Y) de cada recuadro con foto: se
+    // coge la foto con la mano y se mueve hasta donde se quiera, tal y
+    // como se ve en la tarjeta real. Un toque sin arrastrar (onTap)
+    // sigue abriendo el selector de archivos para cambiar la foto.
+    expListEl.querySelectorAll('.disc-editor-box.has-image').forEach(boxEl => {
+      const i = Number(boxEl.dataset.index);
+      window.attachFreeReposition(
+        boxEl,
+        () => ({
+          x: expDraft[i] && expDraft[i].posX != null ? expDraft[i].posX : 50,
+          y: expDraft[i] && expDraft[i].posY != null ? expDraft[i].posY : (expDraft[i] && expDraft[i].fit === 'contain' ? 35 : 50)
+        }),
+        (pos) => {
+          if (!expDraft[i]) return;
+          expDraft[i].posX = pos.x;
+          expDraft[i].posY = pos.y;
+        },
+        () => {
+          if (expUploadingIndex !== null || !expFileInput) return;
+          expPendingIndex = i;
+          expFileInput.click();
+        }
+      );
+    });
   }
 
   function fillExpandEditor(){
@@ -672,15 +724,6 @@
       if (!expDraft[i]) return;
       if (e.target.classList.contains('disc-editor-label')) expDraft[i].label = e.target.value;
       if (e.target.classList.contains('disc-editor-phrase')) expDraft[i].phrase = e.target.value;
-      if (e.target.classList.contains('disc-editor-pos')){
-        expDraft[i].posY = Number(e.target.value);
-        // Solo tiene efecto visible en modo "Ver foto entera" (en
-        // "Cubrir recuadro" el fondo se mantiene siempre centrado), pero
-        // el slider queda deshabilitado en ese caso, así que aquí siempre
-        // es seguro aplicarlo directo al recuadro de vista previa.
-        const box = row.querySelector('.disc-editor-box');
-        if (box) box.style.backgroundPosition = 'center ' + expDraft[i].posY + '%';
-      }
     });
     expListEl.addEventListener('click', (e) => {
       const moveBtn = e.target.closest('.pair-editor-move');
@@ -710,7 +753,11 @@
         renderExpandEditor();
         return;
       }
-      const box = e.target.closest('.disc-editor-box');
+      // Los recuadros CON foto ya gestionan su propio toque-para-cambiar
+      // dentro de attachFreeReposition (para poder distinguirlo de un
+      // arrastre real); aquí solo se atiende el recuadro vacío, que no
+      // tiene arrastre que confundir con un click.
+      const box = e.target.closest('.disc-editor-box:not(.has-image)');
       if (box && expUploadingIndex === null && expFileInput){
         expPendingIndex = Number(box.dataset.index);
         expFileInput.click();
@@ -751,7 +798,7 @@
 
   if (expAddBtn){
     expAddBtn.addEventListener('click', () => {
-      expDraft.push({ id: 'exp-' + Date.now() + '-' + Math.floor(Math.random() * 1000), label: 'Nueva foto', phrase: '', img: null, fit: 'cover' });
+      expDraft.push({ id: 'exp-' + Date.now() + '-' + Math.floor(Math.random() * 1000), label: 'Nueva foto', phrase: '', img: null, posX: 50, posY: 50, fit: 'cover' });
       renderExpandEditor();
       const boxes = expListEl ? expListEl.querySelectorAll('.disc-editor-label') : [];
       const last = boxes[boxes.length - 1];
@@ -766,6 +813,7 @@
         label: (c.label || '').trim() || 'Sin nombre',
         phrase: (c.phrase || '').trim(),
         img: c.img || null,
+        posX: c.posX != null ? c.posX : 50,
         posY: c.posY != null ? c.posY : 35,
         fit: c.fit === 'contain' ? 'contain' : 'cover'
       }));
@@ -827,7 +875,7 @@
       const cloudExpand = Array.isArray(data.expandGallery) && data.expandGallery.length
         ? data.expandGallery
         : DEFAULT_EXPAND;
-      currentExpand = cloudExpand.map(c => ({ id: c.id, label: c.label, phrase: c.phrase || '', img: c.img || null, posY: c.posY != null ? c.posY : 35, fit: c.fit === 'contain' ? 'contain' : 'cover' }));
+      currentExpand = cloudExpand.map(c => ({ id: c.id, label: c.label, phrase: c.phrase || '', img: c.img || null, posX: c.posX != null ? c.posX : 50, posY: c.posY != null ? c.posY : 35, fit: c.fit === 'contain' ? 'contain' : 'cover' }));
       renderExpandPublic();
       fillExpandEditor();
     });
