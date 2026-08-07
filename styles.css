@@ -2559,6 +2559,84 @@
      abierto (lo pone/quita el mismo JS que reparenta el comparador). */
   body.as-ba-fullscreen-open{ overflow:hidden; }
 
+  /* ---------- Galería a pantalla completa de una categoría de "Proyectos"
+     ----------
+     El elemento ya vive de fábrica fuera de cualquier ancestro con
+     transform (ver el comentario en index.html, junto a #asCatLightbox),
+     así que aquí basta con position:fixed normal -a diferencia de
+     #asBaGallery, no hace falta reparentarlo por JS-. Oculto por defecto
+     (display:none) y solo visible con la clase "is-open" que pone
+     project-categories.js. */
+  .as-cat-lightbox{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:4000;
+    background:#000;
+    flex-direction:column;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:56px 14px 24px;
+    box-sizing:border-box;
+  }
+  .as-cat-lightbox.is-open{ display:flex; }
+  body.as-cat-lightbox-open{ overflow:hidden; }
+  .as-cat-lightbox-close{
+    position:fixed;
+    top:max(14px, env(safe-area-inset-top));
+    right:max(14px, env(safe-area-inset-right));
+    z-index:4002;
+    width:40px;
+    height:40px;
+    border:none;
+    border-radius:50%;
+    background:rgba(255,255,255,0.12);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+    transition:background .2s ease, transform .2s ease;
+  }
+  .as-cat-lightbox-close:hover{ background:rgba(255,255,255,0.22); }
+  .as-cat-lightbox-close:active{ transform:scale(0.9); }
+  .as-cat-lightbox-title{
+    margin:0 0 16px;
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:600;
+    font-style:italic;
+    font-size:clamp(1.1rem, 4vw, 1.5rem);
+    color:#fff;
+    text-align:center;
+  }
+  .as-cat-lightbox-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+    gap:10px;
+    max-width:1400px;
+    width:100%;
+    margin:0 auto;
+  }
+  .as-cat-lightbox-grid img{
+    display:block;
+    width:100%;
+    height:auto;
+    border-radius:6px;
+    background:rgba(255,255,255,0.06);
+  }
+  .as-cat-lightbox-empty{
+    color:rgba(255,255,255,0.6);
+    font-size:0.85rem;
+    text-align:center;
+    margin:0 auto;
+  }
+  @media (max-width:480px){
+    .as-cat-lightbox-grid{ grid-template-columns:1fr; }
+  }
+
 
   /* ---------- "Descubre mi trabajo": fila de categorías ---------- */
   .as-discover{ width:100%; }
@@ -2577,6 +2655,42 @@
     background:rgba(17,17,17,0.2);
     margin:8px auto 14px;
   }
+  /* ---------- Botones de categorías de "Proyectos" (Deportes, Fiestas...)
+     ----------
+     Fila de píldoras pequeñas, arriba a la izquierda del bloque (mismo
+     align-items:flex-start que .proyectos-header, ver más arriba): cada
+     una es una categoría creada desde Ajustes → Proyectos. Si no hay
+     ninguna, el JS deja este contenedor vacío y, al no tener contenido,
+     no ocupa hueco visual. */
+  .as-cat-buttons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    width:100%;
+    margin-bottom:clamp(6px, 1.2vh, 12px);
+    pointer-events:auto;
+  }
+  .as-cat-btn{
+    flex:none;
+    border:1px solid rgba(17,17,17,0.16);
+    background:rgba(255,255,255,0.55);
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    color:#111111;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:0.72rem;
+    font-weight:600;
+    letter-spacing:0.03em;
+    padding:7px 14px;
+    border-radius:999px;
+    cursor:pointer;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+    transition:background .2s ease, transform .15s ease, border-color .2s ease;
+  }
+  .as-cat-btn:hover{ background:rgba(255,255,255,0.8); border-color:rgba(17,17,17,0.3); }
+  .as-cat-btn:active{ transform:scale(0.95); }
+
   /* ---------- Galería que se expande (tarjetas estrechas -> foto grande
      con texto al pasar el ratón / tocar) ----------
      Fila flex de tarjetas iguales (flex-grow:1) con overflow:hidden y
@@ -3557,3 +3671,83 @@
   #view-ajustes .historial-item-time{ color:var(--adm-dim); }
   #view-ajustes .historial-item-detail{ color:var(--adm-dim); }
   #view-ajustes .historial-empty{ color:var(--adm-dim); }
+
+  /* ---------- Editor de categorías de "Proyectos" (Deportes, Fiestas...)
+     ----------
+     Cada categoría es una "tarjeta" con su nombre editable arriba y, debajo,
+     su propia mini-cuadrícula de fotos (miniatura + botón de quitar, más
+     un hueco de "añadir" al final) -así, crear una categoría nueva crea a
+     la vez su propio apartado para subir imágenes, tal cual se pidió-. */
+  .cat-editor-list{ display:flex; flex-direction:column; gap:14px; margin:16px 0; }
+  .cat-editor-item{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    padding:14px;
+    border:1px solid rgba(0,0,0,0.1);
+    border-radius:12px;
+    background:rgba(0,0,0,0.02);
+  }
+  .cat-editor-item-head{ display:flex; align-items:center; gap:10px; }
+  .cat-editor-name{
+    flex:1 1 auto;
+    min-width:0;
+    padding:8px 11px;
+    border-radius:8px;
+    border:1px solid rgba(0,0,0,0.14);
+    font-family:inherit;
+    font-size:0.88rem;
+    font-weight:600;
+  }
+  .cat-editor-photos{ display:flex; flex-wrap:wrap; gap:8px; }
+  .cat-editor-thumb{
+    position:relative;
+    width:60px;
+    height:60px;
+    flex:none;
+    border-radius:8px;
+    overflow:hidden;
+    background:#000;
+    border:1px solid rgba(17,17,17,0.14);
+  }
+  .cat-editor-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .cat-editor-thumb button{
+    position:absolute;
+    top:2px;
+    right:2px;
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    border:none;
+    background:rgba(0,0,0,0.6);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+  }
+  .cat-editor-thumb button svg{ width:10px; height:10px; }
+  .cat-editor-thumb button:hover{ background:var(--accent); }
+  .cat-editor-add-photo{
+    flex:none;
+    width:60px;
+    height:60px;
+    border-radius:8px;
+    border:1.5px dashed rgba(17,17,17,0.32);
+    background:rgba(0,0,0,0.02);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    color:var(--dim);
+    transition:border-color .2s ease;
+  }
+  .cat-editor-add-photo:hover{ border-color:var(--accent); }
+  .cat-editor-add-photo svg{ width:18px; height:18px; }
+  .cat-editor-add-photo.is-uploading{ font-size:0.6rem; color:var(--dim); cursor:default; text-align:center; padding:4px; }
+  #view-ajustes .cat-editor-item{ border-color:var(--adm-border); background:var(--adm-surface-2); }
+  #view-ajustes .cat-editor-name{ border-color:var(--adm-border); background:var(--adm-surface); color:var(--adm-fg); }
+  #view-ajustes .cat-editor-thumb{ border-color:var(--adm-border); }
+  #view-ajustes .cat-editor-add-photo{ border-color:var(--adm-border); background:var(--adm-surface); color:var(--adm-dim); }
+  #view-ajustes .cat-editor-add-photo:hover{ border-color:var(--adm-accent); }

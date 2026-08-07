@@ -122,6 +122,23 @@
 
   <div class="scene-hint" id="sceneHint">desliza</div>
 
+  <!-- ---------- Galería a pantalla completa de una categoría de "Proyectos"
+       ---------- (Deportes, Fiestas...). Vive aquí, directamente bajo
+       <body> -y no dentro de #afterStoryHeader/#proyectosHeader, que
+       tienen su propio transform para el scroll de la historia-, por el
+       mismo motivo que #asBaGallery se reparenta al abrirse en pantalla
+       completa (ver comparison-pairs.js): un ancestro con transform rompe
+       position:fixed para sus hijos. Al vivir ya aquí de fábrica, no hace
+       falta reparentar nada, solo mostrar/ocultar con la clase "is-open"
+       (ver project-categories.js). -->
+  <div class="as-cat-lightbox" id="asCatLightbox" aria-hidden="true">
+    <button type="button" class="as-cat-lightbox-close" id="asCatLightboxClose" aria-label="Cerrar galería">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <h3 class="as-cat-lightbox-title" id="asCatLightboxTitle"></h3>
+    <div class="as-cat-lightbox-grid" id="asCatLightboxGrid"></div>
+  </div>
+
   <div class="scene-progress" id="sceneProgress" aria-hidden="true">
     <div class="scene-progress-track" id="sceneProgressTrack">
       <div class="scene-progress-line" id="sceneProgressLine"></div>
@@ -165,6 +182,13 @@
        "proyectosHeaderEl" en ese archivo). -->
   <div class="proyectos-header" id="proyectosHeader">
     <h2 class="proyectos-title">Proyectos</h2>
+
+    <!-- Botones de categorías (Deportes, Fiestas...): se crean/editan desde
+         Ajustes → Proyectos (ver project-categories.js). Si no hay ninguna
+         categoría creada todavía, esta fila se queda vacía y no ocupa
+         espacio. Al tocar un botón se abre #asCatLightbox con todas las
+         fotos de esa categoría, a pantalla completa. -->
+    <div class="as-cat-buttons" id="asCatButtons"></div>
 
     <div class="as-expand" id="asExpandWrap">
       <div class="as-expand-grid" id="asExpandGrid"></div>
@@ -378,6 +402,7 @@
         <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="collage">Collage "Sobre mí"</button>
         <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="textos">Textos</button>
         <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="misediciones">Mis ediciones</button>
+        <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="proyectos">Proyectos</button>
         <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="cuenta">Cuenta</button>
       </div>
 
@@ -555,6 +580,37 @@
           </div>
         </div>
 
+        <!-- Panel: botones de categorías de "Proyectos" (Deportes,
+             Fiestas...) -->
+        <div class="ajustes-panel ajustes-section" data-panel="proyectos">
+          <div class="ajustes-section-head">
+            <span class="ajustes-section-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="6" width="7" height="5" rx="1.3"/><rect x="14" y="6" width="7" height="5" rx="1.3"/><rect x="3" y="15" width="7" height="5" rx="1.3"/><rect x="14" y="15" width="7" height="5" rx="1.3"/>
+              </svg>
+            </span>
+            <div>
+              <p class="ajustes-section-title">Categorías de "Proyectos"</p>
+              <p class="ajustes-section-desc">Botones (Deportes, Fiestas...) que aparecen arriba a la izquierda de "Proyectos". Cada categoría tiene su propia galería de fotos, que se abre a pantalla completa al tocar su botón.</p>
+            </div>
+          </div>
+
+          <div class="cat-editor-list" id="catEditorList"></div>
+          <input type="file" id="catEditorFileInput" accept="image/*" multiple style="display:none;">
+          <p class="cat-editor-empty" id="catEditorEmpty" style="display:none;">No hay ninguna categoría. Añade la primera.</p>
+
+          <div class="ajustes-section-footer">
+            <button class="ajustes-clear" id="catAddBtn" type="button"><svg class="ajustes-clear-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12.75 9C12.75 8.58579 12.4142 8.25 12 8.25C11.5858 8.25 11.25 8.58579 11.25 9L11.25 11.25H9C8.58579 11.25 8.25 11.5858 8.25 12C8.25 12.4142 8.58579 12.75 9 12.75H11.25V15C11.25 15.4142 11.5858 15.75 12 15.75C12.4142 15.75 12.75 15.4142 12.75 15L12.75 12.75H15C15.4142 12.75 15.75 12.4142 15.75 12C15.75 11.5858 15.4142 11.25 15 11.25H12.75V9Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12Z" fill="currentColor"/></svg>Añadir categoría</button>
+          </div>
+
+          <p class="cuenta-msg" id="catMsg"></p>
+
+          <div class="cuenta-row" style="margin-top:14px;">
+            <button type="button" class="cuenta-btn" id="catGuardarBtn">Guardar cambios</button>
+            <button type="button" class="cuenta-btn" id="catResetBtn">Restablecer originales</button>
+          </div>
+        </div>
+
         <!-- Panel: cuenta, historial de cambios y copia de seguridad -->
         <div class="ajustes-panel ajustes-section" data-panel="cuenta">
           <div class="ajustes-section-head">
@@ -668,6 +724,11 @@
      para las tarjetas de "Descubre mi trabajo" como para las parejas del
      comparador con flechas que aparece justo encima. ---------- -->
 <script src="js/comparison-pairs.js"></script>
+
+<!-- ---------- Categorías de "Proyectos" (Deportes, Fiestas...) ----------
+     Botones editables desde Ajustes → Proyectos: cada uno abre, a
+     pantalla completa, la galería de fotos de esa categoría. ---------- -->
+<script src="js/project-categories.js"></script>
 
 
 <!-- ---------- Panel "Cuenta": historial, contraseña y copia de seguridad ---------- -->
