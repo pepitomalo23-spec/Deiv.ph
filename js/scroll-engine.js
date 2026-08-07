@@ -1432,6 +1432,18 @@
 
   function onWheel(e){
     if (currentView !== 'resumen') return;
+    // FIX: a diferencia de onTouchStart, este onWheel no comprobaba nunca
+    // sobre qué elemento se estaba desplazando: cualquier rueda de ratón (o
+    // gesto de scroll de trackpad, que el navegador también reporta como
+    // "wheel") secuestraba siempre el scroll de la historia, incluso
+    // encima de contenido que necesita su PROPIO scroll interno -como
+    // #asCatLightbox, la galería a pantalla completa de una categoría de
+    // "Proyectos": al abrirla, intentar hacer scroll dentro para ver más
+    // fotos en realidad movía la historia de fondo (que ni se veía, al
+    // estar el overlay encima), en vez de bajar por la propia galería.
+    // Mismo SCENE_DRAG_EXCLUDE_SELECTOR y mismo criterio (closest) que ya
+    // usa onTouchStart más abajo.
+    if (e.target && e.target.closest && e.target.closest(SCENE_DRAG_EXCLUDE_SELECTOR)) return;
     e.preventDefault();
 
     // ---- Última parada: scroll real, continuo y fluido ----
