@@ -2783,10 +2783,16 @@
     cursor:pointer;
     /* background-size/color por defecto: cada tarjeta los sobreescribe
        inline según su "ajuste" (Cubrir/Ajustar, ver renderExpandPublic).
-       background-color de respaldo (mismo tono oscuro del panel de
-       detrás) para que, en modo "Ajustar" (sin recortar), el margen que
-       deja la foto se vea limpio en vez de blanco. */
-    background-size:cover;
+       "auto 100%" en vez de "cover": así la foto se escala SIEMPRE al
+       mismo alto fijo de la tarjeta -que no cambia ni al expandirse una
+       tarjeta ni entre dispositivos-, en vez de recalcular su zoom cada
+       vez que cambia el ancho del recuadro (lo que antes hacía que la
+       misma foto se viera más ampliada o recortada de otro modo según el
+       momento o la pantalla). background-color de respaldo (mismo tono
+       oscuro del panel de detrás) para que, en modo "Ajustar" (sin
+       recortar), el margen que deja la foto se vea limpio en vez de
+       blanco. */
+    background-size:auto 100%;
     background-position:center;
     background-repeat:no-repeat;
     background-color:#ffffff;

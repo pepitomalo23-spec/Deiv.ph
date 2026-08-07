@@ -496,8 +496,19 @@
       '<div class="as-expand-card" style="' +
         (c.img
           ? 'background-image:url(\'' + escapeAttr(c.img) + '\');' +
-            'background-size:' + (c.fit === 'contain' ? 'contain' : 'cover') + ';' +
-            'background-position:center ' + (c.posY != null ? c.posY : 35) + '%'
+            /* "cover" recalcula el encuadre cada vez que cambia el ANCHO
+               de la tarjeta (al expandirse al tocarla, o simplemente al
+               cambiar de dispositivo/tamaño de pantalla), así que la
+               misma foto se veía "más ampliada" o recortada de otro modo
+               según el momento. Con "auto 100%" la foto se escala SIEMPRE
+               al mismo alto (el de la tarjeta, que no cambia) y solo se
+               revela más o menos anchura a los lados -nunca se reescala-,
+               así se ve igual de "tamaño" en cualquier dispositivo y al
+               abrirse/cerrarse. El modo "Ajustar" (fit:'contain') no se
+               toca: ahí sí puede haber margen y el usuario controla la
+               posición vertical con posY. */
+            'background-size:' + (c.fit === 'contain' ? 'contain' : 'auto 100%') + ';' +
+            'background-position:center ' + (c.fit === 'contain' ? (c.posY != null ? c.posY : 35) : 50) + '%'
           : 'background:' + EXPAND_PLACEHOLDERS[i % EXPAND_PLACEHOLDERS.length]) +
         '" tabindex="0" role="button" aria-label="' + escapeAttr(c.label) + '">' +
         '<span class="as-expand-card-dot" aria-hidden="true"></span>' +
