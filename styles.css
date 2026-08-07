@@ -3572,15 +3572,25 @@
      Ajustes (ver .ba-slot-box) en miniatura, junto a dos campos de texto
      (nombre y frase corta) y el botón de quitar de .cat-editor-remove. */
   .disc-editor-list{ display:flex; flex-direction:column; gap:12px; margin:16px 0; }
-  .disc-editor-item{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .disc-editor-item{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  /* Recuadro de vista previa: ancho y no muy alto -misma proporción
+     "tira ancha" que tiene la tarjeta real cuando está abierta en la web
+     (ver .as-expand-card)-, en vez del recuadro estrecho/vertical de
+     antes, que no se parecía en nada a la forma real de la tarjeta. El
+     fondo (background-image/-size/-position) se pone inline desde JS con
+     la MISMA función que usa la tarjeta real (expandCardBgStyle, ver
+     comparison-pairs.js), así lo que se ve aquí es exactamente lo que
+     luego se ve en la web: mismo recorte en "Cubrir recuadro", mismo
+     margen en "Ver foto entera". */
   .disc-editor-box{
     position:relative;
     flex:0 0 auto;
-    width:56px;
-    height:72px;
+    width:min(220px, 44vw);
+    height:96px;
     border:1.5px dashed rgba(17,17,17,0.32);
-    border-radius:8px;
-    background:rgba(0,0,0,0.02);
+    border-radius:10px;
+    background-color:rgba(0,0,0,0.02);
+    background-repeat:no-repeat;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -3590,10 +3600,12 @@
   }
   .disc-editor-box:hover{ border-color:var(--accent); }
   .disc-editor-box svg{ width:18px; height:18px; color:var(--dim); flex:none; }
-  .disc-editor-box.has-image{ border-style:solid; border-color:rgba(17,17,17,0.14); background:#000; }
-  .disc-editor-box.has-image img{ width:100%; height:100%; object-fit:cover; display:block; }
+  /* El color de fondo de respaldo (no el borde) es el mismo tono que se
+     ve detrás de la foto real en modo "Ver foto entera" -así el margen
+     que deja la foto en la vista previa se ve igual que en la web-. */
+  .disc-editor-box.has-image{ border-style:solid; border-color:rgba(17,17,17,0.14); background-color:#ffffff; }
   .disc-editor-box.is-uploading{ cursor:default; }
-  .disc-editor-fields{ flex:1 1 160px; min-width:150px; display:flex; flex-direction:column; gap:6px; }
+  .disc-editor-fields{ flex:1 1 220px; min-width:200px; display:flex; flex-direction:column; gap:6px; }
   .disc-editor-fields input{
     padding:8px 11px;
     border-radius:8px;
@@ -3603,6 +3615,11 @@
   }
   #view-ajustes .disc-editor-box{ border-color:var(--adm-border); background:var(--adm-surface-2); }
   #view-ajustes .disc-editor-box:hover{ border-color:var(--adm-accent); }
+  /* Con foto puesta, el margen debe verse del mismo blanco que en la web
+     real (fondo de .as-expand-card), no del tono oscuro del panel de
+     Ajustes: si no, la vista previa de "Ver foto entera" mentiría sobre
+     cómo queda el margen en la página pública. */
+  #view-ajustes .disc-editor-box.has-image{ background-color:#ffffff; }
   #view-ajustes .disc-editor-fields input{
     background:var(--adm-surface-2) !important;
     border:1px solid var(--adm-border) !important;
@@ -3634,6 +3651,12 @@
     accent-color:var(--accent);
   }
   #view-ajustes .disc-editor-range-row label{ color:var(--adm-fg); opacity:0.7; }
+  /* En modo "Cubrir recuadro" el slider no tiene ningún efecto (la foto
+     siempre queda centrada), así que se apaga en vez de dejarlo activo
+     sin que haga nada -eso confundía, parecía roto-. Vuelve a activarse
+     solo en modo "Ver foto entera". */
+  .disc-editor-range-row.is-disabled{ opacity:0.4; }
+  .disc-editor-range-row.is-disabled input[type="range"]{ cursor:not-allowed; }
 
   /* En el comparador de parejas cada columna es más estrecha (110px) que en
      la galería, así que aquí el deslizador va apilado bajo la etiqueta en
@@ -3683,6 +3706,16 @@
     border-color:var(--accent);
     color:#fff;
   }
+  /* Explica en una línea qué hace el modo elegido, justo debajo de los
+     dos botones -así no hace falta adivinar qué significa "cubrir" o
+     "ver entera" con solo el nombre del botón-. */
+  .disc-editor-fit-hint{
+    margin:4px 0 0;
+    font-size:0.68rem;
+    line-height:1.35;
+    color:var(--dim);
+  }
+  #view-ajustes .disc-editor-fit-hint{ color:var(--adm-fg); opacity:0.6; }
 
   /* ---------- Editor de parejas del comparador con flechas ----------
      Cada fila son dos recuadros de subida (sin editar / editada, mismo

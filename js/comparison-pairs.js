@@ -490,25 +490,34 @@
   const expandGrid = document.getElementById('asExpandGrid');
   let currentExpand = DEFAULT_EXPAND.map(c => Object.assign({}, c));
 
+  /* Estilo de fondo de una foto de esta galería: LA MISMA función la usa
+     tanto la tarjeta real (renderExpandPublic) como la vista previa de
+     Ajustes (renderExpandEditor), para que lo que se ve al editar sea
+     EXACTAMENTE lo que luego se ve en la web (mismo recorte, mismo
+     margen), y no una aproximación aparte que se pueda desincronizar.
+     "cover" recalcula el encuadre cada vez que cambia el ANCHO de la
+     tarjeta (al expandirse al tocarla, o al cambiar de dispositivo/
+     tamaño de pantalla), así que la misma foto se veía "más ampliada" o
+     recortada de otro modo según el momento. Con "auto 100%" la foto se
+     escala SIEMPRE al mismo alto (el de la tarjeta, que no cambia) y
+     solo se revela más o menos anchura a los lados -nunca se reescala-,
+     así se ve igual de "tamaño" en cualquier dispositivo y al abrirse/
+     cerrarse. El modo "Ver foto entera" (fit:'contain') no se toca: ahí
+     sí queda margen alrededor de la foto y el usuario controla su
+     posición vertical con posY. */
+  function expandCardBgStyle(c){
+    if (!c.img) return '';
+    return 'background-image:url(\'' + escapeAttr(c.img) + '\');' +
+      'background-size:' + (c.fit === 'contain' ? 'contain' : 'auto 100%') + ';' +
+      'background-position:center ' + (c.fit === 'contain' ? (c.posY != null ? c.posY : 35) : 50) + '%';
+  }
+
   function renderExpandPublic(){
     if (!expandGrid) return;
     expandGrid.innerHTML = currentExpand.map((c, i) => (
       '<div class="as-expand-card" style="' +
         (c.img
-          ? 'background-image:url(\'' + escapeAttr(c.img) + '\');' +
-            /* "cover" recalcula el encuadre cada vez que cambia el ANCHO
-               de la tarjeta (al expandirse al tocarla, o simplemente al
-               cambiar de dispositivo/tamaño de pantalla), así que la
-               misma foto se veía "más ampliada" o recortada de otro modo
-               según el momento. Con "auto 100%" la foto se escala SIEMPRE
-               al mismo alto (el de la tarjeta, que no cambia) y solo se
-               revela más o menos anchura a los lados -nunca se reescala-,
-               así se ve igual de "tamaño" en cualquier dispositivo y al
-               abrirse/cerrarse. El modo "Ajustar" (fit:'contain') no se
-               toca: ahí sí puede haber margen y el usuario controla la
-               posición vertical con posY. */
-            'background-size:' + (c.fit === 'contain' ? 'contain' : 'auto 100%') + ';' +
-            'background-position:center ' + (c.fit === 'contain' ? (c.posY != null ? c.posY : 35) : 50) + '%'
+          ? expandCardBgStyle(c)
           : 'background:' + EXPAND_PLACEHOLDERS[i % EXPAND_PLACEHOLDERS.length]) +
         '" tabindex="0" role="button" aria-label="' + escapeAttr(c.label) + '">' +
         '<span class="as-expand-card-dot" aria-hidden="true"></span>' +
@@ -608,26 +617,35 @@
       const fit = c.fit === 'contain' ? 'contain' : 'cover';
       let boxInner;
       if (isUploading) boxInner = '<span>Subiendo…</span>';
-      else if (c.img) boxInner = '<img src="' + escapeAttr(c.img) + '" alt="Foto ' + escapeAttr(c.label) + '" style="object-fit:' + fit + ';object-position:center ' + (c.posY != null ? c.posY : 35) + '%">';
-      else boxInner = PLACEHOLDER_ICON;
+      else if (!c.img) boxInner = PLACEHOLDER_ICON;
+      else boxInner = '';
+      // La vista previa usa la MISMA función que la tarjeta real
+      // (expandCardBgStyle) en vez de un <img> aparte con object-fit: así
+      // el recuadro de Ajustes muestra pixel a pixel el mismo recorte (o
+      // el mismo margen, en modo "Ver foto entera") que luego se ve en la
+      // web, y no una versión aproximada que podía no coincidir.
+      const previewBg = (!isUploading && c.img) ? expandCardBgStyle(c) : '';
       return (
         '<div class="disc-editor-item" data-index="' + i + '">' +
           '<div class="disc-editor-box' + (c.img && !isUploading ? ' has-image' : '') + (isUploading ? ' is-uploading' : '') +
-            '" data-index="' + i + '" role="button" tabindex="0" aria-label="Subir foto para ' + escapeAttr(c.label) + '">' +
+            '" data-index="' + i + '" style="' + previewBg + '" role="button" tabindex="0" aria-label="Subir foto para ' + escapeAttr(c.label) + '">' +
             boxInner +
           '</div>' +
           '<div class="disc-editor-fields">' +
             '<input type="text" class="disc-editor-label" value="' + escapeAttr(c.label) + '" placeholder="Nombre (ej. Bodas)">' +
             '<input type="text" class="disc-editor-phrase" value="' + escapeAttr(c.phrase || '') + '" placeholder="Frase corta">' +
-            '<div class="disc-editor-range-row">' +
+            '<div class="disc-editor-range-row' + (fit === 'cover' ? ' is-disabled' : '') + '">' +
               '<label for="expPos' + i + '">Encuadre ↕</label>' +
-              '<input type="range" id="expPos' + i + '" class="disc-editor-pos" min="0" max="100" value="' + (c.posY != null ? c.posY : 35) + '">' +
+              '<input type="range" id="expPos' + i + '" class="disc-editor-pos" min="0" max="100" value="' + (c.posY != null ? c.posY : 35) + '"' + (fit === 'cover' ? ' disabled title="Solo se aplica en modo &quot;Ver foto entera&quot;"' : '') + '>' +
             '</div>' +
             '<div class="disc-editor-fit-row">' +
               '<span>Ajuste de la foto</span>' +
               '<button type="button" class="disc-editor-fit-btn' + (fit === 'cover' ? ' active' : '') + '" data-fit="cover">Cubrir recuadro</button>' +
               '<button type="button" class="disc-editor-fit-btn' + (fit === 'contain' ? ' active' : '') + '" data-fit="contain">Ver foto entera</button>' +
             '</div>' +
+            '<p class="disc-editor-fit-hint">' + (fit === 'contain'
+              ? 'Se ve la foto entera, con margen alrededor si no encaja justa.'
+              : 'La foto llena todo el recuadro sin cambiar de tamaño entre dispositivos; puede recortar algo de los bordes.') + '</p>' +
           '</div>' +
           '<div class="pair-editor-actions">' +
             '<button type="button" class="pair-editor-move" data-dir="up" ' + (i === 0 ? 'disabled' : '') + ' aria-label="Mover foto hacia arriba">↑</button>' +
@@ -656,8 +674,12 @@
       if (e.target.classList.contains('disc-editor-phrase')) expDraft[i].phrase = e.target.value;
       if (e.target.classList.contains('disc-editor-pos')){
         expDraft[i].posY = Number(e.target.value);
-        const box = row.querySelector('.disc-editor-box img');
-        if (box) box.style.objectPosition = 'center ' + expDraft[i].posY + '%';
+        // Solo tiene efecto visible en modo "Ver foto entera" (en
+        // "Cubrir recuadro" el fondo se mantiene siempre centrado), pero
+        // el slider queda deshabilitado en ese caso, así que aquí siempre
+        // es seguro aplicarlo directo al recuadro de vista previa.
+        const box = row.querySelector('.disc-editor-box');
+        if (box) box.style.backgroundPosition = 'center ' + expDraft[i].posY + '%';
       }
     });
     expListEl.addEventListener('click', (e) => {
