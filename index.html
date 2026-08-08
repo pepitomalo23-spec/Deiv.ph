@@ -31,7 +31,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=5">
+<link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
 
@@ -180,17 +180,20 @@
        la clase "visible" la pone/quita scroll-engine.js (buscar
        "proyectosHeaderEl" en ese archivo). -->
   <div class="proyectos-header" id="proyectosHeader">
-    <h2 class="proyectos-title">Proyectos</h2>
-
     <!-- Título + botones de categorías (Deportes, Fiestas...): se crean/
          editan desde Ajustes → Proyectos (ver project-categories.js). Vive
          dentro de #proyectosHeader para heredar su misma clase "visible"
          (la pone/quita scroll-engine.js: así este bloque solo se ve -y solo
          se puede tocar- en la misma franja de scroll que el resto de
-         "Proyectos", aunque aquí se reposicione arriba del todo con su
-         propio position:fixed -ver .as-cat-top en styles.css: al no tener
-         #proyectosHeader ningún transform propio, un fixed dentro de él se
-         sigue colocando respecto a la ventana con normalidad-).
+         "Proyectos"). Se mantiene FUERA de #proyectosBody a propósito: en
+         escritorio necesita su propio position:fixed anclado arriba
+         (independiente del título+galería, que viven centrados en otro
+         punto de la pantalla -ver .proyectos-body-). Si viviera dentro de
+         #proyectosBody, el transform:translateY(-50%) de ese contenedor
+         "atraparía" cualquier fixed hijo suyo (así funciona la spec de
+         CSS: un ancestro con transform pasa a ser el contenedor de
+         referencia de sus descendientes fixed), y ya no podría anclarse
+         a la ventana con normalidad.
          data-no-scene-drag en todo el bloque (título + fila de botones):
          sin esto, tocar el título o el hueco entre botones -que no son
          <button>, así que no quedan excluidos solo por serlo- se
@@ -201,8 +204,18 @@
       <div class="as-cat-buttons" id="asCatButtons"></div>
     </div>
 
-    <div class="as-expand" id="asExpandWrap">
-      <div class="as-expand-grid" id="asExpandGrid"></div>
+    <!-- Título "Proyectos" + galería: agrupados en su propio contenedor
+         (.proyectos-body) para poder moverlos/centrarlos como bloque
+         independiente de "Fotos" en escritorio, sin arrastrarlo con ellos
+         (ver comentario de arriba y .proyectos-body en styles.css). En
+         móvil este div es completamente transparente al layout
+         (display:contents): title y galería siguen viviendo tal cual
+         dentro de #proyectosHeader, como antes. -->
+    <div class="proyectos-body" id="proyectosBody">
+      <h2 class="proyectos-title">Proyectos</h2>
+      <div class="as-expand" id="asExpandWrap">
+        <div class="as-expand-grid" id="asExpandGrid"></div>
+      </div>
     </div>
   </div>
 
