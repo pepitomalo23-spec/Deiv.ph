@@ -1709,17 +1709,14 @@
     .proyectos-header{ bottom:4%; left:5%; width:90vw; }
     .proyectos-title{ font-size:clamp(1rem, 4.6vw, 1.3rem); }
   }
-  /* ---------- Escritorio (≥901px): desplazamos el contenido de la 2ª
-     posición ("Proyectos" + su galería, que vive dentro de este mismo
-     bloque) hacia la derecha, hacia el hueco vacío que queda a la
-     derecha de la foto. Usamos "right" en vez de "left" (con "left:auto")
-     porque así el bloque se ancla de forma proporcional al borde
-     derecho de la ventana en vez de depender de su propio ancho, que
-     cambia según cuántas categorías tenga creadas. Además: centrado
-     verticalmente (top:50% + translateY(-50%), en vez del bottom:6% de
-     antes) y todo el bloque más grande (título y recuadro de fotos).
-     Solo en pantallas grandes; en móvil se queda como estaba (pegado a
-     la izquierda y abajo). ---------- */
+  /* ---------- Escritorio (≥901px): "Proyectos" + su galería, centrados
+     en el PUNTO MEDIO entre el centro de la pantalla y el borde derecho
+     (left:75% + translateX(-50%), en vez de anclarlo con "right" pegado
+     al borde). Así el bloque queda siempre centrado ahí sin importar el
+     ancho de la ventana, en vez de depender de cuánto mida su propio
+     contenido. Solo el recuadro de fotos (.as-expand-grid) se agranda
+     mucho -el título "Proyectos" mantiene su tamaño-. En móvil no
+     cambia nada (pegado a la izquierda y abajo). ---------- */
   /* Nota: en escritorio, #proyectosHeader en sí YA NO lleva right/top/
      transform propios -eso viviría ahora en .proyectos-body, ver más
      abajo-, para que no se convierta en el "contenedor de referencia"
@@ -1732,7 +1729,8 @@
      sus hijos (.proyectos-title y .as-expand) siguen viviendo tal cual
      dentro de #proyectosHeader, exactamente como antes de introducir
      este contenedor. En escritorio (≥901px) pasa a ser un bloque fixed
-     propio, centrado verticalmente y pegado a la derecha, para poder
+     propio, centrado tanto vertical como horizontalmente en el punto
+     medio entre el centro y el borde derecho de la ventana, para poder
      moverse con independencia de "Fotos" (que tiene su propio fixed,
      ver .as-cat-top más abajo). */
   .proyectos-body{ display:contents; }
@@ -1742,16 +1740,16 @@
       flex-direction:column;
       align-items:flex-start;
       position:fixed;
-      left:auto;
-      right:1%;
+      left:75%;
+      right:auto;
       bottom:auto;
       top:50%;
-      transform:translateY(-50%);
-      width:min(52vw, 780px);
+      transform:translate(-50%, -50%);
+      width:min(58vw, 900px);
     }
     .proyectos-title{ font-size:clamp(1.9rem, 3.1vw, 2.8rem); }
-    .as-expand{ width:min(52vw, 780px); }
-    .as-expand-grid{ height:320px; }
+    .as-expand{ width:min(58vw, 900px); }
+    .as-expand-grid{ height:520px; }
   }
 
   /* ---------- Título grande "Mi material / de trabajo" + frase (aparecen
