@@ -1711,11 +1711,21 @@
   }
   /* ---------- Escritorio (≥901px): desplazamos el contenido de la 2ª
      posición ("Proyectos" + su galería, que vive dentro de este mismo
-     bloque) hacia la derecha. Solo en pantallas grandes, donde sobra
-     espacio horizontal; en móvil se queda como estaba (pegado a la
-     izquierda). ---------- */
+     bloque) hacia la derecha, hacia el hueco vacío que queda a la
+     derecha de la foto. Usamos "right" en vez de "left" (con "left:auto")
+     porque así el bloque se ancla de forma proporcional al borde
+     derecho de la ventana en vez de depender de su propio ancho, que
+     cambia según cuántas categorías tenga creadas. También reducimos su
+     ancho máximo para que no se salga de la pantalla en portátiles no
+     demasiado anchos. Solo en pantallas grandes; en móvil se queda como
+     estaba (pegado a la izquierda). ---------- */
   @media (min-width:901px){
-    .proyectos-header{ left:16%; }
+    .proyectos-header{
+      left:auto;
+      right:6%;
+      width:min(40vw, 480px);
+      align-items:flex-start;
+    }
   }
 
   /* ---------- Título grande "Mi material / de trabajo" + frase (aparecen
@@ -2575,9 +2585,12 @@
      position:fixed independiente del resto de #proyectosHeader (ver
      comentario más arriba), así que necesita su propio desplazamiento a
      la derecha para acompañar al resto del contenido de la 2ª posición
-     ("Proyectos") en pantallas grandes. ---------- */
+     ("Proyectos") en pantallas grandes. Igual que en #proyectosHeader,
+     usamos "right" en vez de "left" para que se ancle de forma
+     proporcional al hueco vacío de la derecha, cerca del botón de menú
+     (☰) de arriba. ---------- */
   @media (min-width:901px){
-    .as-cat-top{ left:16%; }
+    .as-cat-top{ left:auto; right:8%; }
   }
 
   /* ---------- Botones de categorías de "Proyectos" (Deportes, Fiestas...)
