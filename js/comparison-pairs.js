@@ -604,7 +604,7 @@
             '<span class="exp-sim-zoom-value" id="expSimZoomValue">100%</span>' +
           '</div>' +
           '<p class="exp-sim-hint">Arrastra la foto para colocarla y usa el control de abajo para acercarla o alejarla: así de grande y con esta forma se ve exactamente cuando esta tarjeta está abierta en la web.</p>' +
-          '<div class="exp-sim-actions"><button type="button" class="exp-sim-done">Listo</button></div>' +
+          '<div class="exp-sim-actions"><button type="button" class="exp-sim-done">Confirmar</button></div>' +
         '</div>' +
       '</div>';
     document.body.appendChild(overlay);
@@ -634,21 +634,21 @@
       }
       close();
     });
-    // Tocar el fondo oscuro fuera del recuadro equivale a "Listo" (se
+    // Tocar el fondo oscuro fuera del recuadro equivale a "Confirmar" (se
     // queda con lo ya ajustado): solo la × cancela de verdad.
     els.overlay.addEventListener('click', (e) => {
       if (e.target === els.overlay) close();
     });
     // El deslizador de zoom actualiza la capa de foto al instante y
     // guarda el valor en el mismo sitio que la posición (expDraft), para
-    // que "Listo" no tenga que hacer nada aparte. Solo se toca
+    // que "Confirmar" no tenga que hacer nada aparte. Solo se toca
     // background-size (el mismo cálculo que expandCardPhotoStyle): así
     // el zoom deja hueco de sobra real para poder arrastrar en cualquier
     // dirección, en vez de agrandar la capa entera por igual desde el
     // centro (que es lo que hacía antes con transform:scale, y por lo
     // que arrastrar arriba/abajo no tenía ningún efecto).
-    els.zoomInput.addEventListener('input', () => {
-      if (expSimIndex == null || !expDraft[expSimIndex]) return;
+    function onZoomInput(){
+      if (els.overlay.hidden || expSimIndex == null || !expDraft[expSimIndex]) return;
       const c = expDraft[expSimIndex];
       const zoom = Number(els.zoomInput.value) || 1;
       c.zoom = zoom;
@@ -658,7 +658,12 @@
         const size = zoom > 1 ? ('auto ' + Math.round(zoom * 100) + '%') : (c.fit === 'contain' ? 'contain' : 'auto 100%');
         photo.style.backgroundSize = size;
       }
-    });
+    }
+    els.zoomInput.addEventListener('input', onZoomInput);
+    // 'change' de respaldo: en algún navegador/gesto táctil concreto
+    // 'input' puede no disparar en cada paso del deslizador; con 'change'
+    // el valor final queda igualmente aplicado aunque eso pase.
+    els.zoomInput.addEventListener('change', onZoomInput);
     expSimEls = els;
     window.addEventListener('resize', () => {
       if (els.overlay.hidden || expSimIndex == null) return;

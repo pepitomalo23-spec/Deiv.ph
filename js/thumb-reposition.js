@@ -96,15 +96,21 @@ function attachFreeReposition(boxEl, getPos, setPos, onTap){
     if (!dragging) return;
     dragging = false;
     boxEl.classList.remove('is-dragging');
+    // Suelta explícitamente la "captura" del puntero en vez de confiar en
+    // que el navegador lo haga solo: en algún caso raro (p.ej. el dedo
+    // sale del recuadro antes de levantarlo del todo) no soltarla podía
+    // dejar el recuadro "sordo" a arrastres posteriores hasta recargar.
+    try{ boxEl.releasePointerCapture(e.pointerId); }catch(err){}
     if (moved){
       setPos(posAt(e));
     } else if (onTap){
       onTap();
     }
   }
-  function onCancel(){
+  function onCancel(e){
     dragging = false;
     boxEl.classList.remove('is-dragging');
+    try{ boxEl.releasePointerCapture(e.pointerId); }catch(err){}
   }
 
   boxEl.addEventListener('pointerdown', onDown);

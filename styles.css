@@ -3675,6 +3675,13 @@
     justify-content:center;
     padding:20px;
   }
+  /* BUG real de la X/"Confirmar" no cerrando nada: display:flex de la
+     regla de arriba (con solo el selector de clase) ganaba SIEMPRE al
+     estado oculto del atributo hidden, aunque el código sí llegara a
+     ejecutar "ocúltate" -el propio atributo hidden nunca llegaba a tener
+     efecto visual-. Con el selector [hidden] (más específico que solo la
+     clase) el overlay ahora sí desaparece de verdad al cerrarlo. */
+  .exp-sim-overlay[hidden]{ display:none; }
   .exp-sim-panel{
     background:#fff;
     border-radius:20px;
