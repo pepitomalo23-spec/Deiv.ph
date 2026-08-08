@@ -263,14 +263,17 @@
   // posible a la izquierda sin recortarse; en móvil se mantiene centrada.
   const wideLayoutQuery = window.matchMedia('(min-width:768px)');
 
-  // Toma única y continua (fotógrafo -> cambio de lente -> solo cámaras):
-  // ya no hay dos tramos de fotogramas con proporciones distintas que
-  // unificar (antes 900x1125 vs 900x1200), así que REFERENCE_ASPECT es
-  // simplemente la proporción real de todos los fotogramas -el recorte de
-  // drawCover de abajo no llega a activarse nunca en la práctica, pero se
-  // deja el mecanismo por si en el futuro se vuelve a mezclar contenido de
-  // otra proporción-.
-  const REFERENCE_ASPECT = 900 / 1200; // ancho/alto de referencia
+  // Los 31 fotogramas del vídeo original (salto 1) miden 900x1125 (4:5),
+  // pero los 104 de la continuación (salto 2) se exportaron después "en
+  // mayor calidad" con otra proporción, 900x1200 (3:4). Como drawCover
+  // calculaba la escala a partir del tamaño NATURAL de cada imagen, ese
+  // cambio de proporción hacía que, justo al arrancar el salto 2, el
+  // factor de escala cambiase de golpe y la imagen se viera de repente
+  // más pequeña/estrecha. Fijamos aquí la proporción de referencia (la
+  // del salto 1) y recortamos cualquier fotograma que no la tenga ya,
+  // para que todo el recorrido se dibuje siempre con el mismo "tamaño
+  // lógico" de imagen.
+  const REFERENCE_ASPECT = 900 / 1125; // ancho/alto de referencia (salto 1)
 
   function drawCover(img, alpha, shrinkScale){
     if (!img || !img.complete || img.naturalWidth === 0) return;
@@ -751,8 +754,8 @@
   // recorrido tiene 3 paradas: la pose inicial, el final del vídeo original
   // (que antes era "la última") y el final de la continuación añadida.
   // Cada gesto solo avanza/retrocede UNA parada, nunca salta el tramo entero.
-  const OLD_FRAME_COUNT = 64; // fotograma donde el plano ya ha resuelto del todo el cambio de lente y pasa a ser "solo cámaras" (comprobado fotograma a fotograma: el 63 -índice 62- aún tiene el efecto de viñeta/túnel de la transición; el 64 -índice 63- ya está limpio)
-  const OLD_LAST_FRAME = OLD_FRAME_COUNT - 1; // 63: dónde "aterriza" la 2ª parada
+  const OLD_FRAME_COUNT = 31; // longitud del clip original antes de la continuación
+  const OLD_LAST_FRAME = OLD_FRAME_COUNT - 1; // 30: dónde antes "terminaba" el salto
   const WAYPOINTS = [0, OLD_LAST_FRAME, FRAME_COUNT - 1];
   let stepIndex = 0; // parada actual en reposo: 0, 1 o 2
 
@@ -857,20 +860,34 @@
     updateProgressTrack(stepIndex);
   }
 
-  // ---- progress -> frame mapping (solo para el 1er tramo) ----
-  // ANTES (dos clips distintos cosidos a mano) el cambio de lente ocurría
-  // en solo un puñado de los 31 fotogramas del clip original (frames 6-19),
-  // y el crossfade entre esos pocos fotogramas -muy distintos entre sí- se
-  // veía blando/fantasma; para disimularlo, ese tramo recibía solo una
-  // porción fina del recorrido del gesto para que pasara rápido.
-  // AHORA es una toma única y continua, con MUCHOS más fotogramas reales
-  // repartidos por igual a lo largo de todo el vídeo (incluido el propio
-  // cambio de lente, que ya no está infrarrepresentado). Con esa densidad,
-  // un mapeo lineal normal -el gesto avanza fotogramas al mismo ritmo en
-  // todo el tramo- ya se ve fluido por sí solo, sin necesidad de acelerar
-  // ningún tramo a mano.
+  // ---- non-linear progress -> frame mapping (solo para el 1er tramo) ----
+  // El plano cambia de lente hacia los frames 6-19 del clip original; el
+  // crossfade entre esos frames se ve blando/fantasma porque son muy
+  // distintos entre sí. En vez de repartir el "tiempo" del salto en línea
+  // recta entre frames, le damos a ese tramo solo una porción fina del
+  // recorrido para que pase rápido, y más tiempo a los tramos tranquilos
+  // antes/después. Esto solo aplica al tramo 0→1 (el vídeo original); el
+  // tramo 1→2 (la continuación) es contenido nuevo sin ese cambio de lente,
+  // así que se mueve con una interpolación simple.
+  const SWAP_START_FRAME = 6;
+  const SWAP_END_FRAME = 19;
+  const T_BEFORE_SWAP = 0.36; // fracción de progreso donde empieza el tramo rápido
+  const T_AFTER_SWAP = 0.64;  // fracción de progreso donde termina el tramo rápido
+  const swapStartFrac = SWAP_START_FRAME / OLD_LAST_FRAME;
+  const swapEndFrac = SWAP_END_FRAME / OLD_LAST_FRAME;
+
   function mapFirstSegmentProgress(p){
-    return p * OLD_LAST_FRAME;
+    let frac;
+    if (p <= T_BEFORE_SWAP){
+      frac = (p / T_BEFORE_SWAP) * swapStartFrac;
+    } else if (p <= T_AFTER_SWAP){
+      const local = (p - T_BEFORE_SWAP) / (T_AFTER_SWAP - T_BEFORE_SWAP);
+      frac = swapStartFrac + local * (swapEndFrac - swapStartFrac);
+    } else {
+      const local = (p - T_AFTER_SWAP) / (1 - T_AFTER_SWAP);
+      frac = swapEndFrac + local * (1 - swapEndFrac);
+    }
+    return frac * OLD_LAST_FRAME;
   }
 
   function render(){
@@ -941,7 +958,7 @@
   // sobre fondo blanco). En móvil, ese plano se ve mejor si el encuadre se
   // va empequeñeciendo a la vez que avanza, como un ligero zoom-out, en vez
   // de quedarse pegado a los bordes de la pantalla igual que el resto.
-  const CAMERA_ONLY_START_FRAME = 63; // mismo fotograma donde aterriza la 2ª parada (OLD_LAST_FRAME): en la toma única y continua, el plano ya es "solo cámaras" justo al llegar ahí -antes había un tramo intermedio (fotogramas 31-93) que todavía no lo era, resto de un montaje con dos clips distintos que ya no existe-
+  const CAMERA_ONLY_START_FRAME = 94; // recalculado proporcionalmente tras ampliar el tramo de la continuacion a 105 fotogramas
   const MOBILE_SHRINK_END_SCALE = 0.72; // escala final en el último frame: hace falta para que en móvil no se corte la imagen
   // El fondo de la foto en los frames de "solo cámara" no es blanco puro,
   // así que al achicar el encuadre se veía un rectángulo alrededor con el
@@ -1033,7 +1050,7 @@
 
   // El texto nunca se desliza: solo cambia de opacidad, desapareciendo en su
   // sitio exacto, en sincronía con el primer salto. A partir de la primera
-  // parada (frame OLD_LAST_FRAME) se queda invisible durante el resto del recorrido.
+  // parada (frame 30) se queda invisible durante el resto del recorrido.
   //
   // ANTES la opacidad iba pegada 1:1 al fotograma (currentFrameExact /
   // OLD_LAST_FRAME), así que el texto tardaba TODO el salto en
@@ -1067,18 +1084,54 @@
     sceneTitle.style.opacity = captionOpacity;
   }
 
-  // ---- progress -> frame mapping para el tramo de la continuación ----
-  // ANTES este tramo mezclaba dos clips distintos: primero un trozo que
-  // aún no era "solo cámaras" (fotogramas 31-93, resto del clip antiguo) y
-  // luego el plano de producto en sí (94-134), y por eso tenía sentido un
-  // reparto en dos ritmos (más tiempo al primer trozo, menos al segundo).
-  // AHORA, con la toma única, CAMERA_ONLY_START_FRAME coincide con el
-  // aterrizaje de la 2ª parada (ver más arriba): todo este tramo, de
-  // principio a fin, es ya el plano de "solo cámaras" asentándose -no hay
-  // dos fases distintas que compensar-, así que un mapeo lineal simple es
-  // lo que de verdad corresponde al contenido.
+  // ---- non-linear progress -> frame mapping para el tramo de la continuación ----
+  // El plano de "solo cámara" (a partir de CAMERA_ONLY_START_FRAME) se veía
+  // demasiado lento porque el movimiento ahí es sutil; le damos a esa parte
+  // menos tiempo del recorrido para que pase más rápido, y más tiempo a la
+  // parte con la persona, que necesita leerse con calma.
+  const cameraOnlyStartFrac = (CAMERA_ONLY_START_FRAME - OLD_LAST_FRAME) / (FRAME_COUNT - 1 - OLD_LAST_FRAME);
+  const T_CAMERA_ONLY_START = 0.72; // fracción de TIEMPO en la que se alcanza ese frame
+
+  // ANTES: dos tramos rectos pegados (una recta más lenta hasta T_CAMERA_ONLY_START
+  // y otra más rápida después). Eso deja un "codo": la velocidad de avance de
+  // fotogramas cambia de golpe justo en ese punto, exactamente donde también
+  // empieza el encogido/tinte -> se notaba como un corte/desenfoque en vez de
+  // algo fluido. Ahora usamos un spline cúbico (Hermite monótono) que pasa por
+  // los mismos 3 puntos (inicio, el frame de "solo cámara", fin) pero con la
+  // MISMA velocidad a ambos lados del punto intermedio, así la transición de
+  // ritmo es continua y no se percibe ningún salto.
+  const CONT_H1 = T_CAMERA_ONLY_START;
+  const CONT_H2 = 1 - T_CAMERA_ONLY_START;
+  const CONT_M0 = cameraOnlyStartFrac / CONT_H1;        // ritmo del primer tramo
+  const CONT_M1 = (1 - cameraOnlyStartFrac) / CONT_H2;  // ritmo del segundo tramo
+  // ritmo compartido en el punto intermedio (media armónica ponderada, método
+  // de Fritsch-Carlson): mantiene el spline monótono (nunca retrocede) y con
+  // derivada continua en el punto de unión.
+  const CONT_W1 = 2 * CONT_H2 + CONT_H1;
+  const CONT_W2 = CONT_H1 + 2 * CONT_H2;
+  const CONT_M_KNOT = (CONT_M0 * CONT_M1 > 0)
+    ? (CONT_W1 + CONT_W2) / (CONT_W1 / CONT_M0 + CONT_W2 / CONT_M1)
+    : 0;
+
+  function hermiteSegment(t, y0, y1, dydt0, dydt1){
+    const t2 = t * t, t3 = t2 * t;
+    const h00 = 2 * t3 - 3 * t2 + 1;
+    const h10 = t3 - 2 * t2 + t;
+    const h01 = -2 * t3 + 3 * t2;
+    const h11 = t3 - t2;
+    return h00 * y0 + h10 * dydt0 + h01 * y1 + h11 * dydt1;
+  }
+
   function mapContinuationProgress(p){
-    return OLD_LAST_FRAME + p * (FRAME_COUNT - 1 - OLD_LAST_FRAME);
+    let frac;
+    if (p <= T_CAMERA_ONLY_START){
+      const t = p / CONT_H1;
+      frac = hermiteSegment(t, 0, cameraOnlyStartFrac, CONT_M0 * CONT_H1, CONT_M_KNOT * CONT_H1);
+    } else {
+      const t = (p - T_CAMERA_ONLY_START) / CONT_H2;
+      frac = hermiteSegment(t, cameraOnlyStartFrac, 1, CONT_M_KNOT * CONT_H2, CONT_M1 * CONT_H2);
+    }
+    return OLD_LAST_FRAME + frac * (FRAME_COUNT - 1 - OLD_LAST_FRAME);
   }
 
   // ---- salto animado entre paradas consecutivas ----
