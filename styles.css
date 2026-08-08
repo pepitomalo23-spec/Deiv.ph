@@ -1816,6 +1816,25 @@
        marca esa curva. */
   }
   .proyectos-header.visible{ opacity:1; }
+  /* Pantallas anchas (tablet en horizontal, ordenador, ≥901px): el
+     bloque pasa de la esquina inferior izquierda a la derecha, centrado
+     en altura. Antes, en pantallas mucho más anchas que altas (un iPad
+     en horizontal, por ejemplo), se quedaba pegado abajo a la izquierda
+     dejando un hueco en blanco enorme a la derecha -sobre todo detrás de
+     la foto principal, que en esas pantallas no llega a ocupar todo el
+     ancho-. El texto de dentro (título, botones, tarjetas) sigue
+     alineado a su propia izquierda con normalidad -align-items:
+     flex-start no se toca-, solo se mueve el bloque entero como
+     conjunto. */
+  @media (min-width:901px){
+    .proyectos-header{
+      left:auto;
+      right:6%;
+      bottom:auto;
+      top:50%;
+      transform:translateY(-50%);
+    }
+  }
   /* Solo el texto, sin plaquita/recuadro detrás: cursiva serif (mismo
      estilo de familia que el resto de títulos de la web), blanco con
      una sombra suave para que se lea igual de bien encima de cualquier
