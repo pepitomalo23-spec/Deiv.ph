@@ -2798,6 +2798,20 @@
     width:100%;
     height:160px;
   }
+  /* Pantallas anchas (≥901px, mismo punto en el que el bloque de
+     Proyectos pasa a la derecha -ver .proyectos-header más arriba-):
+     el recuadro de las fotos se hace más grande para aprovechar el
+     hueco que quedaba en blanco. Solo cambia el tamaño del recuadro de
+     imágenes -.as-expand/.as-expand-grid-; el título, los botones de
+     categoría y el tamaño de letra de dentro de las tarjetas se dejan
+     tal cual. A partir de 901px, .proyectos-header (su contenedor
+     directo) siempre mide 700px de ancho -min(88vw,700px) ya está a
+     tope desde los 796px-, así que 640px cabe de sobra sin necesidad de
+     un tope en vw aparte. */
+  @media (min-width:901px){
+    .as-expand{ width:640px; }
+    .as-expand-grid{ height:260px; }
+  }
   .as-expand-card{
     position:relative;
     flex:1 1 0%;
