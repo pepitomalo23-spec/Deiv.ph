@@ -2764,21 +2764,26 @@
      fina-. La franja oscura y el texto (nombre + frase) están siempre en
      el DOM pero con opacity:0 hasta que la tarjeta se expande, para que
      la aparición sea un fundido suave y no un salto brusco. */
-  .as-expand{ width:100%; margin-top:clamp(4px, 1vh, 12px); pointer-events:auto; }
+  /* Antes el tamaño de esta fila dependía del ancho/alto de la pantalla
+     (vw/vh), así que la misma foto se veía "más o menos ampliada" según
+     el dispositivo (móvil, tablet, ordenador...): en unos se veía bien y
+     en otros raro, sin forma de saber de antemano cómo iba a quedar.
+     Ahora el tamaño es FIJO en píxeles -el mismo en cualquier pantalla-,
+     así el recorte de cada foto es exactamente igual en todos los
+     dispositivos. Con min(360px, 92vw) solo se encoge en los móviles más
+     estrechos que 391px (391*0.92≈360), lo justo para no desbordar. */
+  .as-expand{ width:min(360px, 92vw); margin-top:clamp(4px, 1vh, 12px); pointer-events:auto; }
   .as-expand-grid{
     display:flex;
-    gap:clamp(6px, 1.4vw, 10px);
+    gap:8px;
     width:100%;
-    /* Menos altas que antes (era 210-320px / 34vh de tope): ahora ocupan
-       bastante menos pantalla, acorde a que viven en la 1ª posición y no
-       deben competir con la foto de fondo. */
-    height:clamp(120px, 20vh, 190px);
+    height:160px;
   }
   .as-expand-card{
     position:relative;
     flex:1 1 0%;
     min-width:0;
-    border-radius:clamp(12px, 2vw, 20px);
+    border-radius:16px;
     overflow:hidden;
     cursor:pointer;
     /* background-size/color por defecto: cada tarjeta los sobreescribe
@@ -2848,13 +2853,13 @@
   }
   .as-expand-card-label{
     margin:0;
-    font-size:clamp(0.72rem, 1.6vw, 0.92rem);
+    font-size:0.86rem;
     font-weight:600;
     letter-spacing:0.01em;
   }
   .as-expand-card-phrase{
     margin:2px 0 0;
-    font-size:clamp(0.62rem, 1.3vw, 0.74rem);
+    font-size:0.72rem;
     color:rgba(245,245,245,0.75);
   }
   .as-expand-card-dot{
@@ -2874,12 +2879,10 @@
     transform:scale(1);
     transition-delay:.12s;
   }
-  @media (max-width:520px){
-    /* En móvil, con 5 tarjetas estrechas cuesta más pulsar la que se
-       quiere: se reduce el nº mínimo visible y se sube un poco el alto. */
-    .as-expand-grid{ height:clamp(130px, 24vh, 190px); gap:5px; }
-    .as-expand-card-phrase{ display:none; }
-  }
+  /* Ya no hace falta ningún ajuste especial por debajo de 520px: el
+     tamaño de la fila es fijo (ver .as-expand más arriba) y solo se
+     encoge un poco vía min(360px, 92vw) en los móviles más estrechos,
+     nunca cambia de alto ni oculta la frase. */
 
   /* Nombres de las dos cámaras grandes de la foto (no las miniaturas del
      carrusel de abajo). ANTES se colocaban a yFrac:0.40 del recuadro de la
@@ -3605,57 +3608,119 @@
      que deja la foto en la vista previa se ve igual que en la web-. */
   .disc-editor-box.has-image{ border-style:solid; border-color:rgba(17,17,17,0.14); background-color:#ffffff; }
   .disc-editor-box.is-uploading{ cursor:default; }
-  /* Con foto puesta, el recuadro entero se puede arrastrar con la mano
-     para reencuadrarla (ver attachFreeReposition en thumb-reposition.js
-     y su uso en comparison-pairs.js): cursor de "coger" en vez del de
-     "puntero", sin selección de texto ni gestos táctiles del navegador
-     de por medio mientras se arrastra. */
-  .disc-editor-box.has-image{ cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none; }
-  .disc-editor-box.has-image.is-dragging{ cursor:grabbing; }
-  /* Pista visual de que la foto se puede arrastrar: un icono de "mover"
-     que solo aparece al pasar el ratón (pantallas con hover real) o uno
-     fijo y pequeño en la esquina en pantallas táctiles -mismo patrón que
-     .ajustes-thumb-move/-hint, ver más arriba en este archivo-. */
-  @media (hover:hover) and (pointer:fine){
-    .disc-editor-move{
-      position:absolute;
-      inset:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:rgba(0,0,0,0);
-      opacity:0;
-      pointer-events:none;
-      transition:opacity .2s ease, background .2s ease;
-    }
-    .disc-editor-box:hover .disc-editor-move{
-      opacity:1;
-      background:rgba(0,0,0,0.16);
-    }
-    .disc-editor-hint{ display:none; }
-  }
-  @media not all and (hover:hover) and (pointer:fine){
-    .disc-editor-move{ display:none; }
-    .disc-editor-hint{
-      position:absolute;
-      left:7px;
-      bottom:7px;
-      width:22px;
-      height:22px;
-      border-radius:50%;
-      background:rgba(0,0,0,0.4);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      pointer-events:none;
-    }
-    .disc-editor-hint svg{ width:12px; height:12px; color:#fff; }
-  }
-  .disc-editor-move svg{
-    width:20px;
-    height:20px;
+  /* Con foto puesta, el recuadro es una vista previa fiel pero NO se
+     arrastra aquí: se toca para abrir el simulador a pantalla completa
+     (ver openExpSimulator en comparison-pairs.js), que es donde de
+     verdad se ajusta el encuadre con calma y a un tamaño cómodo. */
+  .disc-editor-adjust-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin:auto auto 8px 8px;
+    padding:5px 10px 5px 7px;
+    border-radius:999px;
+    background:rgba(0,0,0,0.55);
     color:#fff;
-    filter:drop-shadow(0 1px 3px rgba(0,0,0,0.5));
+    font-size:0.72rem;
+    font-weight:600;
+    pointer-events:none;
+  }
+  .disc-editor-adjust-badge svg{ width:13px; height:13px; color:#fff; }
+  .disc-editor-replace-link{
+    align-self:flex-start;
+    margin-top:2px;
+    padding:0;
+    border:none;
+    background:none;
+    color:var(--accent);
+    font-size:0.82rem;
+    font-weight:600;
+    text-decoration:underline;
+    cursor:pointer;
+  }
+
+  /* Simulador a pantalla completa (Ajustes → Proyectos): se abre solo al
+     subir una foto nueva, o al tocar el recuadro/badge "Ajustar
+     encuadre" de una ya puesta. Muestra el recuadro con la MISMA forma
+     (ancho ÷ alto) que tiene la tarjeta real cuando está abierta en la
+     web -ver getExpandCardAspect en comparison-pairs.js-, a un tamaño
+     grande y cómodo para arrastrar la foto con calma antes de confirmar. */
+  .exp-sim-overlay{
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    background:rgba(10,10,10,0.78);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .exp-sim-panel{
+    background:#fff;
+    border-radius:20px;
+    padding:18px;
+    max-width:calc(100vw - 24px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+    box-shadow:0 24px 60px rgba(0,0,0,0.4);
+  }
+  .exp-sim-head{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .exp-sim-title{
+    margin:0;
+    font-size:0.98rem;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .exp-sim-cancel{
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    border:none;
+    background:rgba(17,17,17,0.06);
+    color:var(--ink);
+    font-size:1.1rem;
+    line-height:1;
+    cursor:pointer;
+    flex:none;
+  }
+  .exp-sim-stage{ display:flex; }
+  .exp-sim-box{
+    border-radius:16px;
+    overflow:hidden;
+    background-repeat:no-repeat;
+    background-color:#ffffff;
+    border:1px solid rgba(17,17,17,0.12);
+    cursor:grab;
+    touch-action:none;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  .exp-sim-box.is-dragging{ cursor:grabbing; }
+  .exp-sim-hint{
+    margin:0;
+    max-width:52ch;
+    text-align:center;
+    font-size:0.82rem;
+    color:var(--dim);
+  }
+  .exp-sim-actions{ width:100%; display:flex; justify-content:center; }
+  .exp-sim-done{
+    padding:10px 28px;
+    border-radius:999px;
+    border:none;
+    background:var(--ink);
+    color:#fff;
+    font-size:0.9rem;
+    font-weight:700;
+    cursor:pointer;
   }
   .disc-editor-fields{ flex:1 1 220px; min-width:200px; display:flex; flex-direction:column; gap:6px; }
   .disc-editor-fields input{

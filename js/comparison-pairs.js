@@ -5,14 +5,8 @@
       <circle cx="8.5" cy="10" r="1.5"/>
       <path d="M21 15l-5-5-4 4-3-3-5 5"/>
     </svg>`;
-  // Icono de "mover" (cuatro flechas) que indica que una foto se puede
-  // arrastrar para reencuadrarla: mismo dibujo que ya se usa en el
-  // carrusel de cámaras (ver camera-carousel.js), reutilizado aquí para
-  // el recuadro de vista previa de la galería de "Proyectos".
-  const MOVE_ICON = `
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 3v18M3 12h18M7 7l-4 5 4 5M17 7l4 5-4 5M7 7l5-4 5 4M7 17l5 4 5-4"/>
-    </svg>`;
+  // Icono de "mover" (flechas) usado como pista dentro del badge
+  // "Ajustar encuadre" (ver renderExpandEditor) y dentro del simulador.
   const MOVE_ICON_SMALL = `
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 5v14M8 9l4-4 4 4M8 15l4 4 4-4"/>
@@ -532,6 +526,149 @@
       'background-position:' + posX + '% ' + posY + '%';
   }
 
+  /* Proporción (ancho ÷ alto) real de una tarjeta de esta galería cuando
+     está ABIERTA (activa) en la web -que es el momento en que más se ve
+     la foto y donde más importa que el encuadre esté bien-. Se mide en
+     vivo sobre la propia fila pública (#asExpandGrid), que ya vive en la
+     página aunque ahora mismo no se esté viendo esa sección: así el
+     simulador de Ajustes SIEMPRE coincide con el tamaño real, incluso si
+     algún día cambian las medidas fijas en styles.css (.as-expand-grid,
+     flex-grow de .is-active) y aquí no hay que tocar nada. Si por lo que
+     sea no se puede medir (aún no ha cargado, etc.), se usa como
+     respaldo el cálculo a mano con los valores actuales de ese CSS: fila
+     de 360×160px, 5 tarjetas con gap de 8px, activa con flex-grow:9
+     frente a 0.35 de las otras 4. */
+  function getExpandCardAspect(){
+    try{
+      const grid = document.getElementById('asExpandGrid');
+      if (grid){
+        const active = grid.querySelector('.as-expand-card.is-active') || grid.querySelector('.as-expand-card');
+        if (active){
+          const r = active.getBoundingClientRect();
+          if (r.width > 4 && r.height > 4) return r.width / r.height;
+        }
+      }
+    }catch(err){}
+    const cardsWidth = 360 - 4 * 8; // ancho de fila fijo menos los 4 huecos
+    const activeWidth = cardsWidth * (9 / (9 + 0.35 * 4));
+    return activeWidth / 160;
+  }
+
+  let expSimIndex = null;
+  let expSimSnapshot = null;
+  let expSimEls = null;
+
+  function ensureExpSimModal(){
+    if (expSimEls) return expSimEls;
+    const overlay = document.createElement('div');
+    overlay.id = 'expSimOverlay';
+    overlay.className = 'exp-sim-overlay';
+    overlay.hidden = true;
+    overlay.innerHTML =
+      '<div class="exp-sim-panel" role="dialog" aria-modal="true" aria-labelledby="expSimTitle">' +
+        '<div class="exp-sim-head">' +
+          '<p id="expSimTitle" class="exp-sim-title">Ajustar foto</p>' +
+          '<button type="button" class="exp-sim-cancel" aria-label="Cancelar y cerrar">×</button>' +
+        '</div>' +
+        '<div class="exp-sim-stage"><div class="exp-sim-box" id="expSimBox"></div></div>' +
+        '<p class="exp-sim-hint">Arrastra la foto para colocarla: así de grande y con esta forma se ve exactamente cuando esta tarjeta está abierta en la web.</p>' +
+        '<div class="exp-sim-actions"><button type="button" class="exp-sim-done">Listo</button></div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    const els = {
+      overlay: overlay,
+      panel: overlay.querySelector('.exp-sim-panel'),
+      title: overlay.querySelector('#expSimTitle'),
+      stage: overlay.querySelector('.exp-sim-stage'),
+      cancelBtn: overlay.querySelector('.exp-sim-cancel'),
+      doneBtn: overlay.querySelector('.exp-sim-done')
+    };
+    function close(){
+      els.overlay.hidden = true;
+      document.body.style.overflow = '';
+      expSimIndex = null;
+      expSimSnapshot = null;
+      renderExpandEditor();
+    }
+    els.doneBtn.addEventListener('click', close);
+    els.cancelBtn.addEventListener('click', () => {
+      if (expSimIndex != null && expDraft[expSimIndex] && expSimSnapshot){
+        expDraft[expSimIndex].posX = expSimSnapshot.x;
+        expDraft[expSimIndex].posY = expSimSnapshot.y;
+      }
+      close();
+    });
+    // Tocar el fondo oscuro fuera del recuadro equivale a "Listo" (se
+    // queda con lo ya arrastrado): solo la × cancela de verdad.
+    els.overlay.addEventListener('click', (e) => {
+      if (e.target === els.overlay) close();
+    });
+    expSimEls = els;
+    window.addEventListener('resize', () => {
+      if (els.overlay.hidden || expSimIndex == null) return;
+      const box = els.stage.querySelector('#expSimBox');
+      if (!box) return;
+      const aspect = getExpandCardAspect();
+      const maxW = Math.min(window.innerWidth - 56, 640);
+      const maxH = window.innerHeight - 230;
+      let boxW = maxW;
+      let boxH = boxW / aspect;
+      if (boxH > maxH){ boxH = Math.max(120, maxH); boxW = boxH * aspect; }
+      box.style.width = Math.round(boxW) + 'px';
+      box.style.height = Math.round(boxH) + 'px';
+    });
+    return els;
+  }
+
+  function openExpSimulator(index){
+    const c = expDraft[index];
+    if (!c || !c.img) return;
+    const els = ensureExpSimModal();
+    expSimIndex = index;
+    expSimSnapshot = {
+      x: c.posX != null ? c.posX : 50,
+      y: c.posY != null ? c.posY : (c.fit === 'contain' ? 35 : 50)
+    };
+    els.title.textContent = 'Ajustar “' + (c.label || 'esta foto') + '”';
+
+    // El tamaño disponible cambia según el dispositivo (móvil vs
+    // ordenador), así que el recuadro del simulador se calcula cada vez
+    // que se abre para aprovechar el hueco disponible sin desbordar,
+    // mantiniendo SIEMPRE la misma proporción (forma) que la tarjeta
+    // real -ver getExpandCardAspect-.
+    const aspect = getExpandCardAspect();
+    const maxW = Math.min(window.innerWidth - 56, 640);
+    const maxH = window.innerHeight - 230;
+    let boxW = maxW;
+    let boxH = boxW / aspect;
+    if (boxH > maxH){ boxH = Math.max(120, maxH); boxW = boxH * aspect; }
+
+    // Se sustituye el recuadro por uno limpio (sin listeners de arrastre
+    // de una apertura anterior) antes de dibujar y enganchar el arrastre,
+    // para no acumular controladores repetidos entre foto y foto.
+    const oldBox = els.stage.querySelector('#expSimBox');
+    const box = oldBox.cloneNode(false);
+    oldBox.replaceWith(box);
+    box.style.cssText = 'width:' + Math.round(boxW) + 'px;height:' + Math.round(boxH) + 'px;background-repeat:no-repeat;background-color:#ffffff;' + expandCardBgStyle(c);
+
+    window.attachFreeReposition(
+      box,
+      () => ({
+        x: expDraft[index] && expDraft[index].posX != null ? expDraft[index].posX : 50,
+        y: expDraft[index] && expDraft[index].posY != null ? expDraft[index].posY : (expDraft[index] && expDraft[index].fit === 'contain' ? 35 : 50)
+      }),
+      (pos) => {
+        if (!expDraft[index]) return;
+        expDraft[index].posX = pos.x;
+        expDraft[index].posY = pos.y;
+      },
+      null
+    );
+
+    els.overlay.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+
   function renderExpandPublic(){
     if (!expandGrid) return;
     expandGrid.innerHTML = currentExpand.map((c, i) => (
@@ -639,15 +776,11 @@
       let boxInner;
       if (isUploading) boxInner = '<span>Subiendo…</span>';
       else if (!c.img) boxInner = PLACEHOLDER_ICON;
-      // Con foto puesta, el propio recuadro ES el control de encuadre
-      // (ver attachFreeReposition más abajo): estos dos iconos solo son
-      // la pista visual de que se puede arrastrar (uno aparece al pasar
-      // el ratón, el otro se queda fijo en pantallas táctiles, mismo
-      // patrón que .ajustes-thumb-move/-hint).
-      else boxInner = (
-        '<div class="disc-editor-move" aria-hidden="true">' + MOVE_ICON + '</div>' +
-        '<div class="disc-editor-hint" aria-hidden="true">' + MOVE_ICON_SMALL + '</div>'
-      );
+      // Con foto puesta, el recuadro es solo una vista previa: el ajuste
+      // de verdad se hace en el simulador a pantalla completa (ver
+      // openExpSimulator más abajo), que se abre solo con subir la foto o
+      // tocando el botón "Ajustar encuadre".
+      else boxInner = '<span class="disc-editor-adjust-badge">' + MOVE_ICON_SMALL + ' Ajustar encuadre</span>';
       // La vista previa usa la MISMA función que la tarjeta real
       // (expandCardBgStyle) en vez de un <img> aparte con object-fit: así
       // el recuadro de Ajustes muestra pixel a pixel el mismo recorte (o
@@ -658,7 +791,7 @@
         '<div class="disc-editor-item" data-index="' + i + '">' +
           '<div class="disc-editor-box' + (hasImage ? ' has-image' : '') + (isUploading ? ' is-uploading' : '') +
             '" data-index="' + i + '" style="' + previewBg + '" role="button" tabindex="0" aria-label="' +
-            (hasImage ? 'Arrastra para ajustar el encuadre, o toca sin arrastrar para cambiar la foto de ' + escapeAttr(c.label) : 'Subir foto para ' + escapeAttr(c.label)) +
+            (hasImage ? 'Ajustar el encuadre de ' + escapeAttr(c.label) : 'Subir foto para ' + escapeAttr(c.label)) +
             '">' +
             boxInner +
           '</div>' +
@@ -670,9 +803,7 @@
               '<button type="button" class="disc-editor-fit-btn' + (fit === 'cover' ? ' active' : '') + '" data-fit="cover">Cubrir recuadro</button>' +
               '<button type="button" class="disc-editor-fit-btn' + (fit === 'contain' ? ' active' : '') + '" data-fit="contain">Ver foto entera</button>' +
             '</div>' +
-            '<p class="disc-editor-fit-hint">' + (fit === 'contain'
-              ? 'Se ve la foto entera, con margen alrededor si no encaja justa. Arrástrala en el recuadro de arriba para colocarla donde quieras.'
-              : 'La foto llena todo el recuadro sin cambiar de tamaño entre dispositivos. Arrástrala en el recuadro de arriba para elegir qué parte se ve.') + '</p>' +
+            (hasImage ? '<button type="button" class="disc-editor-replace-link" data-index="' + i + '">Cambiar foto</button>' : '') +
           '</div>' +
           '<div class="pair-editor-actions">' +
             '<button type="button" class="pair-editor-move" data-dir="up" ' + (i === 0 ? 'disabled' : '') + ' aria-label="Mover foto hacia arriba">↑</button>' +
@@ -683,31 +814,6 @@
       );
     }).join('');
     if (expEmptyEl) expEmptyEl.style.display = expDraft.length ? 'none' : '';
-
-    // Conecta el arrastre libre (X + Y) de cada recuadro con foto: se
-    // coge la foto con la mano y se mueve hasta donde se quiera, tal y
-    // como se ve en la tarjeta real. Un toque sin arrastrar (onTap)
-    // sigue abriendo el selector de archivos para cambiar la foto.
-    expListEl.querySelectorAll('.disc-editor-box.has-image').forEach(boxEl => {
-      const i = Number(boxEl.dataset.index);
-      window.attachFreeReposition(
-        boxEl,
-        () => ({
-          x: expDraft[i] && expDraft[i].posX != null ? expDraft[i].posX : 50,
-          y: expDraft[i] && expDraft[i].posY != null ? expDraft[i].posY : (expDraft[i] && expDraft[i].fit === 'contain' ? 35 : 50)
-        }),
-        (pos) => {
-          if (!expDraft[i]) return;
-          expDraft[i].posX = pos.x;
-          expDraft[i].posY = pos.y;
-        },
-        () => {
-          if (expUploadingIndex !== null || !expFileInput) return;
-          expPendingIndex = i;
-          expFileInput.click();
-        }
-      );
-    });
   }
 
   function fillExpandEditor(){
@@ -753,21 +859,34 @@
         renderExpandEditor();
         return;
       }
-      // Los recuadros CON foto ya gestionan su propio toque-para-cambiar
-      // dentro de attachFreeReposition (para poder distinguirlo de un
-      // arrastre real); aquí solo se atiende el recuadro vacío, que no
-      // tiene arrastre que confundir con un click.
-      const box = e.target.closest('.disc-editor-box:not(.has-image)');
-      if (box && expUploadingIndex === null && expFileInput){
-        expPendingIndex = Number(box.dataset.index);
+      // Recuadro sin foto → subir una nueva. Recuadro CON foto → abrir el
+      // simulador a pantalla completa para ajustar su encuadre (ver
+      // openExpSimulator más abajo).
+      const emptyBox = e.target.closest('.disc-editor-box:not(.has-image)');
+      if (emptyBox && expUploadingIndex === null && expFileInput){
+        expPendingIndex = Number(emptyBox.dataset.index);
+        expFileInput.click();
+        return;
+      }
+      const filledBox = e.target.closest('.disc-editor-box.has-image');
+      if (filledBox){
+        openExpSimulator(Number(filledBox.dataset.index));
+        return;
+      }
+      const replaceLink = e.target.closest('.disc-editor-replace-link');
+      if (replaceLink && expUploadingIndex === null && expFileInput){
+        expPendingIndex = Number(replaceLink.dataset.index);
         expFileInput.click();
       }
     });
     expListEl.addEventListener('keydown', (e) => {
       const box = e.target.closest('.disc-editor-box');
       if (!box) return;
-      if ((e.key === 'Enter' || e.key === ' ') && expUploadingIndex === null && expFileInput){
-        e.preventDefault();
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      if (box.classList.contains('has-image')){
+        openExpSimulator(Number(box.dataset.index));
+      } else if (expUploadingIndex === null && expFileInput){
         expPendingIndex = Number(box.dataset.index);
         expFileInput.click();
       }
@@ -783,15 +902,20 @@
       if (!file || i === null || !expDraft[i] || !window.CloudDB) return;
       expUploadingIndex = i;
       renderExpandEditor();
+      let uploadedOk = false;
       try{
         const url = await window.CloudDB.uploadImageAlways(file, 'galeria-expandible');
-        if (expDraft[i]) expDraft[i].img = url;
+        if (expDraft[i]){ expDraft[i].img = url; uploadedOk = true; }
       }catch(err){
         console.error('No se pudo subir la foto de la galería expandible:', err && err.message || err);
         alert('No se pudo subir la foto (' + (err && err.message || 'error de conexión') + '). Inténtalo de nuevo.');
       }finally{
         expUploadingIndex = null;
         renderExpandEditor();
+        // Justo al añadir la foto, se abre el simulador a pantalla
+        // completa para que se coloque bien desde el primer momento (en
+        // vez de dejarla con el encuadre por defecto sin que se note).
+        if (uploadedOk) openExpSimulator(i);
       }
     });
   }
