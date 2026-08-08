@@ -1709,6 +1709,14 @@
     .proyectos-header{ bottom:4%; left:5%; width:90vw; }
     .proyectos-title{ font-size:clamp(1rem, 4.6vw, 1.3rem); }
   }
+  /* ---------- Escritorio (≥901px): desplazamos el contenido de la 2ª
+     posición ("Proyectos" + su galería, que vive dentro de este mismo
+     bloque) hacia la derecha. Solo en pantallas grandes, donde sobra
+     espacio horizontal; en móvil se queda como estaba (pegado a la
+     izquierda). ---------- */
+  @media (min-width:901px){
+    .proyectos-header{ left:16%; }
+  }
 
   /* ---------- Título grande "Mi material / de trabajo" + frase (aparecen
      arriba del todo, en el último fotograma, justo antes de las cámaras)
@@ -2562,6 +2570,14 @@
      poniendo display:none en todo #asCatTop en ese caso. */
   @media (max-width:480px){
     .as-cat-top{ top:36px; left:18px; }
+  }
+  /* ---------- Escritorio (≥901px): #asCatTop vive con su propio
+     position:fixed independiente del resto de #proyectosHeader (ver
+     comentario más arriba), así que necesita su propio desplazamiento a
+     la derecha para acompañar al resto del contenido de la 2ª posición
+     ("Proyectos") en pantallas grandes. ---------- */
+  @media (min-width:901px){
+    .as-cat-top{ left:16%; }
   }
 
   /* ---------- Botones de categorías de "Proyectos" (Deportes, Fiestas...)
