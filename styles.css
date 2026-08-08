@@ -404,7 +404,7 @@
     color:var(--dim);
     z-index:20;
     opacity:0;
-    transition:opacity .4s ease;
+    transition:opacity 0.6s cubic-bezier(.22,1,.36,1);
     pointer-events:none;
   }
   .scene-hint.visible{ opacity:1; }
@@ -438,7 +438,7 @@
     gap:6px;
     cursor:pointer;
     overflow:hidden;
-    transition:border-color .2s ease;
+    transition:border-color 0.3s cubic-bezier(.22,1,.36,1);
   }
   .ba-slot-box:hover{ border-color:var(--accent); }
   .ba-slot-box svg{ width:22px; height:22px; color:var(--dim); flex:none; }
@@ -537,7 +537,7 @@
     background:var(--dim);
     opacity:0.35;
     transform:scale(1);
-    transition:opacity .35s ease, transform .35s ease, background-color .35s ease;
+    transition:opacity 0.525s cubic-bezier(.22,1,.36,1), transform 0.525s cubic-bezier(.22,1,.36,1), background-color 0.525s cubic-bezier(.22,1,.36,1);
   }
   .scene-progress .dot.passed{
     background:var(--accent);
@@ -658,7 +658,7 @@
     align-items:center;
     justify-content:center;
     z-index:100;
-    transition:opacity .5s ease;
+    transition:opacity 0.75s cubic-bezier(.22,1,.36,1);
   }
   .loader-bar{
     width:160px;
@@ -672,7 +672,7 @@
     height:100%;
     width:0%;
     background:var(--accent);
-    transition:width .15s ease-out;
+    transition:width 0.225s ease-out;
   }
   .loader-label{
     font-size:0.72rem;
@@ -693,7 +693,7 @@
     border-top-color:var(--accent);
     opacity:0;
     pointer-events:none;
-    transition:opacity .35s ease;
+    transition:opacity 0.525s cubic-bezier(.22,1,.36,1);
   }
   .loader-spinner.is-visible{
     opacity:1;
@@ -718,7 +718,7 @@
        Así, si el arranque tarda una fracción de segundo, el usuario ve
        un fundido limpio en vez de un primer fotograma congelado. */
     opacity:0;
-    transition:opacity .45s ease;
+    transition:opacity 0.675s cubic-bezier(.22,1,.36,1);
   }
   .loader-video-wrap.is-playing{ opacity:1; }
   .loader-video{
@@ -785,7 +785,7 @@
     cursor:pointer;
     padding:0;
     opacity:1;
-    transition:opacity .35s ease;
+    transition:opacity 0.525s cubic-bezier(.22,1,.36,1);
   }
   /* Mientras se está reproduciendo la intro de fotogramas (todavía no se
      ha llegado a la última parada del recorrido, ver stepIndex en
@@ -802,7 +802,7 @@
     height:2px;
     background:var(--fg);
     border-radius:2px;
-    transition:transform .3s ease, opacity .3s ease;
+    transition:transform 0.45s cubic-bezier(.22,1,.36,1), opacity 0.45s cubic-bezier(.22,1,.36,1);
   }
   .menu-toggle.open span:nth-child(1){ transform:translateY(7px) rotate(45deg); }
   .menu-toggle.open span:nth-child(2){ opacity:0; }
@@ -819,9 +819,9 @@
     padding:10px;
     min-width:180px;
     opacity:0;
-    transform:translateY(-8px) scale(0.98);
+    transform:translateY(-14px) scale(0.94);
     pointer-events:none;
-    transition:opacity .25s ease, transform .25s ease;
+    transition:opacity 0.375s cubic-bezier(.22,1,.36,1), transform 0.375s cubic-bezier(.22,1,.36,1);
   }
   .menu-panel.open{
     opacity:1;
@@ -842,7 +842,7 @@
     padding:11px 14px;
     border-radius:9px;
     cursor:pointer;
-    transition:background .2s ease, color .2s ease;
+    transition:background 0.3s cubic-bezier(.22,1,.36,1), color 0.3s cubic-bezier(.22,1,.36,1);
   }
   .menu-item-label{
     display:flex;
@@ -871,7 +871,7 @@
     border-radius:50%;
     background:var(--accent);
     opacity:0;
-    transition:opacity .2s ease;
+    transition:opacity 0.3s cubic-bezier(.22,1,.36,1);
   }
   .menu-item.active .dot{ opacity:1; }
 
@@ -892,9 +892,9 @@
     border-radius:10px;
     box-shadow:0 8px 24px rgba(0,0,0,0.08);
     opacity:0;
-    transform:translateY(-6px);
+    transform:translateY(-11px);
     pointer-events:none;
-    transition:opacity .5s ease, transform .5s ease;
+    transition:opacity 0.75s cubic-bezier(.22,1,.36,1), transform 0.75s cubic-bezier(.22,1,.36,1);
   }
   .menu-toast.visible{
     opacity:1;
@@ -977,7 +977,7 @@
     font-size:0.86rem;
     color:var(--fg);
     text-decoration:none;
-    transition:border-color .2s ease, color .2s ease, box-shadow .2s ease;
+    transition:border-color 0.3s cubic-bezier(.22,1,.36,1), color 0.3s cubic-bezier(.22,1,.36,1), box-shadow 0.3s cubic-bezier(.22,1,.36,1);
   }
   .contact-link:hover{
     border-color:rgba(255,90,31,0.5);
@@ -1011,10 +1011,10 @@
     background:linear-gradient(160deg, #f3f3f1, #e8e8e4);
     box-shadow:0 10px 24px rgba(0,0,0,0.10);
     opacity:0;
-    transform:translateY(20px) rotate(var(--tilt, 0deg)) scale(0.96);
-    animation:aboutCollageIn .65s cubic-bezier(.19,1,.22,1) forwards,
+    transform:translateY(34px) rotate(var(--tilt, 0deg)) scale(0.9);
+    animation:aboutCollageIn .9s cubic-bezier(.19,1,.22,1) forwards,
               aboutCollagePulse 7s ease-in-out infinite;
-    transition:transform .32s ease, box-shadow .32s ease;
+    transition:transform 0.48s cubic-bezier(.22,1,.36,1), box-shadow 0.48s cubic-bezier(.22,1,.36,1);
   }
   .about-collage-item:nth-child(6n+1){ --tilt:-2.2deg; animation-delay:0s, 0s; }
   .about-collage-item:nth-child(6n+2){ --tilt:1.6deg;  animation-delay:.08s, .4s; }
@@ -1023,7 +1023,7 @@
   .about-collage-item:nth-child(6n+5){ --tilt:-1.6deg; animation-delay:.32s, 1.6s; }
   .about-collage-item:nth-child(6n+6){ --tilt:1.2deg;  animation-delay:.4s, 2s; }
   .about-collage-item:hover{
-    transform:translateY(-3px) rotate(0deg) scale(1.03);
+    transform:translateY(-5px) rotate(0deg) scale(1.05);
     box-shadow:0 18px 34px rgba(0,0,0,0.16);
     z-index:2;
   }
@@ -1042,7 +1042,7 @@
     border-radius:50%;
     background:var(--accent);
     opacity:0;
-    transition:opacity .25s ease;
+    transition:opacity 0.375s cubic-bezier(.22,1,.36,1);
   }
   .about-collage-item:hover .about-collage-dot{ opacity:1; }
   @keyframes aboutCollageIn{
@@ -1064,13 +1064,13 @@
     cursor:pointer;
     border:1.5px dashed rgba(0,0,0,0.16);
     background:rgba(0,0,0,0.015);
-    animation:aboutCollageIn .65s cubic-bezier(.19,1,.22,1) forwards;
-    transition:border-color .25s ease, background .25s ease, transform .3s ease;
+    animation:aboutCollageIn .9s cubic-bezier(.19,1,.22,1) forwards;
+    transition:border-color 0.375s cubic-bezier(.22,1,.36,1), background 0.375s cubic-bezier(.22,1,.36,1), transform 0.45s cubic-bezier(.22,1,.36,1);
   }
   .about-collage-item.is-placeholder:hover{
     border-color:rgba(255,90,31,0.45);
     background:rgba(255,90,31,0.04);
-    transform:translateY(-2px);
+    transform:translateY(-4px);
   }
   .about-collage-item.is-placeholder svg{
     width:22px;
@@ -1503,7 +1503,7 @@
     color:var(--dim);
     cursor:pointer;
     white-space:nowrap;
-    transition:color .2s ease, background .2s ease, box-shadow .2s ease;
+    transition:color 0.3s cubic-bezier(.22,1,.36,1), background 0.3s cubic-bezier(.22,1,.36,1), box-shadow 0.3s cubic-bezier(.22,1,.36,1);
   }
   .ajustes-tab:hover{ color:var(--fg); }
   .ajustes-tab.active{
@@ -1517,10 +1517,10 @@
   .ajustes-panel{ display:none; }
   .ajustes-panel.active{
     display:block;
-    animation:ajustesPanelIn .28s ease;
+    animation:ajustesPanelIn .45s cubic-bezier(.22,1,.36,1);
   }
   @keyframes ajustesPanelIn{
-    from{ opacity:0; transform:translateY(4px); }
+    from{ opacity:0; transform:translateY(8px); }
     to{ opacity:1; transform:translateY(0); }
   }
 
@@ -1601,7 +1601,7 @@
     text-align:center;
     cursor:pointer;
     background:rgba(0,0,0,0.012);
-    transition:background .2s ease, border-color .2s ease, transform .18s ease;
+    transition:background 0.3s cubic-bezier(.22,1,.36,1), border-color 0.3s cubic-bezier(.22,1,.36,1), transform 0.27s cubic-bezier(.22,1,.36,1);
   }
   .ajustes-uploader:hover{
     background:rgba(255,90,31,0.05);
@@ -1677,7 +1677,7 @@
       background:rgba(0,0,0,0);
       opacity:0;
       pointer-events:none;
-      transition:opacity .2s ease, background .2s ease;
+      transition:opacity 0.3s cubic-bezier(.22,1,.36,1), background 0.3s cubic-bezier(.22,1,.36,1);
     }
     .ajustes-thumb:hover .ajustes-thumb-move{
       opacity:1;
@@ -1725,7 +1725,7 @@
     font-size:0.8rem;
     color:var(--fg);
     background:#fff;
-    transition:border-color .2s ease, box-shadow .2s ease;
+    transition:border-color 0.3s cubic-bezier(.22,1,.36,1), box-shadow 0.3s cubic-bezier(.22,1,.36,1);
   }
   .ajustes-thumb-name:focus{
     outline:none;
@@ -1748,7 +1748,7 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    transition:background .18s ease, color .18s ease, transform .15s ease;
+    transition:background 0.27s cubic-bezier(.22,1,.36,1), color 0.27s cubic-bezier(.22,1,.36,1), transform 0.225s cubic-bezier(.22,1,.36,1);
   }
   .ajustes-thumb button svg{ width:12px; height:12px; }
   .ajustes-thumb button:hover{ background:var(--accent); color:#fff; transform:scale(1.08); }
@@ -1772,7 +1772,7 @@
     font-size:0.84rem;
     color:var(--dim);
     cursor:pointer;
-    transition:border-color .2s ease, color .2s ease, box-shadow .2s ease;
+    transition:border-color 0.3s cubic-bezier(.22,1,.36,1), color 0.3s cubic-bezier(.22,1,.36,1), box-shadow 0.3s cubic-bezier(.22,1,.36,1);
   }
   .ajustes-clear-icon{ flex:none; width:15px; height:15px; }
   .ajustes-clear:hover{
@@ -1889,7 +1889,7 @@
     /* Antes .7s: el contenido tardaba en aparecer aunque el salto ya
        hubiera terminado. Se acorta para que se note casi al instante en
        cuanto se llega a la última parada. */
-    transition:opacity .3s ease, transform .3s ease;
+    transition:opacity 0.45s cubic-bezier(.22,1,.36,1), transform 0.45s cubic-bezier(.22,1,.36,1);
   }
   /* Cada línea es su propio bloque, así el salto entre "Mi material" y
      "de trabajo" es siempre exactamente ahí, en cualquier ancho de
@@ -1935,7 +1935,7 @@
     color:var(--dim);
     text-align:center;
     opacity:0;
-    transition:opacity .3s ease, transform .3s ease;
+    transition:opacity 0.45s cubic-bezier(.22,1,.36,1), transform 0.45s cubic-bezier(.22,1,.36,1);
   }
   .equipo-subtitle.visible{
     opacity:1;
@@ -2399,7 +2399,7 @@
     cursor:pointer;
     padding:0;
     color:#000;
-    transition:opacity .2s ease, transform .2s ease;
+    transition:opacity 0.3s cubic-bezier(.22,1,.36,1), transform 0.3s cubic-bezier(.22,1,.36,1);
     /* Refuerzo para móvil: no fiarse de que pointer-events:auto llegue
        heredado desde el ancestro (.as-ba-gallery) -aquí se fija de forma
        directa e inequívoca sobre el propio botón-. touch-action:manipulation
@@ -2433,7 +2433,7 @@
     filter:drop-shadow(0 1px 3px rgba(0,0,0,0.85)) drop-shadow(0 0 6px rgba(0,0,0,0.35));
   }
   .as-ba-nav:hover{ opacity:0.75; }
-  .as-ba-nav:active{ opacity:0.55; transform:scale(0.9); }
+  .as-ba-nav:active{ opacity:0.55; transform:scale(0.85); }
 
   /* ---------- Botón de pantalla completa ----------
      Círculo pequeño en la esquina del recuadro (con su propio fondo
@@ -2462,11 +2462,11 @@
     pointer-events:auto;
     touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
-    transition:opacity .2s ease, transform .2s ease, background .2s ease;
+    transition:opacity 0.3s cubic-bezier(.22,1,.36,1), transform 0.3s cubic-bezier(.22,1,.36,1), background 0.3s cubic-bezier(.22,1,.36,1);
   }
   .as-ba-expand svg{ display:block; }
   .as-ba-expand:hover{ background:rgba(0,0,0,0.65); }
-  .as-ba-expand:active{ transform:scale(0.9); }
+  .as-ba-expand:active{ transform:scale(0.85); }
 
   /* ---------- Overlay a pantalla completa ----------
      Mismo comparador, sacado del flujo normal (JS lo reparenta a
@@ -2599,10 +2599,10 @@
     padding:0;
     touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
-    transition:background .2s ease, transform .2s ease;
+    transition:background 0.3s cubic-bezier(.22,1,.36,1), transform 0.3s cubic-bezier(.22,1,.36,1);
   }
   .as-cat-lightbox-close:hover{ background:rgba(255,255,255,0.22); }
-  .as-cat-lightbox-close:active{ transform:scale(0.9); }
+  .as-cat-lightbox-close:active{ transform:scale(0.85); }
   .as-cat-lightbox-title{
     margin:0 0 16px;
     font-family:'Fraunces','Georgia',serif;
@@ -2726,22 +2726,22 @@
     touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
     box-shadow:0 2px 10px rgba(17,17,17,0.08);
-    transition:background .25s ease, color .25s ease, border-color .25s ease,
-      box-shadow .25s ease, transform .18s ease;
+    transition:background 0.375s cubic-bezier(.22,1,.36,1), color 0.375s cubic-bezier(.22,1,.36,1), border-color 0.375s cubic-bezier(.22,1,.36,1),
+      box-shadow 0.375s cubic-bezier(.22,1,.36,1), transform 0.27s cubic-bezier(.22,1,.36,1);
   }
   .as-cat-btn:hover{
     background:var(--accent);
     border-color:var(--accent);
     color:#ffffff;
     box-shadow:0 6px 18px rgba(255,90,31,0.35);
-    transform:translateY(-2px);
+    transform:translateY(-4px);
   }
   .as-cat-btn:active{
     background:var(--accent);
     border-color:var(--accent);
     color:#ffffff;
     box-shadow:0 3px 10px rgba(255,90,31,0.3);
-    transform:translateY(0) scale(0.96);
+    transform:translateY(0) scale(0.92);
   }
   /* Categoría activa (la que tiene su galería abierta ahora mismo):
      se queda "encendida" en naranja aunque el ratón no esté encima, para
@@ -2794,7 +2794,7 @@
        deforma este recuadro ni su borde redondeado. */
     background-color:#ffffff;
     border:1px solid rgba(17,17,17,0.1);
-    transition:flex-grow .55s cubic-bezier(.22,1,.36,1);
+    transition:flex-grow 0.825s cubic-bezier(.22,1,.36,1);
   }
   /* Capa de la foto en sí, dentro del recuadro fijo de arriba: ocupa
      TODO el recuadro (inset:0) y es la única parte que responde al
@@ -2837,7 +2837,7 @@
     height:65%;
     background:linear-gradient(to top, rgba(0,0,0,0.82), rgba(0,0,0,0) 100%);
     opacity:0;
-    transition:opacity .4s ease;
+    transition:opacity 0.6s cubic-bezier(.22,1,.36,1);
   }
   .as-expand-card.is-active .as-expand-card-shade{
     opacity:1;
@@ -2849,8 +2849,8 @@
     bottom:14px;
     color:#f5f5f5;
     opacity:0;
-    transform:translateY(10px);
-    transition:opacity .3s ease, transform .3s ease;
+    transform:translateY(18px);
+    transition:opacity 0.45s cubic-bezier(.22,1,.36,1), transform 0.45s cubic-bezier(.22,1,.36,1);
     white-space:nowrap;
     overflow:hidden;
   }
@@ -2879,8 +2879,8 @@
     border-radius:50%;
     background:var(--accent);
     opacity:0;
-    transform:scale(0.4);
-    transition:opacity .3s ease, transform .3s ease;
+    transform:scale(0.25);
+    transition:opacity 0.45s cubic-bezier(.22,1,.36,1), transform 0.45s cubic-bezier(.22,1,.36,1);
   }
   .as-expand-card.is-active .as-expand-card-dot{
     opacity:1;
@@ -2930,7 +2930,7 @@
     white-space:nowrap;
     opacity:0;
     pointer-events:none;
-    transition:opacity .3s ease;
+    transition:opacity 0.45s cubic-bezier(.22,1,.36,1);
   }
   /* Conector: una línea corta y un punto naranja que bajan desde la chip
      hasta el punto exacto de anclaje (justo encima de la cámara), para que
@@ -2978,7 +2978,7 @@
     position:fixed;
     left:50%;
     bottom:6%;
-    transform:translateX(-50%) translateY(14px);
+    transform:translateX(-50%) translateY(24px);
     /* Ancho de arranque antes de que el JS lo recalcule (sizeCarousel);
        el JS lo sobreescribe siempre con el ancho exacto de 3 fotos, para
        que nunca se vea un cuarto hueco/foto asomando por el lateral. */
@@ -2987,7 +2987,7 @@
     z-index:30;
     opacity:0;
     pointer-events:none;
-    transition:opacity .3s ease, transform .3s ease;
+    transition:opacity 0.45s cubic-bezier(.22,1,.36,1), transform 0.45s cubic-bezier(.22,1,.36,1);
   }
   .camera-carousel.visible{
     opacity:1;
@@ -3142,7 +3142,7 @@
     border-radius:18px;
     padding:28px 26px 24px;
     box-shadow:0 20px 60px rgba(0,0,0,0.25);
-    animation:ajustesPanelIn .28s ease;
+    animation:ajustesPanelIn .45s cubic-bezier(.22,1,.36,1);
   }
   .admin-login-title{
     font-family:'Fraunces','Georgia',serif;
@@ -3182,7 +3182,7 @@
     font-weight:500;
     font-size:0.86rem;
     cursor:pointer;
-    transition:opacity .2s ease, transform .15s ease;
+    transition:opacity 0.3s cubic-bezier(.22,1,.36,1), transform 0.225s cubic-bezier(.22,1,.36,1);
   }
   .admin-login-primary{ background:var(--accent); color:#fff; }
   .admin-login-primary:hover{ opacity:0.9; }
@@ -3228,7 +3228,7 @@
     font-size:0.82rem;
     color:var(--fg);
     cursor:pointer;
-    transition:border-color .2s ease, color .2s ease, box-shadow .2s ease;
+    transition:border-color 0.3s cubic-bezier(.22,1,.36,1), color 0.3s cubic-bezier(.22,1,.36,1), box-shadow 0.3s cubic-bezier(.22,1,.36,1);
   }
   .cuenta-btn-icon{ flex:none; width:15px; height:15px; }
   .cuenta-btn:hover{ border-color:rgba(255,90,31,0.5); color:var(--accent); box-shadow:0 2px 10px rgba(255,90,31,0.12); }
@@ -3560,7 +3560,7 @@
     font-size:16px;
     line-height:1;
     cursor:pointer;
-    transition:border-color .15s ease, color .15s ease;
+    transition:border-color 0.225s cubic-bezier(.22,1,.36,1), color 0.225s cubic-bezier(.22,1,.36,1);
   }
   .cat-editor-remove:hover{ border-color:#c0392b; color:#c0392b; }
   .cat-editor-empty{
@@ -3607,7 +3607,7 @@
     justify-content:center;
     cursor:pointer;
     overflow:hidden;
-    transition:border-color .2s ease;
+    transition:border-color 0.3s cubic-bezier(.22,1,.36,1);
   }
   .disc-editor-box:hover{ border-color:var(--accent); }
   .disc-editor-box svg{ width:18px; height:18px; color:var(--dim); flex:none; }
@@ -3873,7 +3873,7 @@
     background:transparent;
     color:var(--fg);
     cursor:pointer;
-    transition:background .15s ease, color .15s ease, border-color .15s ease;
+    transition:background 0.225s cubic-bezier(.22,1,.36,1), color 0.225s cubic-bezier(.22,1,.36,1), border-color 0.225s cubic-bezier(.22,1,.36,1);
   }
   #view-ajustes .disc-editor-fit-btn{ border-color:var(--adm-border); color:var(--adm-fg); }
   .disc-editor-fit-btn.active{
@@ -3925,7 +3925,7 @@
     font-size:14px;
     line-height:1;
     cursor:pointer;
-    transition:border-color .15s ease, color .15s ease, opacity .15s ease;
+    transition:border-color 0.225s cubic-bezier(.22,1,.36,1), color 0.225s cubic-bezier(.22,1,.36,1), opacity 0.225s cubic-bezier(.22,1,.36,1);
   }
   .pair-editor-move:hover:not(:disabled){ border-color:var(--accent); color:var(--accent); }
   .pair-editor-move:disabled{ opacity:0.3; cursor:default; }
@@ -4018,7 +4018,7 @@
     justify-content:center;
     cursor:pointer;
     color:var(--dim);
-    transition:border-color .2s ease;
+    transition:border-color 0.3s cubic-bezier(.22,1,.36,1);
   }
   .cat-editor-add-photo:hover{ border-color:var(--accent); }
   .cat-editor-add-photo svg{ width:18px; height:18px; }
