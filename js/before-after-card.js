@@ -88,13 +88,12 @@
   // #asBaPrev/#asBaNext.
 
   // ================= 0) Galería de comparaciones "Mis ediciones" =================
-  // Cada .ba-card de la vista "Ediciones" se engancha con la misma lógica
-  // de arrastre que el comparador de la portada (crearComparador), pero
-  // de forma independiente: no depende de CloudDB ni del panel de
-  // Ajustes, solo necesita su propio frame/clip/handle dentro de la
-  // tarjeta.
+  // Cada .ba-card de #asBaGallery (4ª posición, la de scroll) se engancha
+  // con la misma lógica de arrastre (crearComparador), de forma
+  // independiente: no depende de CloudDB ni del panel de Ajustes, solo
+  // necesita su propio frame/clip/handle dentro de la tarjeta.
   (function(){
-    document.querySelectorAll('#baGallery .ba-card, #asBaGallery .ba-card').forEach(card => {
+    document.querySelectorAll('#asBaGallery .ba-card').forEach(card => {
       const frame = card.querySelector('.ba-card-frame');
       const clip = card.querySelector('.ba-card-after-clip');
       const handle = card.querySelector('.ba-card-handle');

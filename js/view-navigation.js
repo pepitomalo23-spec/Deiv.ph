@@ -14,7 +14,6 @@
     }
   });
   const viewSobreMi = document.getElementById('view-sobre-mi');
-  const viewEdiciones = document.getElementById('view-ediciones');
   const viewAjustes = document.getElementById('view-ajustes');
   const sceneWrap = document.getElementById('sceneWrap');
   const sceneTitle = document.getElementById('sceneTitle');
@@ -80,7 +79,6 @@
     if (sceneProgress) sceneProgress.style.display = showingResumen ? '' : 'none';
 
     viewSobreMi.classList.toggle('active', view === 'sobre-mi');
-    viewEdiciones.classList.toggle('active', view === 'ediciones');
     viewAjustes.classList.toggle('active', view === 'ajustes');
 
     if (!showingResumen) window.scrollTo(0, 0);
