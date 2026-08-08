@@ -1816,37 +1816,6 @@
        marca esa curva. */
   }
   .proyectos-header.visible{ opacity:1; }
-  /* Pantallas anchas (tablet en horizontal, ordenador, ≥901px): el
-     bloque pasa de la esquina inferior izquierda a la derecha, centrado
-     en altura. Antes, en pantallas mucho más anchas que altas (un iPad
-     en horizontal, por ejemplo), se quedaba pegado abajo a la izquierda
-     dejando un hueco en blanco enorme a la derecha -sobre todo detrás de
-     la foto principal, que en esas pantallas no llega a ocupar todo el
-     ancho-. El texto de dentro (título, botones, tarjetas) sigue
-     alineado a su propia izquierda con normalidad -align-items:
-     flex-start no se toca-, solo se mueve el bloque entero como
-     conjunto. */
-  @media (min-width:901px){
-    .proyectos-header{
-      left:auto;
-      right:3%;
-      bottom:auto;
-      top:50%;
-      /* NADA de "transform" aquí para centrar -ver el aviso en el
-         comentario de #asCatTop en index.html-: cualquier transform en
-         #proyectosHeader convierte a este elemento en el "ancla" de
-         cualquier position:fixed que viva dentro de él (como
-         .as-cat-top, el bloque "Fotos"+categorías, que necesita seguir
-         fijo arriba a la izquierda de la VENTANA, no de este bloque).
-         Con transform, .as-cat-top se pega a este bloque en vez de a la
-         ventana -exactamente el desastre de las capturas, "Fotos"
-         montado encima de "Proyectos" y las tarjetas encima de las
-         cámaras-. En su lugar, centrado aproximado con margin-top
-         negativo (mitad del alto aproximado del bloque: título + fila
-         de tarjetas de 260px en esta franja de ancho). */
-      margin-top:-160px;
-    }
-  }
   /* Solo el texto, sin plaquita/recuadro detrás: cursiva serif (mismo
      estilo de familia que el resto de títulos de la web), blanco con
      una sombra suave para que se lea igual de bien encima de cualquier
@@ -2809,20 +2778,6 @@
     gap:8px;
     width:100%;
     height:160px;
-  }
-  /* Pantallas anchas (≥901px, mismo punto en el que el bloque de
-     Proyectos pasa a la derecha -ver .proyectos-header más arriba-):
-     el recuadro de las fotos se hace más grande para aprovechar el
-     hueco que quedaba en blanco. Solo cambia el tamaño del recuadro de
-     imágenes -.as-expand/.as-expand-grid-; el título, los botones de
-     categoría y el tamaño de letra de dentro de las tarjetas se dejan
-     tal cual. A partir de 901px, .proyectos-header (su contenedor
-     directo) siempre mide 700px de ancho -min(88vw,700px) ya está a
-     tope desde los 796px-, así que 640px cabe de sobra sin necesidad de
-     un tope en vw aparte. */
-  @media (min-width:901px){
-    .as-expand{ width:640px; }
-    .as-expand-grid{ height:260px; }
   }
   .as-expand-card{
     position:relative;
