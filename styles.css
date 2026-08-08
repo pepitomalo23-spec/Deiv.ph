@@ -1723,15 +1723,15 @@
      izquierda y abajo). ---------- */
   @media (min-width:901px){
     .proyectos-header{
-      left:53%;
+      left:50%;
       right:auto;
       bottom:auto;
       top:12%;
-      width:min(46vw, 680px);
+      width:min(48vw, 920px);
     }
     .proyectos-title{ font-size:clamp(1.9rem, 3.1vw, 2.8rem); margin-top:clamp(36px, 6vh, 80px); }
-    .as-expand{ width:min(46vw, 680px); }
-    .as-expand-grid{ height:460px; }
+    .as-expand{ width:min(48vw, 920px); }
+    .as-expand-grid{ height:620px; }
   }
   /* .proyectos-body ya no necesita position propia en escritorio: al no
      haber ningún "transform" en #proyectosHeader, un fixed descendiente
