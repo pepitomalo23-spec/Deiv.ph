@@ -1723,16 +1723,16 @@
   @media (min-width:901px){
     .proyectos-header{
       left:auto;
-      right:4%;
+      right:2%;
       bottom:auto;
       top:50%;
       transform:translateY(-50%);
-      width:min(38vw, 480px);
+      width:min(46vw, 620px);
       align-items:flex-start;
     }
-    .proyectos-title{ font-size:clamp(1.5rem, 2.4vw, 2.1rem); }
-    .as-expand{ width:min(38vw, 480px); }
-    .as-expand-grid{ height:220px; }
+    .proyectos-title{ font-size:clamp(1.7rem, 2.8vw, 2.5rem); }
+    .as-expand{ width:min(46vw, 620px); }
+    .as-expand-grid{ height:280px; }
   }
 
   /* ---------- Título grande "Mi material / de trabajo" + frase (aparecen
@@ -2587,17 +2587,6 @@
      poniendo display:none en todo #asCatTop en ese caso. */
   @media (max-width:480px){
     .as-cat-top{ top:36px; left:18px; }
-  }
-  /* ---------- Escritorio (≥901px): #asCatTop vive con su propio
-     position:fixed independiente del resto de #proyectosHeader (ver
-     comentario más arriba), así que necesita su propio desplazamiento a
-     la derecha para acompañar al resto del contenido de la 2ª posición
-     ("Proyectos") en pantallas grandes. Igual que en #proyectosHeader,
-     usamos "right" en vez de "left" para que se ancle de forma
-     proporcional al hueco vacío de la derecha, cerca del botón de menú
-     (☰) de arriba. ---------- */
-  @media (min-width:901px){
-    .as-cat-top{ left:auto; right:8%; }
   }
 
   /* ---------- Botones de categorías de "Proyectos" (Deportes, Fiestas...)
