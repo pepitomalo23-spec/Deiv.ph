@@ -3678,12 +3678,21 @@
   .exp-sim-panel{
     background:#fff;
     border-radius:20px;
-    padding:18px;
     max-width:calc(100vw - 24px);
+    /* Antes, si el contenido (recuadro + control de zoom + texto) no
+       cabía entero en la pantalla, el panel se salía por arriba y por
+       abajo a la vez (por el centrado vertical del overlay) SIN scroll
+       propio: la cabecera con la X quedaba empujada fuera de la vista,
+       inalcanzable, aunque su botón seguía "funcionando" -solo que no
+       se veía ni se podía tocar-. Con tope de alto + scroll propio, el
+       panel entero siempre cabe en la pantalla, y si algo no entra se
+       puede desplazar dentro del propio panel sin perder la cabecera
+       (ver .exp-sim-head, fija arriba del todo). */
+    max-height:calc(100vh - 40px);
+    overflow-y:auto;
     display:flex;
     flex-direction:column;
     align-items:center;
-    gap:12px;
     box-shadow:0 24px 60px rgba(0,0,0,0.4);
   }
   .exp-sim-head{
@@ -3692,6 +3701,23 @@
     align-items:center;
     justify-content:space-between;
     gap:12px;
+    /* Fija (sticky) arriba del todo del propio scroll del panel: así la
+       X para cerrar siempre está a la vista y al alcance, aunque el
+       resto del contenido se desplace por debajo. */
+    position:sticky;
+    top:0;
+    padding:18px 18px 8px;
+    background:#fff;
+    border-radius:20px 20px 0 0;
+    z-index:1;
+  }
+  .exp-sim-body{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+    padding:0 18px 18px;
   }
   .exp-sim-title{
     margin:0;

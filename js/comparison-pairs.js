@@ -530,11 +530,23 @@
     const posX = c.posX != null ? c.posX : 50;
     const posY = c.posY != null ? c.posY : (c.fit === 'contain' ? 35 : 50);
     const zoom = c.zoom != null ? c.zoom : 1;
+    // El zoom NO se hace con transform:scale (eso agranda la capa entera
+    // por igual desde el centro en las 4 direcciones, así que arrastrar
+    // arriba/abajo no tenía ningún efecto real: el hueco de sobra quedaba
+    // siempre repartido igual a ambos lados). En su lugar, el zoom
+    // AUMENTA el propio alto de la foto (background-size) por encima del
+    // 100% del recuadro: así se genera hueco real de sobra tanto en
+    // horizontal como en vertical, y background-position (posX/posY)
+    // puede repartir ese hueco donde el usuario arrastre, en cualquier
+    // dirección -exactamente el mismo truco que "auto 100%" ya usaba
+    // para el ancho, solo que ahora también graduable en altura-.
+    const size = zoom > 1
+      ? ('auto ' + Math.round(zoom * 100) + '%')
+      : (c.fit === 'contain' ? 'contain' : 'auto 100%');
     return 'background-image:url(\'' + escapeAttr(c.img) + '\');' +
       'background-repeat:no-repeat;' +
-      'background-size:' + (c.fit === 'contain' ? 'contain' : 'auto 100%') + ';' +
-      'background-position:' + posX + '% ' + posY + '%;' +
-      'transform:scale(' + zoom + ')';
+      'background-size:' + size + ';' +
+      'background-position:' + posX + '% ' + posY + '%';
   }
 
   /* Proporción (ancho ÷ alto) real de una tarjeta de esta galería cuando
@@ -583,15 +595,17 @@
           '<p id="expSimTitle" class="exp-sim-title">Ajustar foto</p>' +
           '<button type="button" class="exp-sim-cancel" aria-label="Cancelar y cerrar">×</button>' +
         '</div>' +
-        '<div class="exp-sim-stage"><div class="exp-sim-box" id="expSimBox"><div class="exp-sim-photo" id="expSimPhoto"></div></div></div>' +
-        '<div class="exp-sim-zoom-row">' +
-          '<span class="exp-sim-zoom-icon" aria-hidden="true">−</span>' +
-          '<input type="range" id="expSimZoom" class="exp-sim-zoom" min="' + EXP_ZOOM_MIN + '" max="' + EXP_ZOOM_MAX + '" step="0.02" value="1">' +
-          '<span class="exp-sim-zoom-icon" aria-hidden="true">+</span>' +
-          '<span class="exp-sim-zoom-value" id="expSimZoomValue">100%</span>' +
+        '<div class="exp-sim-body">' +
+          '<div class="exp-sim-stage"><div class="exp-sim-box" id="expSimBox"><div class="exp-sim-photo" id="expSimPhoto"></div></div></div>' +
+          '<div class="exp-sim-zoom-row">' +
+            '<span class="exp-sim-zoom-icon" aria-hidden="true">−</span>' +
+            '<input type="range" id="expSimZoom" class="exp-sim-zoom" min="' + EXP_ZOOM_MIN + '" max="' + EXP_ZOOM_MAX + '" step="0.02" value="1">' +
+            '<span class="exp-sim-zoom-icon" aria-hidden="true">+</span>' +
+            '<span class="exp-sim-zoom-value" id="expSimZoomValue">100%</span>' +
+          '</div>' +
+          '<p class="exp-sim-hint">Arrastra la foto para colocarla y usa el control de abajo para acercarla o alejarla: así de grande y con esta forma se ve exactamente cuando esta tarjeta está abierta en la web.</p>' +
+          '<div class="exp-sim-actions"><button type="button" class="exp-sim-done">Listo</button></div>' +
         '</div>' +
-        '<p class="exp-sim-hint">Arrastra la foto para colocarla y usa el control de abajo para acercarla o alejarla: así de grande y con esta forma se ve exactamente cuando esta tarjeta está abierta en la web.</p>' +
-        '<div class="exp-sim-actions"><button type="button" class="exp-sim-done">Listo</button></div>' +
       '</div>';
     document.body.appendChild(overlay);
     const els = {
@@ -627,14 +641,23 @@
     });
     // El deslizador de zoom actualiza la capa de foto al instante y
     // guarda el valor en el mismo sitio que la posición (expDraft), para
-    // que "Listo" no tenga que hacer nada aparte.
+    // que "Listo" no tenga que hacer nada aparte. Solo se toca
+    // background-size (el mismo cálculo que expandCardPhotoStyle): así
+    // el zoom deja hueco de sobra real para poder arrastrar en cualquier
+    // dirección, en vez de agrandar la capa entera por igual desde el
+    // centro (que es lo que hacía antes con transform:scale, y por lo
+    // que arrastrar arriba/abajo no tenía ningún efecto).
     els.zoomInput.addEventListener('input', () => {
       if (expSimIndex == null || !expDraft[expSimIndex]) return;
+      const c = expDraft[expSimIndex];
       const zoom = Number(els.zoomInput.value) || 1;
-      expDraft[expSimIndex].zoom = zoom;
+      c.zoom = zoom;
       els.zoomValue.textContent = Math.round(zoom * 100) + '%';
       const photo = els.stage.querySelector('#expSimPhoto');
-      if (photo) photo.style.transform = 'scale(' + zoom + ')';
+      if (photo){
+        const size = zoom > 1 ? ('auto ' + Math.round(zoom * 100) + '%') : (c.fit === 'contain' ? 'contain' : 'auto 100%');
+        photo.style.backgroundSize = size;
+      }
     });
     expSimEls = els;
     window.addEventListener('resize', () => {
