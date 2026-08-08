@@ -754,7 +754,7 @@
   // recorrido tiene 3 paradas: la pose inicial, el final del vídeo original
   // (que antes era "la última") y el final de la continuación añadida.
   // Cada gesto solo avanza/retrocede UNA parada, nunca salta el tramo entero.
-  const OLD_FRAME_COUNT = 31; // longitud del clip original antes de la continuación
+  const OLD_FRAME_COUNT = 151; // longitud del clip original antes de la continuación (escalado x5: 31 * 5, tras interpolar toda la secuencia a 671 fotogramas para un scrubbing más fluido, ver scroll-frames-data.js)
   const OLD_LAST_FRAME = OLD_FRAME_COUNT - 1; // 30: dónde antes "terminaba" el salto
   const WAYPOINTS = [0, OLD_LAST_FRAME, FRAME_COUNT - 1];
   let stepIndex = 0; // parada actual en reposo: 0, 1 o 2
@@ -869,8 +869,8 @@
   // antes/después. Esto solo aplica al tramo 0→1 (el vídeo original); el
   // tramo 1→2 (la continuación) es contenido nuevo sin ese cambio de lente,
   // así que se mueve con una interpolación simple.
-  const SWAP_START_FRAME = 6;
-  const SWAP_END_FRAME = 19;
+  const SWAP_START_FRAME = 30; // escalado x5: 6 * 5 (ver OLD_FRAME_COUNT)
+  const SWAP_END_FRAME = 95; // escalado x5: 19 * 5 (ver OLD_FRAME_COUNT)
   const T_BEFORE_SWAP = 0.36; // fracción de progreso donde empieza el tramo rápido
   const T_AFTER_SWAP = 0.64;  // fracción de progreso donde termina el tramo rápido
   const swapStartFrac = SWAP_START_FRAME / OLD_LAST_FRAME;
@@ -958,7 +958,7 @@
   // sobre fondo blanco). En móvil, ese plano se ve mejor si el encuadre se
   // va empequeñeciendo a la vez que avanza, como un ligero zoom-out, en vez
   // de quedarse pegado a los bordes de la pantalla igual que el resto.
-  const CAMERA_ONLY_START_FRAME = 94; // recalculado proporcionalmente tras ampliar el tramo de la continuacion a 105 fotogramas
+  const CAMERA_ONLY_START_FRAME = 470; // escalado x5: 94 * 5, tras interpolar toda la secuencia a 671 fotogramas (ver OLD_FRAME_COUNT arriba)
   const MOBILE_SHRINK_END_SCALE = 0.72; // escala final en el último frame: hace falta para que en móvil no se corte la imagen
   // El fondo de la foto en los frames de "solo cámara" no es blanco puro,
   // así que al achicar el encuadre se veía un rectángulo alrededor con el
