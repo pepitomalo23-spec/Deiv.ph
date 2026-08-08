@@ -1832,7 +1832,19 @@
       right:3%;
       bottom:auto;
       top:50%;
-      transform:translateY(-50%);
+      /* NADA de "transform" aquí para centrar -ver el aviso en el
+         comentario de #asCatTop en index.html-: cualquier transform en
+         #proyectosHeader convierte a este elemento en el "ancla" de
+         cualquier position:fixed que viva dentro de él (como
+         .as-cat-top, el bloque "Fotos"+categorías, que necesita seguir
+         fijo arriba a la izquierda de la VENTANA, no de este bloque).
+         Con transform, .as-cat-top se pega a este bloque en vez de a la
+         ventana -exactamente el desastre de las capturas, "Fotos"
+         montado encima de "Proyectos" y las tarjetas encima de las
+         cámaras-. En su lugar, centrado aproximado con margin-top
+         negativo (mitad del alto aproximado del bloque: título + fila
+         de tarjetas de 260px en esta franja de ancho). */
+      margin-top:-160px;
     }
   }
   /* Solo el texto, sin plaquita/recuadro detrás: cursiva serif (mismo
