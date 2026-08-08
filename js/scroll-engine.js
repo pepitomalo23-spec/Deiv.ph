@@ -67,6 +67,18 @@
     // ocurre, en vez de esperar a que el usuario vuelva a tocar la escena.
     window.visualViewport.addEventListener('scroll', () => {
       syncViewportHeightVar();
+      // Si este evento lo ha disparado nuestro propio window.scrollTo()
+      // (ver syncRealScrollForStepPosition/realScrollSyncActive más abajo),
+      // el bucle de animación que lo llamó YA ha dibujado este mismo
+      // fotograma hace un instante -volver a llamar aquí a render()/
+      // updatePageBgForPostEnd() sería puro trabajo duplicado en cada
+      // tick de la animación (el doble de drawImage/fillRect/estilos por
+      // frame), y es precisamente lo que hacía sentir la animación a
+      // golpes en vez de fluida. Solo cuando el cambio de visualViewport
+      // es "de verdad" ajeno a nuestro propio código (la barra de Safari
+      // reaccionando a un gesto nativo del usuario, teclado, pellizco de
+      // zoom...) tiene sentido resincronizar aquí.
+      if (realScrollSyncActive) return;
       if (typeof updatePageBgForPostEnd === 'function') updatePageBgForPostEnd();
       if (typeof render === 'function') render();
     });
