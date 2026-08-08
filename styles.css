@@ -1709,47 +1709,38 @@
     .proyectos-header{ bottom:4%; left:5%; width:90vw; }
     .proyectos-title{ font-size:clamp(1rem, 4.6vw, 1.3rem); }
   }
-  /* ---------- Escritorio (≥901px): "Proyectos" + su galería, centrados
-     en el PUNTO MEDIO entre el centro de la pantalla y el borde derecho
-     (left:75% + translateX(-50%), en vez de anclarlo con "right" pegado
-     al borde). Así el bloque queda siempre centrado ahí sin importar el
-     ancho de la ventana, en vez de depender de cuánto mida su propio
-     contenido. Solo el recuadro de fotos (.as-expand-grid) se agranda
-     mucho -el título "Proyectos" mantiene su tamaño-. En móvil no
-     cambia nada (pegado a la izquierda y abajo). ---------- */
-  /* Nota: en escritorio, #proyectosHeader en sí YA NO lleva right/top/
-     transform propios -eso viviría ahora en .proyectos-body, ver más
-     abajo-, para que no se convierta en el "contenedor de referencia"
-     de #asCatTop (fixed) por culpa del transform. Se deja tal cual
-     (sigue siendo solo un wrapper de opacidad/pointer-events). */
-
-  /* ---------- .proyectos-body: título "Proyectos" + galería, como
-     bloque independiente de "Fotos" ----------
-     En móvil es completamente transparente al layout (display:contents):
-     sus hijos (.proyectos-title y .as-expand) siguen viviendo tal cual
-     dentro de #proyectosHeader, exactamente como antes de introducir
-     este contenedor. En escritorio (≥901px) pasa a ser un bloque fixed
-     propio, centrado tanto vertical como horizontalmente en el punto
-     medio entre el centro y el borde derecho de la ventana, para poder
-     moverse con independencia de "Fotos" (que tiene su propio fixed,
-     ver .as-cat-top más abajo). */
-  .proyectos-body{ display:contents; }
+  /* ---------- Escritorio (≥901px): TODO el bloque ("Fotos" + botones +
+     "Proyectos" + galería) vuelve a vivir junto, en una sola columna
+     bien estructurada, anclada justo a la derecha de la persona de la
+     foto (que ocupa aprox. la mitad izquierda de la pantalla) sin
+     taparla. Usamos "left" (en vez de "right" o un truco de "transform"
+     para centrar) porque así el punto de anclaje es siempre el mismo,
+     fijo y predecible, sin arrastrar el problema de que un "transform"
+     en este contenedor "atrape" a sus hijos con position:fixed -por
+     eso "Fotos" (ver .as-cat-top) puede volver a vivir dentro del
+     flujo normal de este bloque sin más complicaciones-. Solo en
+     pantallas grandes; en móvil se queda como estaba (pegado a la
+     izquierda y abajo). ---------- */
   @media (min-width:901px){
-    .proyectos-body{
-      display:flex;
-      flex-direction:column;
-      align-items:flex-start;
-      position:fixed;
-      left:75%;
+    .proyectos-header{
+      left:56%;
       right:auto;
       bottom:auto;
-      top:50%;
-      transform:translate(-50%, -50%);
-      width:min(58vw, 900px);
+      top:12%;
+      width:min(40vw, 620px);
     }
     .proyectos-title{ font-size:clamp(1.9rem, 3.1vw, 2.8rem); }
-    .as-expand{ width:min(58vw, 900px); }
-    .as-expand-grid{ height:520px; }
+    .as-expand{ width:min(40vw, 620px); }
+    .as-expand-grid{ height:420px; }
+  }
+  /* .proyectos-body ya no necesita position propia en escritorio: al no
+     haber ningún "transform" en #proyectosHeader, un fixed descendiente
+     (como .as-cat-top) se sigue colocando con normalidad respecto a la
+     ventana, así que aquí basta con dejar que fluya como una columna
+     normal, justo debajo de "Fotos". */
+  .proyectos-body{ display:contents; }
+  @media (min-width:901px){
+    .proyectos-body{ display:flex; flex-direction:column; align-items:flex-start; }
   }
 
   /* ---------- Título grande "Mi material / de trabajo" + frase (aparecen
@@ -2605,19 +2596,19 @@
   @media (max-width:480px){
     .as-cat-top{ top:36px; left:18px; }
   }
-  /* ---------- Escritorio (≥901px): "Fotos" + sus botones se quedan con
-     su propio position:fixed -como en móvil-, pero se mueven de la
-     esquina superior IZQUIERDA a la zona superior DERECHA (hueco vacío
-     junto al resto de la 2ª posición), como bloque totalmente
-     independiente de "Proyectos" + galería (ver .proyectos-body más
-     arriba: cada uno vive en su propio position:fixed, ninguno anida al
-     otro). En móvil sigue exactamente igual que antes (fixed, arriba a
-     la izquierda). ---------- */
+  /* ---------- Escritorio (≥901px): "Fotos" + sus botones dejan de
+     tener su propio position:fixed independiente y pasan a vivir en el
+     flujo normal DENTRO de #proyectosHeader, justo encima de
+     "Proyectos" -mismo margen izquierdo que el resto del bloque, así
+     queda todo alineado y estructurado como una sola columna-. En
+     móvil sigue exactamente igual que antes (fixed, arriba a la
+     izquierda). ---------- */
   @media (min-width:901px){
     .as-cat-top{
+      position:static;
+      top:auto;
       left:auto;
-      right:3%;
-      top:48px;
+      margin:0 0 clamp(10px, 2vh, 20px);
     }
     .as-cat-top-title{ font-size:clamp(1.4rem, 2.2vw, 1.9rem); }
     .as-cat-btn{ font-size:0.95rem; padding:12px 26px; }
