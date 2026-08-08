@@ -1715,17 +1715,24 @@
      derecha de la foto. Usamos "right" en vez de "left" (con "left:auto")
      porque así el bloque se ancla de forma proporcional al borde
      derecho de la ventana en vez de depender de su propio ancho, que
-     cambia según cuántas categorías tenga creadas. También reducimos su
-     ancho máximo para que no se salga de la pantalla en portátiles no
-     demasiado anchos. Solo en pantallas grandes; en móvil se queda como
-     estaba (pegado a la izquierda). ---------- */
+     cambia según cuántas categorías tenga creadas. Además: centrado
+     verticalmente (top:50% + translateY(-50%), en vez del bottom:6% de
+     antes) y todo el bloque más grande (título y recuadro de fotos).
+     Solo en pantallas grandes; en móvil se queda como estaba (pegado a
+     la izquierda y abajo). ---------- */
   @media (min-width:901px){
     .proyectos-header{
       left:auto;
-      right:6%;
-      width:min(40vw, 480px);
+      right:4%;
+      bottom:auto;
+      top:50%;
+      transform:translateY(-50%);
+      width:min(38vw, 480px);
       align-items:flex-start;
     }
+    .proyectos-title{ font-size:clamp(1.5rem, 2.4vw, 2.1rem); }
+    .as-expand{ width:min(38vw, 480px); }
+    .as-expand-grid{ height:220px; }
   }
 
   /* ---------- Título grande "Mi material / de trabajo" + frase (aparecen
