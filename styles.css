@@ -2786,23 +2786,31 @@
     border-radius:16px;
     overflow:hidden;
     cursor:pointer;
-    /* background-size/color por defecto: cada tarjeta los sobreescribe
-       inline según su "ajuste" (Cubrir/Ajustar, ver renderExpandPublic).
-       "auto 100%" en vez de "cover": así la foto se escala SIEMPRE al
-       mismo alto fijo de la tarjeta -que no cambia ni al expandirse una
-       tarjeta ni entre dispositivos-, en vez de recalcular su zoom cada
-       vez que cambia el ancho del recuadro (lo que antes hacía que la
-       misma foto se viera más ampliada o recortada de otro modo según el
-       momento o la pantalla). background-color de respaldo (mismo tono
-       oscuro del panel de detrás) para que, en modo "Ajustar" (sin
-       recortar), el margen que deja la foto se vea limpio en vez de
-       blanco. */
-    background-size:auto 100%;
-    background-position:center;
-    background-repeat:no-repeat;
+    /* Color de respaldo (sin foto, o mientras se ve el margen del modo
+       "Ajustar"): mismo tono oscuro del panel de detrás, para que en modo
+       "Ajustar" (sin recortar) el margen que deja la foto se vea limpio
+       en vez de blanco. La foto en sí ya no va aquí -ver
+       .as-expand-card-photo justo debajo-, así el zoom de la foto nunca
+       deforma este recuadro ni su borde redondeado. */
     background-color:#ffffff;
     border:1px solid rgba(17,17,17,0.1);
     transition:flex-grow .55s cubic-bezier(.22,1,.36,1);
+  }
+  /* Capa de la foto en sí, dentro del recuadro fijo de arriba: ocupa
+     TODO el recuadro (inset:0) y es la única parte que responde al
+     zoom (transform:scale, ver expandCardPhotoStyle en
+     comparison-pairs.js) -el recuadro que la contiene nunca cambia de
+     tamaño ni de forma, solo recorta con overflow:hidden lo que sobra al
+     acercar la foto-. "auto 100%" en vez de "cover": así la foto se
+     escala SIEMPRE al mismo alto fijo de la tarjeta -que no cambia ni al
+     expandirse una tarjeta ni entre dispositivos-, en vez de recalcular
+     su zoom cada vez que cambia el ancho del recuadro. */
+  .as-expand-card-photo{
+    position:absolute;
+    inset:0;
+    background-size:auto 100%;
+    background-position:center;
+    background-repeat:no-repeat;
   }
   /* IMPORTANTE: la tarjeta que se abre es SIEMPRE la que lleva la clase
      .is-active, puesta por JS (paso automático o al pasar el ratón/tocar
@@ -3608,6 +3616,18 @@
      que deja la foto en la vista previa se ve igual que en la web-. */
   .disc-editor-box.has-image{ border-style:solid; border-color:rgba(17,17,17,0.14); background-color:#ffffff; }
   .disc-editor-box.is-uploading{ cursor:default; }
+  /* Capa interna de la vista previa (mismo motivo que
+     .as-expand-card-photo más arriba: el zoom nunca deforma este
+     recuadro, solo se recorta lo que sobra). Aquí es una vista previa
+     ESTÁTICA -no se arrastra-: el ajuste de verdad se hace en el
+     simulador (ver openExpSimulator en comparison-pairs.js). */
+  .disc-editor-box-photo{
+    position:absolute;
+    inset:0;
+    background-size:auto 100%;
+    background-position:center;
+    background-repeat:no-repeat;
+  }
   /* Con foto puesta, el recuadro es una vista previa fiel pero NO se
      arrastra aquí: se toca para abrir el simulador a pantalla completa
      (ver openExpSimulator en comparison-pairs.js), que es donde de
@@ -3693,17 +3713,55 @@
   }
   .exp-sim-stage{ display:flex; }
   .exp-sim-box{
+    position:relative;
     border-radius:16px;
     overflow:hidden;
-    background-repeat:no-repeat;
     background-color:#ffffff;
     border:1px solid rgba(17,17,17,0.12);
+  }
+  /* Capa interna que de verdad se agranda/desplaza (transform:scale +
+     background-position, ver openExpSimulator en comparison-pairs.js):
+     el recuadro de fuera (.exp-sim-box) nunca cambia de tamaño ni de
+     forma, solo recorta con overflow:hidden lo que sobra al acercar. */
+  .exp-sim-photo{
+    position:absolute;
+    inset:0;
+    background-repeat:no-repeat;
     cursor:grab;
     touch-action:none;
     -webkit-user-select:none;
     user-select:none;
   }
-  .exp-sim-box.is-dragging{ cursor:grabbing; }
+  .exp-sim-photo.is-dragging{ cursor:grabbing; }
+  .exp-sim-zoom-row{
+    width:100%;
+    max-width:420px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .exp-sim-zoom-icon{
+    flex:none;
+    width:18px;
+    text-align:center;
+    color:var(--dim);
+    font-size:1.1rem;
+    line-height:1;
+    user-select:none;
+  }
+  .exp-sim-zoom{
+    flex:1 1 auto;
+    accent-color:var(--ink);
+  }
+  .exp-sim-zoom-value{
+    flex:none;
+    width:48px;
+    text-align:right;
+    font-size:0.82rem;
+    font-weight:700;
+    color:var(--ink);
+    font-variant-numeric:tabular-nums;
+  }
   .exp-sim-hint{
     margin:0;
     max-width:52ch;

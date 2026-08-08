@@ -486,11 +486,11 @@
     'linear-gradient(160deg,#6b5b8f,#2b2140 55%,#0d0a15)'
   ];
   const DEFAULT_EXPAND = [
-    { id:'exp-1', label:'Bodas', phrase:'Cada instante, para siempre.', img:null, posX:50, posY:50, fit:'cover' },
-    { id:'exp-2', label:'Festivales', phrase:'Luz, sonido y energía.', img:null, posX:50, posY:50, fit:'cover' },
-    { id:'exp-3', label:'Retratos', phrase:'Una mirada, mil historias.', img:null, posX:50, posY:50, fit:'cover' },
-    { id:'exp-4', label:'Deportivos', phrase:'La acción, congelada.', img:null, posX:50, posY:50, fit:'cover' },
-    { id:'exp-5', label:'Viajes', phrase:'El mundo, a través del lente.', img:null, posX:50, posY:50, fit:'cover' }
+    { id:'exp-1', label:'Bodas', phrase:'Cada instante, para siempre.', img:null, posX:50, posY:50, zoom:1, fit:'cover' },
+    { id:'exp-2', label:'Festivales', phrase:'Luz, sonido y energía.', img:null, posX:50, posY:50, zoom:1, fit:'cover' },
+    { id:'exp-3', label:'Retratos', phrase:'Una mirada, mil historias.', img:null, posX:50, posY:50, zoom:1, fit:'cover' },
+    { id:'exp-4', label:'Deportivos', phrase:'La acción, congelada.', img:null, posX:50, posY:50, zoom:1, fit:'cover' },
+    { id:'exp-5', label:'Viajes', phrase:'El mundo, a través del lente.', img:null, posX:50, posY:50, zoom:1, fit:'cover' }
   ];
 
   const expandGrid = document.getElementById('asExpandGrid');
@@ -517,13 +517,24 @@
      se ve; posY no tiene margen que recorrer porque el alto ya llena el
      recuadro entero) como en "Ver foto entera" (posX/posY mueven la
      foto dentro del margen que deja alrededor). */
-  function expandCardBgStyle(c){
+  /* Estilo de la CAPA de foto (no del recuadro que la contiene): vive en
+     un div interno que ocupa todo el recuadro (position:absolute;
+     inset:0), así el zoom (transform:scale) solo agranda la foto y
+     nunca el marco/borde redondeado de fuera, que se queda fijo y
+     recorta lo que sobre (overflow:hidden en el recuadro). LA MISMA
+     función la usa tanto la tarjeta real (renderExpandPublic) como el
+     simulador y la vista previa de Ajustes, para que se vea
+     EXACTAMENTE igual en los tres sitios. */
+  function expandCardPhotoStyle(c){
     if (!c.img) return '';
     const posX = c.posX != null ? c.posX : 50;
     const posY = c.posY != null ? c.posY : (c.fit === 'contain' ? 35 : 50);
+    const zoom = c.zoom != null ? c.zoom : 1;
     return 'background-image:url(\'' + escapeAttr(c.img) + '\');' +
+      'background-repeat:no-repeat;' +
       'background-size:' + (c.fit === 'contain' ? 'contain' : 'auto 100%') + ';' +
-      'background-position:' + posX + '% ' + posY + '%';
+      'background-position:' + posX + '% ' + posY + '%;' +
+      'transform:scale(' + zoom + ')';
   }
 
   /* Proporción (ancho ÷ alto) real de una tarjeta de esta galería cuando
@@ -557,6 +568,8 @@
   let expSimIndex = null;
   let expSimSnapshot = null;
   let expSimEls = null;
+  const EXP_ZOOM_MIN = 1;
+  const EXP_ZOOM_MAX = 3;
 
   function ensureExpSimModal(){
     if (expSimEls) return expSimEls;
@@ -570,8 +583,14 @@
           '<p id="expSimTitle" class="exp-sim-title">Ajustar foto</p>' +
           '<button type="button" class="exp-sim-cancel" aria-label="Cancelar y cerrar">×</button>' +
         '</div>' +
-        '<div class="exp-sim-stage"><div class="exp-sim-box" id="expSimBox"></div></div>' +
-        '<p class="exp-sim-hint">Arrastra la foto para colocarla: así de grande y con esta forma se ve exactamente cuando esta tarjeta está abierta en la web.</p>' +
+        '<div class="exp-sim-stage"><div class="exp-sim-box" id="expSimBox"><div class="exp-sim-photo" id="expSimPhoto"></div></div></div>' +
+        '<div class="exp-sim-zoom-row">' +
+          '<span class="exp-sim-zoom-icon" aria-hidden="true">−</span>' +
+          '<input type="range" id="expSimZoom" class="exp-sim-zoom" min="' + EXP_ZOOM_MIN + '" max="' + EXP_ZOOM_MAX + '" step="0.02" value="1">' +
+          '<span class="exp-sim-zoom-icon" aria-hidden="true">+</span>' +
+          '<span class="exp-sim-zoom-value" id="expSimZoomValue">100%</span>' +
+        '</div>' +
+        '<p class="exp-sim-hint">Arrastra la foto para colocarla y usa el control de abajo para acercarla o alejarla: así de grande y con esta forma se ve exactamente cuando esta tarjeta está abierta en la web.</p>' +
         '<div class="exp-sim-actions"><button type="button" class="exp-sim-done">Listo</button></div>' +
       '</div>';
     document.body.appendChild(overlay);
@@ -580,6 +599,8 @@
       panel: overlay.querySelector('.exp-sim-panel'),
       title: overlay.querySelector('#expSimTitle'),
       stage: overlay.querySelector('.exp-sim-stage'),
+      zoomInput: overlay.querySelector('#expSimZoom'),
+      zoomValue: overlay.querySelector('#expSimZoomValue'),
       cancelBtn: overlay.querySelector('.exp-sim-cancel'),
       doneBtn: overlay.querySelector('.exp-sim-done')
     };
@@ -595,13 +616,25 @@
       if (expSimIndex != null && expDraft[expSimIndex] && expSimSnapshot){
         expDraft[expSimIndex].posX = expSimSnapshot.x;
         expDraft[expSimIndex].posY = expSimSnapshot.y;
+        expDraft[expSimIndex].zoom = expSimSnapshot.zoom;
       }
       close();
     });
     // Tocar el fondo oscuro fuera del recuadro equivale a "Listo" (se
-    // queda con lo ya arrastrado): solo la × cancela de verdad.
+    // queda con lo ya ajustado): solo la × cancela de verdad.
     els.overlay.addEventListener('click', (e) => {
       if (e.target === els.overlay) close();
+    });
+    // El deslizador de zoom actualiza la capa de foto al instante y
+    // guarda el valor en el mismo sitio que la posición (expDraft), para
+    // que "Listo" no tenga que hacer nada aparte.
+    els.zoomInput.addEventListener('input', () => {
+      if (expSimIndex == null || !expDraft[expSimIndex]) return;
+      const zoom = Number(els.zoomInput.value) || 1;
+      expDraft[expSimIndex].zoom = zoom;
+      els.zoomValue.textContent = Math.round(zoom * 100) + '%';
+      const photo = els.stage.querySelector('#expSimPhoto');
+      if (photo) photo.style.transform = 'scale(' + zoom + ')';
     });
     expSimEls = els;
     window.addEventListener('resize', () => {
@@ -610,7 +643,7 @@
       if (!box) return;
       const aspect = getExpandCardAspect();
       const maxW = Math.min(window.innerWidth - 56, 640);
-      const maxH = window.innerHeight - 230;
+      const maxH = window.innerHeight - 280;
       let boxW = maxW;
       let boxH = boxW / aspect;
       if (boxH > maxH){ boxH = Math.max(120, maxH); boxW = boxH * aspect; }
@@ -625,11 +658,15 @@
     if (!c || !c.img) return;
     const els = ensureExpSimModal();
     expSimIndex = index;
+    const startZoom = c.zoom != null ? c.zoom : EXP_ZOOM_MIN;
     expSimSnapshot = {
       x: c.posX != null ? c.posX : 50,
-      y: c.posY != null ? c.posY : (c.fit === 'contain' ? 35 : 50)
+      y: c.posY != null ? c.posY : (c.fit === 'contain' ? 35 : 50),
+      zoom: startZoom
     };
     els.title.textContent = 'Ajustar “' + (c.label || 'esta foto') + '”';
+    els.zoomInput.value = startZoom;
+    els.zoomValue.textContent = Math.round(startZoom * 100) + '%';
 
     // El tamaño disponible cambia según el dispositivo (móvil vs
     // ordenador), así que el recuadro del simulador se calcula cada vez
@@ -638,21 +675,29 @@
     // real -ver getExpandCardAspect-.
     const aspect = getExpandCardAspect();
     const maxW = Math.min(window.innerWidth - 56, 640);
-    const maxH = window.innerHeight - 230;
+    const maxH = window.innerHeight - 280;
     let boxW = maxW;
     let boxH = boxW / aspect;
     if (boxH > maxH){ boxH = Math.max(120, maxH); boxW = boxH * aspect; }
 
-    // Se sustituye el recuadro por uno limpio (sin listeners de arrastre
-    // de una apertura anterior) antes de dibujar y enganchar el arrastre,
-    // para no acumular controladores repetidos entre foto y foto.
-    const oldBox = els.stage.querySelector('#expSimBox');
-    const box = oldBox.cloneNode(false);
-    oldBox.replaceWith(box);
-    box.style.cssText = 'width:' + Math.round(boxW) + 'px;height:' + Math.round(boxH) + 'px;background-repeat:no-repeat;background-color:#ffffff;' + expandCardBgStyle(c);
+    const box = els.stage.querySelector('#expSimBox');
+    box.style.cssText = 'width:' + Math.round(boxW) + 'px;height:' + Math.round(boxH) + 'px;background-color:#ffffff;';
+
+    // Se sustituye la capa de foto por una limpia (sin listeners de
+    // arrastre de una apertura anterior) antes de dibujarla y engancharle
+    // el arrastre, para no acumular controladores repetidos entre foto y
+    // foto. El zoom (transform:scale) y el arrastre (background-position)
+    // viven en esta misma capa interna, que ocupa todo el recuadro y es
+    // la única que se agranda -el recuadro de fuera nunca cambia de
+    // tamaño ni de forma, solo recorta lo que sobra-.
+    const oldPhoto = box.querySelector('#expSimPhoto');
+    const photo = oldPhoto.cloneNode(false);
+    oldPhoto.replaceWith(photo);
+    photo.id = 'expSimPhoto';
+    photo.style.cssText = expandCardPhotoStyle(c);
 
     window.attachFreeReposition(
-      box,
+      photo,
       () => ({
         x: expDraft[index] && expDraft[index].posX != null ? expDraft[index].posX : 50,
         y: expDraft[index] && expDraft[index].posY != null ? expDraft[index].posY : (expDraft[index] && expDraft[index].fit === 'contain' ? 35 : 50)
@@ -672,11 +717,10 @@
   function renderExpandPublic(){
     if (!expandGrid) return;
     expandGrid.innerHTML = currentExpand.map((c, i) => (
-      '<div class="as-expand-card" style="' +
-        (c.img
-          ? expandCardBgStyle(c)
-          : 'background:' + EXPAND_PLACEHOLDERS[i % EXPAND_PLACEHOLDERS.length]) +
-        '" tabindex="0" role="button" aria-label="' + escapeAttr(c.label) + '">' +
+      '<div class="as-expand-card"' +
+        (c.img ? '' : ' style="background:' + EXPAND_PLACEHOLDERS[i % EXPAND_PLACEHOLDERS.length] + '"') +
+        ' tabindex="0" role="button" aria-label="' + escapeAttr(c.label) + '">' +
+        (c.img ? '<div class="as-expand-card-photo" style="' + expandCardPhotoStyle(c) + '"></div>' : '') +
         '<span class="as-expand-card-dot" aria-hidden="true"></span>' +
         '<div class="as-expand-card-shade"></div>' +
         '<div class="as-expand-card-info">' +
@@ -777,16 +821,11 @@
       if (isUploading) boxInner = '<span>Subiendo…</span>';
       else if (!c.img) boxInner = PLACEHOLDER_ICON;
       // Con foto puesta, el recuadro es solo una vista previa: el ajuste
-      // de verdad se hace en el simulador a pantalla completa (ver
-      // openExpSimulator más abajo), que se abre solo con subir la foto o
-      // tocando el botón "Ajustar encuadre".
-      else boxInner = '<span class="disc-editor-adjust-badge">' + MOVE_ICON_SMALL + ' Ajustar encuadre</span>';
-      // La vista previa usa la MISMA función que la tarjeta real
-      // (expandCardBgStyle) en vez de un <img> aparte con object-fit: así
-      // el recuadro de Ajustes muestra pixel a pixel el mismo recorte (o
-      // el mismo margen, en modo "Ver foto entera") que luego se ve en la
-      // web, y no una versión aproximada que podía no coincidir.
-      const previewBg = hasImage ? expandCardBgStyle(c) : '';
+      // de verdad (posición y zoom) se hace en el simulador a pantalla
+      // completa (ver openExpSimulator más abajo), que se abre solo con
+      // subir la foto o tocando el botón "Ajustar encuadre".
+      else boxInner = '<div class="disc-editor-box-photo" style="' + expandCardPhotoStyle(c) + '"></div><span class="disc-editor-adjust-badge">' + MOVE_ICON_SMALL + ' Ajustar encuadre</span>';
+      const previewBg = '';
       return (
         '<div class="disc-editor-item" data-index="' + i + '">' +
           '<div class="disc-editor-box' + (hasImage ? ' has-image' : '') + (isUploading ? ' is-uploading' : '') +
@@ -922,7 +961,7 @@
 
   if (expAddBtn){
     expAddBtn.addEventListener('click', () => {
-      expDraft.push({ id: 'exp-' + Date.now() + '-' + Math.floor(Math.random() * 1000), label: 'Nueva foto', phrase: '', img: null, posX: 50, posY: 50, fit: 'cover' });
+      expDraft.push({ id: 'exp-' + Date.now() + '-' + Math.floor(Math.random() * 1000), label: 'Nueva foto', phrase: '', img: null, posX: 50, posY: 50, zoom: 1, fit: 'cover' });
       renderExpandEditor();
       const boxes = expListEl ? expListEl.querySelectorAll('.disc-editor-label') : [];
       const last = boxes[boxes.length - 1];
@@ -939,6 +978,7 @@
         img: c.img || null,
         posX: c.posX != null ? c.posX : 50,
         posY: c.posY != null ? c.posY : 35,
+        zoom: c.zoom != null ? c.zoom : 1,
         fit: c.fit === 'contain' ? 'contain' : 'cover'
       }));
       if (!window.CloudDB){
@@ -999,7 +1039,7 @@
       const cloudExpand = Array.isArray(data.expandGallery) && data.expandGallery.length
         ? data.expandGallery
         : DEFAULT_EXPAND;
-      currentExpand = cloudExpand.map(c => ({ id: c.id, label: c.label, phrase: c.phrase || '', img: c.img || null, posX: c.posX != null ? c.posX : 50, posY: c.posY != null ? c.posY : 35, fit: c.fit === 'contain' ? 'contain' : 'cover' }));
+      currentExpand = cloudExpand.map(c => ({ id: c.id, label: c.label, phrase: c.phrase || '', img: c.img || null, posX: c.posX != null ? c.posX : 50, posY: c.posY != null ? c.posY : 35, zoom: c.zoom != null ? c.zoom : 1, fit: c.fit === 'contain' ? 'contain' : 'cover' }));
       renderExpandPublic();
       fillExpandEditor();
     });
