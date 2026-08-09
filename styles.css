@@ -2586,18 +2586,26 @@
   .as-cat-lightbox-close:hover{ background:rgba(255,255,255,0.22); }
   .as-cat-lightbox-close:active{ transform:scale(0.9); }
   .as-cat-lightbox-title{
-    margin:0 0 16px;
-    font-family:'Fraunces','Georgia',serif;
-    font-weight:600;
-    font-style:italic;
-    font-size:clamp(1.1rem, 4vw, 1.5rem);
-    color:#fff;
+    margin:0 0 20px;
+    font-family:'Anton','Fraunces','Georgia',serif;
+    font-weight:400;
+    font-style:normal;
+    text-transform:uppercase;
+    letter-spacing:0.01em;
+    font-size:clamp(2.2rem, 9vw, 4.5rem);
+    color:#f4efe6;
     text-align:center;
   }
+  /* Mosaico editorial, igual para cualquier número de fotos (sin tocar
+     el JS): la 1ª foto es un banner ancho, y el resto se reparte solo
+     con CSS en un ciclo que se repite cada 5 fotos -3 en fila, luego 2
+     en fila, y vuelta a empezar-, como el estilo "revista de viajes" de
+     referencia. Se recortan (object-fit:cover) para que cada fila quede
+     pareja en altura. */
   .as-cat-lightbox-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));
-    gap:18px;
+    grid-template-columns:repeat(6, 1fr);
+    gap:10px;
     max-width:1400px;
     width:100%;
     margin:0 auto;
@@ -2605,9 +2613,25 @@
   .as-cat-lightbox-grid img{
     display:block;
     width:100%;
-    height:auto;
-    border-radius:8px;
+    height:100%;
+    object-fit:cover;
+    border-radius:4px;
     background:rgba(255,255,255,0.06);
+  }
+  .as-cat-lightbox-grid img:nth-child(1){
+    grid-column:1 / -1;
+    aspect-ratio:16/8;
+  }
+  .as-cat-lightbox-grid img:nth-child(5n+2),
+  .as-cat-lightbox-grid img:nth-child(5n+3),
+  .as-cat-lightbox-grid img:nth-child(5n+4){
+    grid-column:span 2;
+    aspect-ratio:3/4;
+  }
+  .as-cat-lightbox-grid img:nth-child(5n+5),
+  .as-cat-lightbox-grid img:nth-child(5n+6){
+    grid-column:span 3;
+    aspect-ratio:5/4;
   }
   .as-cat-lightbox-empty{
     color:rgba(255,255,255,0.6);
@@ -2616,7 +2640,12 @@
     margin:0 auto;
   }
   @media (max-width:480px){
-    .as-cat-lightbox-grid{ grid-template-columns:1fr; }
+    .as-cat-lightbox-grid{ grid-template-columns:repeat(4, 1fr); gap:8px; }
+    .as-cat-lightbox-grid img:nth-child(5n+2),
+    .as-cat-lightbox-grid img:nth-child(5n+3),
+    .as-cat-lightbox-grid img:nth-child(5n+4){ grid-column:span 2; }
+    .as-cat-lightbox-grid img:nth-child(5n+5),
+    .as-cat-lightbox-grid img:nth-child(5n+6){ grid-column:span 2; aspect-ratio:1/1; }
   }
 
 
