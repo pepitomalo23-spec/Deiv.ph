@@ -245,29 +245,25 @@
   }
   .scene-pin-fade-right{
     right:0;
-    /* Antes: un fundido liso (degradado de color, sin textura) hacia
-       var(--bg). Ahora: el mismo color sólido var(--bg) de siempre, pero
-       revelado a través de una MÁSCARA con ruido fractal en vez de un
-       degradado uniforme -así el borde de la foto no se "apaga" con un
-       barrido limpio, sino que se deshace en tiras verticales irregulares
-       de anchura desigual, como si el propio fotograma se desmenuzara
-       hacia el hueco en blanco. Sigue sin taparse de golpe: dentro del
-       propio SVG hay TAMBIÉN un degradado horizontal (transparente junto
-       a la foto -> opaco ya bien entrado en el blanco), así el ruido solo
-       se nota en la franja de transición, nunca de golpe ni muy lejos de
-       la costura. feTurbulence (baseFrequency muy alto en X, bajo en Y)
-       genera vetas verticales finas; feColorMatrix lleva esas vetas a
-       prácticamente blanco/negro puro (en vez de gris borroso) para que
-       las tiras se noten nítidas, no difuminadas; feComposite "in" es lo
-       que multiplica esa textura de ruido por el degradado direccional
-       de arriba, combinando ambos en una sola máscara. */
-    background:var(--bg);
-    -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27100%27%20height%3D%27100%27%20viewBox%3D%270%200%20100%20100%27%20preserveAspectRatio%3D%27none%27%3E%3Cdefs%3E%3ClinearGradient%20id%3D%27g%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%271%27%20y2%3D%270%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%23fff%27%20stop-opacity%3D%270%27%2F%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%23fff%27%20stop-opacity%3D%271%27%2F%3E%3C%2FlinearGradient%3E%3Cfilter%20id%3D%27n%27%20x%3D%27-20%25%27%20y%3D%27-20%25%27%20width%3D%27140%25%27%20height%3D%27140%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.35%200.02%27%20numOctaves%3D%273%27%20seed%3D%279%27%20result%3D%27noise%27%2F%3E%3CfeColorMatrix%20in%3D%27noise%27%20type%3D%27matrix%27%20values%3D%270%200%200%200%200%200%200%200%200%200%200%200%200%200%200%204%200%200%200%20-1.6%27%20result%3D%27noiseAlpha%27%2F%3E%3CfeComposite%20in%3D%27SourceGraphic%27%20in2%3D%27noiseAlpha%27%20operator%3D%27in%27%2F%3E%3C%2Ffilter%3E%3C%2Fdefs%3E%3Crect%20width%3D%27100%27%20height%3D%27100%27%20fill%3D%27url%28%23g%29%27%20filter%3D%27url%28%23n%29%27%2F%3E%3C%2Fsvg%3E");
-    mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27100%27%20height%3D%27100%27%20viewBox%3D%270%200%20100%20100%27%20preserveAspectRatio%3D%27none%27%3E%3Cdefs%3E%3ClinearGradient%20id%3D%27g%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%271%27%20y2%3D%270%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%23fff%27%20stop-opacity%3D%270%27%2F%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%23fff%27%20stop-opacity%3D%271%27%2F%3E%3C%2FlinearGradient%3E%3Cfilter%20id%3D%27n%27%20x%3D%27-20%25%27%20y%3D%27-20%25%27%20width%3D%27140%25%27%20height%3D%27140%25%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.35%200.02%27%20numOctaves%3D%273%27%20seed%3D%279%27%20result%3D%27noise%27%2F%3E%3CfeColorMatrix%20in%3D%27noise%27%20type%3D%27matrix%27%20values%3D%270%200%200%200%200%200%200%200%200%200%200%200%200%200%200%204%200%200%200%20-1.6%27%20result%3D%27noiseAlpha%27%2F%3E%3CfeComposite%20in%3D%27SourceGraphic%27%20in2%3D%27noiseAlpha%27%20operator%3D%27in%27%2F%3E%3C%2Ffilter%3E%3C%2Fdefs%3E%3Crect%20width%3D%27100%27%20height%3D%27100%27%20fill%3D%27url%28%23g%29%27%20filter%3D%27url%28%23n%29%27%2F%3E%3C%2Fsvg%3E");
-    -webkit-mask-repeat:no-repeat;
-    mask-repeat:no-repeat;
-    -webkit-mask-size:100% 100%;
-    mask-size:100% 100%;
+    /* Mismo fundido liso que .scene-pin-fade-left (degradado de color hacia
+       var(--bg), sin textura ni ruido), solo que reflejado hacia la derecha:
+       la foto se va disolviendo hacia el blanco, no "rasgando". */
+    background:linear-gradient(to right,
+      color-mix(in srgb, var(--bg) 0%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 1%, transparent) 8%,
+      color-mix(in srgb, var(--bg) 3%, transparent) 16%,
+      color-mix(in srgb, var(--bg) 6%, transparent) 24%,
+      color-mix(in srgb, var(--bg) 11%, transparent) 32%,
+      color-mix(in srgb, var(--bg) 18%, transparent) 40%,
+      color-mix(in srgb, var(--bg) 27%, transparent) 48%,
+      color-mix(in srgb, var(--bg) 38%, transparent) 55%,
+      color-mix(in srgb, var(--bg) 50%, transparent) 62%,
+      color-mix(in srgb, var(--bg) 63%, transparent) 69%,
+      color-mix(in srgb, var(--bg) 75%, transparent) 75%,
+      color-mix(in srgb, var(--bg) 85%, transparent) 81%,
+      color-mix(in srgb, var(--bg) 92%, transparent) 87%,
+      color-mix(in srgb, var(--bg) 97%, transparent) 93%,
+      var(--bg) 100%);
   }
 
   /* En móvil apenas hay huecos laterales que disimular (la foto ocupa
