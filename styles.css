@@ -767,14 +767,22 @@
       linear-gradient(to bottom, var(--bg) 0%, transparent 28%, transparent 72%, var(--bg) 100%);
   }
 
-  /* ---------- Menú de navegación (3 rayitas) ---------- */
+  /* ---------- Correo e Instagram (esquina inferior izquierda) ---------- */
   .social-icons{
     position:fixed;
-    top:22px;
+    bottom:max(22px, env(safe-area-inset-bottom));
     left:22px;
     z-index:200;
     display:flex;
     gap:10px;
+    opacity:1;
+    transition:opacity .35s ease;
+  }
+  /* Igual que .menu-toggle.intro-hidden: oculto mientras dura la intro de
+     fotogramas, visible en cuanto esta termina (ver scroll-engine.js). */
+  .social-icons.intro-hidden{
+    opacity:0;
+    pointer-events:none;
   }
   .social-icon{
     width:38px;
@@ -2648,7 +2656,13 @@
      sí ocupa todo el ancho arriba (column-span:all), como banner, y el
      resto se reparte solo en las columnas de abajo, cada una cayendo en
      la columna más corta en cada momento (así es como funciona
-     column-count de forma nativa, sin necesitar JS). */
+     column-count de forma nativa, sin necesitar JS).
+     Mismo número de columnas (3) en TODOS los tamaños de pantalla: en
+     móvil se ve exactamente la misma estructura de mosaico que en
+     escritorio (banner arriba + 3 columnas debajo), solo que a menor
+     tamaño -column-gap y el margen entre fotos se van reduciendo en los
+     media queries de abajo para que el mosaico completo quepa cómodo en
+     una pantalla estrecha-. */
   .as-cat-lightbox-grid{
     column-count:3;
     column-gap:12px;
@@ -2675,11 +2689,23 @@
     text-align:center;
     margin:0 auto;
   }
+  /* Pantallas medianas (tablets/móviles grandes): se mantiene la misma
+     estructura de 3 columnas, solo con menos aire entre fotos. */
   @media (max-width:900px){
-    .as-cat-lightbox-grid{ column-count:2; }
+    .as-cat-lightbox{ padding:52px 14px 24px; }
+    .as-cat-lightbox-grid{ column-gap:9px; }
+    .as-cat-lightbox-grid img{ margin-bottom:9px; border-radius:3px; }
+    .as-cat-lightbox-grid img:nth-child(1){ margin-bottom:11px; }
   }
+  /* Móvil estrecho: sigue siendo el mismo mosaico de 3 columnas -no se
+     colapsa a 1 sola columna, que es lo que rompía la estructura-, solo
+     que las fotos se ven más pequeñas todavía, con muy poco espacio
+     entre ellas para aprovechar bien el ancho disponible. */
   @media (max-width:480px){
-    .as-cat-lightbox-grid{ column-count:1; }
+    .as-cat-lightbox{ padding:48px 10px 20px; }
+    .as-cat-lightbox-grid{ column-gap:6px; }
+    .as-cat-lightbox-grid img{ margin-bottom:6px; border-radius:3px; }
+    .as-cat-lightbox-grid img:nth-child(1){ margin-bottom:8px; }
   }
 
 
