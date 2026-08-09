@@ -1245,6 +1245,7 @@
       const step1AmtJ = step1AmountFromAxis(low, high, p);
       pushStep1Amount(step1AmtJ);
       updateProyectosFade(step1AmtJ);
+      updateSocialFade(step0AmountFromAxis(low, high, p));
 
       if (t < 1){
         requestAnimationFrame(step);
@@ -1277,6 +1278,7 @@
         // última, para invitar a seguir deslizando
         sceneHint.classList.toggle('visible', stepIndex < WAYPOINTS.length - 1);
         if (proyectosHeaderEl) proyectosHeaderEl.classList.toggle('visible', stepIndex === 1); // Proyectos ahora en la 2ª posición, no la 1ª
+        if (socialIconsEl) socialIconsEl.classList.toggle('visible', stepIndex === 0); // Correo/Instagram solo en la 1ª posición
         updateEndOfPathUI();
 
         // Si durante esta animación llegó otro gesto (deslizar rápido), se
@@ -1363,6 +1365,29 @@
     proyectosHeaderEl.style.opacity = String(smooth);
   }
 
+  // Correo e Instagram (#socialIcons): mismo criterio que sceneHint (ver
+  // arriba) pero SOLO en la 1ª posición -antes de deslizar-, y con el
+  // mismo mecanismo de fundido en tiempo real que ya usa "Proyectos" para
+  // la 2ª (updateProyectosFade, justo arriba): en vez de aparecer/
+  // desaparecer de golpe al terminar cada salto, se van apagando o
+  // encendiendo al mismo ritmo exacto del gesto de deslizar. Además,
+  // introFinished evita que se enciendan antes de que la intro de
+  // fotogramas haya terminado del todo (se activa una sola vez, ver el
+  // "Promise.all(...).then(...)" más abajo).
+  let introFinished = false;
+  function step0AmountFromAxis(low, high, axisP){
+    if (low === 0) return 1 - axisP;   // la parada 0 es el extremo "bajo" de este tramo
+    if (high === 0) return axisP;      // la parada 0 es el extremo "alto" de este tramo (no debería darse, pero por seguridad)
+    return 0;                          // este tramo no toca la parada 0
+  }
+  function updateSocialFade(amount){
+    if (!socialIconsEl || !introFinished) return;
+    const t = Math.min(1, amount / PROYECTOS_FADE_WINDOW);
+    const smooth = t * t * (3 - 2 * t);
+    socialIconsEl.style.opacity = String(smooth);
+    socialIconsEl.style.pointerEvents = smooth > 0.05 ? 'auto' : 'none';
+  }
+
   function applySegmentProgress(fromStep, toStep, p){
     const low = Math.min(fromStep, toStep);
     const high = Math.max(fromStep, toStep);
@@ -1375,6 +1400,7 @@
     syncRealScrollForStepPosition(fromStep + (toStep - fromStep) * p);
     pushStep1Amount(step1AmountFromAxis(low, high, localP));
     updateProyectosFade(step1AmountFromAxis(low, high, localP));
+    updateSocialFade(step0AmountFromAxis(low, high, localP));
   }
 
   // Termina, animado, el tramo que ya se venía arrastrando: sigue desde
@@ -1438,6 +1464,7 @@
         animating = false;
         sceneHint.classList.toggle('visible', stepIndex < WAYPOINTS.length - 1);
         if (proyectosHeaderEl) proyectosHeaderEl.classList.toggle('visible', stepIndex === 1); // Proyectos ahora en la 2ª posición, no la 1ª
+        if (socialIconsEl) socialIconsEl.classList.toggle('visible', stepIndex === 0); // Correo/Instagram solo en la 1ª posición
         updateEndOfPathUI();
         if (pendingDir !== 0){
           const dir = pendingDir;
@@ -1935,13 +1962,18 @@
     waitForSiteAssets().then(() => {
       if (loaderSpinner) loaderSpinner.classList.remove('is-visible');
       loader.style.opacity = '0';
-      // La hamburguesa (y los botones de correo/Instagram, mismo
-      // mecanismo) se mantenían ocultos durante toda la pantalla de
+      // La hamburguesa se mantenía oculta durante toda la pantalla de
       // carga (ver clase inicial "intro-hidden" en el HTML); en cuanto
       // esa pantalla empieza a desvanecerse, ya estamos "dentro" de la
-      // web propiamente dicha, así que se muestran.
+      // web propiamente dicha, así que se muestra.
       if (menuToggleBtn) menuToggleBtn.classList.remove('intro-hidden');
-      if (socialIconsEl) socialIconsEl.classList.remove('intro-hidden');
+      // Correo/Instagram: se activa el fundido por posición justo ahora
+      // -nunca antes-, así nunca pueden aparecer en mitad de la intro de
+      // fotogramas, y quedan visibles de inmediato porque stepIndex sigue
+      // siendo 0 (la 1ª posición) en este instante.
+      introFinished = true;
+      if (socialIconsEl) socialIconsEl.classList.toggle('visible', stepIndex === 0);
+      updateSocialFade(stepIndex === 0 ? 1 : 0);
       setTimeout(() => { loader.style.display = 'none'; }, 500);
     });
   });
