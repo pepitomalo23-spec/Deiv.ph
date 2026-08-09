@@ -1725,14 +1725,14 @@
      la izquierda y abajo). ---------- */
   @media (min-width:901px){
     .proyectos-header{
-      left:55%;
+      left:60%;
       right:auto;
       bottom:auto;
       top:14%;
-      width:min(38vw, 580px);
+      width:min(34vw, 620px);
     }
     .proyectos-title{ font-size:clamp(1.8rem, 2.6vw, 2.4rem); margin-top:clamp(24px, 4vh, 50px); }
-    .as-expand{ width:min(38vw, 580px); }
+    .as-expand{ width:min(34vw, 620px); }
     .as-expand-grid{ height:360px; }
   }
   /* .proyectos-body ya no necesita position propia en escritorio: al no
