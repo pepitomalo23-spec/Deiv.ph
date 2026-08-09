@@ -1006,8 +1006,8 @@
      golpe. */
   .about-photo{
     display:block;
-    width:34%;
-    max-width:210px;
+    width:24%;
+    max-width:150px;
     height:auto;
     border-radius:14px;
     box-shadow:0 14px 28px rgba(0,0,0,0.16);
@@ -1028,7 +1028,7 @@
   .about-photo--right.is-visible{ opacity:1; transform:translateY(0) rotate(1.3deg); }
   .about-photo--left.is-visible{ opacity:1; transform:translateY(0) rotate(-1.3deg); }
   @media (max-width:680px){
-    .about-photo{ width:48%; max-width:190px; margin:0 0 18px; }
+    .about-photo{ width:36%; max-width:140px; margin:0 0 18px; }
   }
   @media (prefers-reduced-motion:reduce){
     .about-photo{ transition:opacity .3s ease; }
