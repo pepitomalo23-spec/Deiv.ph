@@ -30,6 +30,7 @@
   const catButtonsEl = document.getElementById('asCatButtons');
   const lightboxEl = document.getElementById('asCatLightbox');
   const lightboxTitleEl = document.getElementById('asCatLightboxTitle');
+  const lightboxMoreEl = document.getElementById('asCatLightboxMore');
   const lightboxGridEl = document.getElementById('asCatLightboxGrid');
   const lightboxCloseBtn = document.getElementById('asCatLightboxClose');
 
@@ -48,6 +49,16 @@
   function openLightbox(cat, btn){
     if (!lightboxEl || !cat) return;
     if (lightboxTitleEl) lightboxTitleEl.textContent = cat.label || '';
+    if (lightboxMoreEl){
+      const link = (cat.driveLink || '').trim();
+      if (link){
+        lightboxMoreEl.href = link;
+        lightboxMoreEl.style.display = '';
+      } else {
+        lightboxMoreEl.removeAttribute('href');
+        lightboxMoreEl.style.display = 'none';
+      }
+    }
     const photos = Array.isArray(cat.photos) ? cat.photos.filter(Boolean) : [];
     if (lightboxGridEl){
       lightboxGridEl.innerHTML = photos.length
@@ -127,6 +138,7 @@
               '<button type="button" class="cat-editor-remove" aria-label="Quitar categoría">×</button>' +
             '</div>' +
           '</div>' +
+          '<input type="url" class="cat-editor-link" value="' + escapeAttr(c.driveLink || '') + '" placeholder="Enlace de Drive con más fotos (opcional)">' +
           '<div class="cat-editor-photos">' + thumbs + addBox + '</div>' +
         '</div>'
       );
@@ -141,11 +153,15 @@
 
   if (catListEl){
     catListEl.addEventListener('input', (e) => {
-      if (!e.target.classList.contains('cat-editor-name')) return;
       const row = e.target.closest('.cat-editor-item');
+      if (!row) return;
       const i = Number(row.dataset.index);
       if (!catDraft[i]) return;
-      catDraft[i].label = e.target.value;
+      if (e.target.classList.contains('cat-editor-name')){
+        catDraft[i].label = e.target.value;
+      } else if (e.target.classList.contains('cat-editor-link')){
+        catDraft[i].driveLink = e.target.value;
+      }
     });
 
     catListEl.addEventListener('click', (e) => {
@@ -214,7 +230,7 @@
 
   if (catAddBtn){
     catAddBtn.addEventListener('click', () => {
-      catDraft.push({ id: 'cat-' + Date.now() + '-' + Math.floor(Math.random() * 1000), label: 'Nueva categoría', photos: [] });
+      catDraft.push({ id: 'cat-' + Date.now() + '-' + Math.floor(Math.random() * 1000), label: 'Nueva categoría', photos: [], driveLink: '' });
       renderCatEditor();
       const inputs = catListEl ? catListEl.querySelectorAll('.cat-editor-name') : [];
       const last = inputs[inputs.length - 1];
@@ -227,7 +243,8 @@
       const cleaned = catDraft.map(c => ({
         id: c.id || ('cat-' + Date.now()),
         label: (c.label || '').trim() || 'Sin nombre',
-        photos: (c.photos || []).filter(Boolean)
+        photos: (c.photos || []).filter(Boolean),
+        driveLink: (c.driveLink || '').trim()
       }));
       if (!window.CloudDB){
         flashMsg(catMsgEl, 'No se pudo guardar: la conexión con la nube no está lista.', false);

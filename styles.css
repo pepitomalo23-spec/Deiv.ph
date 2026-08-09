@@ -2596,6 +2596,24 @@
     color:#f4efe6;
     text-align:center;
   }
+  .as-cat-lightbox-more{
+    display:block;
+    width:max-content;
+    margin:0 auto 26px;
+    padding:10px 22px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,0.35);
+    color:#fff;
+    font-size:0.9rem;
+    font-weight:500;
+    text-decoration:none;
+    text-align:center;
+    transition:background .2s ease, border-color .2s ease;
+  }
+  .as-cat-lightbox-more:hover{
+    background:rgba(255,255,255,0.1);
+    border-color:rgba(255,255,255,0.55);
+  }
   /* Mosaico tipo "muro de fotos": columnas (column-count), no grid con
      recorte. Cada foto conserva su forma real (ni se deforma ni se
      recorta) porque solo se le fija el ancho, el alto es el que le
@@ -4030,6 +4048,13 @@
     font-weight:600;
   }
   .cat-editor-photos{ display:flex; flex-wrap:wrap; gap:8px; }
+  .cat-editor-link{
+    padding:8px 11px;
+    border-radius:8px;
+    border:1px solid rgba(0,0,0,0.14);
+    font-family:inherit;
+    font-size:0.82rem;
+  }
   .cat-editor-thumb{
     position:relative;
     width:60px;
@@ -4078,6 +4103,7 @@
   .cat-editor-add-photo.is-uploading{ font-size:0.6rem; color:var(--dim); cursor:default; text-align:center; padding:4px; }
   #view-ajustes .cat-editor-item{ border-color:var(--adm-border); background:var(--adm-surface-2); }
   #view-ajustes .cat-editor-name{ border-color:var(--adm-border); background:var(--adm-surface); color:var(--adm-fg); }
+  #view-ajustes .cat-editor-link{ border-color:var(--adm-border); background:var(--adm-surface); color:var(--adm-fg); }
   #view-ajustes .cat-editor-thumb{ border-color:var(--adm-border); }
   #view-ajustes .cat-editor-add-photo{ border-color:var(--adm-border); background:var(--adm-surface); color:var(--adm-dim); }
   #view-ajustes .cat-editor-add-photo:hover{ border-color:var(--adm-accent); }
