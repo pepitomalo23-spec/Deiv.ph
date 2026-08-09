@@ -1,6 +1,7 @@
 (function(){
   const canvas = document.getElementById('frameCanvas');
   const ctx = canvas.getContext('2d', { alpha:false });
+  const scenePinFadeRight = document.getElementById('scenePinFadeRight');
   const sceneWrap = document.getElementById('sceneWrap');
   const loader = document.getElementById('loader');
   const loaderFill = document.getElementById('loaderFill');
@@ -373,6 +374,35 @@
     window.__photoDW = dw;
     window.__photoDY = dy;
     window.__photoDH = dh;
+
+    // ---------- Difuminado del borde derecho pegado a la FOTO, no a la
+    // pantalla ----------
+    // .scene-pin-fade-right (ver CSS) nace con right:0 y un ancho fijo en
+    // % de la pantalla, pensado para cuando el hueco en blanco a la
+    // derecha de la foto es pequeño. Pero en tablet/escritorio la foto se
+    // pega a la izquierda (dx=0, ver más arriba) y solo se dibuja a su
+    // tamaño natural (nunca se agranda): en pantallas muy anchas, donde
+    // sobra mucho espacio en blanco a la derecha, el borde real de la
+    // foto (dx+dw) queda muy lejos del borde de la pantalla y ese ancho
+    // fijo del 15% nunca llega a cubrirlo, así que el corte recto de la
+    // foto se seguía notando en medio del hueco blanco.
+    // Aquí recolocamos el difuminado para que viva SIEMPRE centrado sobre
+    // el borde real de la foto (mitad tapando el final de la foto, mitad
+    // ya sobre el blanco), sea cual sea el tamaño del hueco. El ancho es
+    // proporcional al del propio canvas (con un mínimo y un máximo) para
+    // que la transición se note igual de suave en cualquier pantalla.
+    if (scenePinFadeRight && wideLayoutQuery.matches){
+      const fadeW = Math.round(Math.min(220, Math.max(70, cw * 0.1)));
+      scenePinFadeRight.style.right = 'auto';
+      scenePinFadeRight.style.left = Math.round(dx + dw - fadeW / 2) + 'px';
+      scenePinFadeRight.style.width = fadeW + 'px';
+    } else if (scenePinFadeRight){
+      // Móvil: sin hueco que disimular (la foto llena el ancho, "cover"),
+      // se deja tal cual estaba (CSS ya lo oculta por debajo de 600px).
+      scenePinFadeRight.style.right = '';
+      scenePinFadeRight.style.left = '';
+      scenePinFadeRight.style.width = '';
+    }
   }
 
   let currentFrameExact = 0; // frame realmente dibujado (unidades de índice de frame, no fracción)
