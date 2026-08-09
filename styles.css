@@ -2596,16 +2596,19 @@
     color:#f4efe6;
     text-align:center;
   }
-  /* Mosaico editorial, igual para cualquier número de fotos (sin tocar
-     el JS): la 1ª foto es un banner ancho, y el resto se reparte solo
-     con CSS en un ciclo que se repite cada 5 fotos -3 en fila, luego 2
-     en fila, y vuelta a empezar-, como el estilo "revista de viajes" de
-     referencia. Se recortan (object-fit:cover) para que cada fila quede
-     pareja en altura. */
+  /* Mosaico tipo "muro de fotos": columnas (column-count), no grid con
+     recorte. Cada foto conserva su forma real (ni se deforma ni se
+     recorta) porque solo se le fija el ancho, el alto es el que le
+     corresponda según su proporción -al revés que el intento anterior,
+     que forzaba un aspect-ratio fijo con object-fit:cover y acababa
+     recortando mal fotos que no eran justo esa proporción-. La 1ª foto
+     sí ocupa todo el ancho arriba (column-span:all), como banner, y el
+     resto se reparte solo en las columnas de abajo, cada una cayendo en
+     la columna más corta en cada momento (así es como funciona
+     column-count de forma nativa, sin necesitar JS). */
   .as-cat-lightbox-grid{
-    display:grid;
-    grid-template-columns:repeat(6, 1fr);
-    gap:10px;
+    column-count:3;
+    column-gap:12px;
     max-width:1400px;
     width:100%;
     margin:0 auto;
@@ -2613,25 +2616,15 @@
   .as-cat-lightbox-grid img{
     display:block;
     width:100%;
-    height:100%;
-    object-fit:cover;
+    height:auto;
+    margin:0 0 12px;
     border-radius:4px;
     background:rgba(255,255,255,0.06);
+    break-inside:avoid;
   }
   .as-cat-lightbox-grid img:nth-child(1){
-    grid-column:1 / -1;
-    aspect-ratio:16/8;
-  }
-  .as-cat-lightbox-grid img:nth-child(5n+2),
-  .as-cat-lightbox-grid img:nth-child(5n+3),
-  .as-cat-lightbox-grid img:nth-child(5n+4){
-    grid-column:span 2;
-    aspect-ratio:3/4;
-  }
-  .as-cat-lightbox-grid img:nth-child(5n+5),
-  .as-cat-lightbox-grid img:nth-child(5n+6){
-    grid-column:span 3;
-    aspect-ratio:5/4;
+    column-span:all;
+    margin-bottom:16px;
   }
   .as-cat-lightbox-empty{
     color:rgba(255,255,255,0.6);
@@ -2639,13 +2632,11 @@
     text-align:center;
     margin:0 auto;
   }
+  @media (max-width:900px){
+    .as-cat-lightbox-grid{ column-count:2; }
+  }
   @media (max-width:480px){
-    .as-cat-lightbox-grid{ grid-template-columns:repeat(4, 1fr); gap:8px; }
-    .as-cat-lightbox-grid img:nth-child(5n+2),
-    .as-cat-lightbox-grid img:nth-child(5n+3),
-    .as-cat-lightbox-grid img:nth-child(5n+4){ grid-column:span 2; }
-    .as-cat-lightbox-grid img:nth-child(5n+5),
-    .as-cat-lightbox-grid img:nth-child(5n+6){ grid-column:span 2; aspect-ratio:1/1; }
+    .as-cat-lightbox-grid{ column-count:1; }
   }
 
 
