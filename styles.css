@@ -768,6 +768,29 @@
   }
 
   /* ---------- Menú de navegación (3 rayitas) ---------- */
+  .social-icons{
+    position:fixed;
+    top:22px;
+    left:22px;
+    z-index:200;
+    display:flex;
+    gap:10px;
+  }
+  .social-icon{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.55);
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--fg);
+    transition:background .2s ease, transform .2s ease;
+  }
+  .social-icon:hover{ background:rgba(255,255,255,0.8); transform:translateY(-1px); }
+
   .menu-toggle{
     position:fixed;
     top:22px;
@@ -2597,17 +2620,19 @@
     text-align:center;
   }
   .as-cat-lightbox-more{
-    display:block;
-    width:max-content;
-    margin:0 auto 26px;
-    padding:10px 22px;
+    position:fixed;
+    top:max(14px, env(safe-area-inset-top));
+    left:max(14px, env(safe-area-inset-left));
+    z-index:4002;
+    margin:0;
+    padding:9px 18px;
     border-radius:999px;
     border:1px solid rgba(255,255,255,0.35);
     color:#fff;
-    font-size:0.9rem;
+    font-size:0.85rem;
     font-weight:500;
     text-decoration:none;
-    text-align:center;
+    white-space:nowrap;
     transition:background .2s ease, border-color .2s ease;
   }
   .as-cat-lightbox-more:hover{
