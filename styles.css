@@ -1006,12 +1006,12 @@
      golpe. */
   .about-photo{
     display:block;
-    width:64%;
-    max-width:420px;
+    width:34%;
+    max-width:210px;
     height:auto;
-    border-radius:16px;
-    box-shadow:0 16px 34px rgba(0,0,0,0.16);
-    margin:6px 0 26px;
+    border-radius:14px;
+    box-shadow:0 14px 28px rgba(0,0,0,0.16);
+    margin:6px 0 22px;
     opacity:0;
     transition:opacity .85s cubic-bezier(.19,1,.22,1), transform .85s cubic-bezier(.19,1,.22,1);
   }
@@ -1028,7 +1028,7 @@
   .about-photo--right.is-visible{ opacity:1; transform:translateY(0) rotate(1.3deg); }
   .about-photo--left.is-visible{ opacity:1; transform:translateY(0) rotate(-1.3deg); }
   @media (max-width:680px){
-    .about-photo{ width:80%; max-width:340px; margin:0 0 22px; }
+    .about-photo{ width:48%; max-width:190px; margin:0 0 18px; }
   }
   @media (prefers-reduced-motion:reduce){
     .about-photo{ transition:opacity .3s ease; }
