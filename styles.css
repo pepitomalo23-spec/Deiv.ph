@@ -1709,29 +1709,31 @@
     .proyectos-header{ bottom:4%; left:5%; width:90vw; }
     .proyectos-title{ font-size:clamp(1rem, 4.6vw, 1.3rem); }
   }
-  /* ---------- Escritorio (≥901px): TODO el bloque ("Fotos" + botones +
-     "Proyectos" + galería) vuelve a vivir junto, en una sola columna
-     bien estructurada, anclada justo a la derecha de la persona de la
-     foto (que ocupa aprox. la mitad izquierda de la pantalla) sin
-     taparla. Usamos "left" (en vez de "right" o un truco de "transform"
-     para centrar) porque así el punto de anclaje es siempre el mismo,
-     fijo y predecible, sin arrastrar el problema de que un "transform"
-     en este contenedor "atrape" a sus hijos con position:fixed -por
-     eso "Fotos" (ver .as-cat-top) puede volver a vivir dentro del
-     flujo normal de este bloque sin más complicaciones-. Solo en
-     pantallas grandes; en móvil se queda como estaba (pegado a la
-     izquierda y abajo). ---------- */
+  /* ---------- Escritorio / iPad horizontal (≥901px): TODO el bloque
+     ("Fotos" + botones + "Proyectos" + galería) vive junto, en una sola
+     columna bien estructurada, anclada justo a la derecha de la persona
+     de la foto (que ocupa aprox. la mitad izquierda de la pantalla) sin
+     taparla. Tamaño equilibrado: ni diminuto ni exagerado, pensado para
+     verse bien tanto en un iPad en horizontal (~1024px) como en un
+     monitor de escritorio grande. Usamos "left" (en vez de "right" o un
+     truco de "transform" para centrar) porque así el punto de anclaje
+     es siempre el mismo, fijo y predecible, sin arrastrar el problema
+     de que un "transform" en este contenedor "atrape" a sus hijos con
+     position:fixed -por eso "Fotos" (ver .as-cat-top) puede vivir
+     dentro del flujo normal de este bloque sin más complicaciones-.
+     Solo en pantallas grandes; en móvil se queda como estaba (pegado a
+     la izquierda y abajo). ---------- */
   @media (min-width:901px){
     .proyectos-header{
-      left:44%;
+      left:55%;
       right:auto;
       bottom:auto;
-      top:12%;
-      width:min(60vw, 1100px);
+      top:14%;
+      width:min(38vw, 580px);
     }
-    .proyectos-title{ font-size:clamp(1.9rem, 3.1vw, 2.8rem); margin-top:clamp(36px, 6vh, 80px); }
-    .as-expand{ width:min(60vw, 1100px); }
-    .as-expand-grid{ height:760px; }
+    .proyectos-title{ font-size:clamp(1.8rem, 2.6vw, 2.4rem); margin-top:clamp(24px, 4vh, 50px); }
+    .as-expand{ width:min(38vw, 580px); }
+    .as-expand-grid{ height:360px; }
   }
   /* .proyectos-body ya no necesita position propia en escritorio: al no
      haber ningún "transform" en #proyectosHeader, un fixed descendiente
