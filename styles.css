@@ -2692,6 +2692,7 @@
      poniendo display:none en todo #asCatTop en ese caso. */
   @media (max-width:480px){
     .as-cat-top{ top:36px; left:18px; }
+    .as-cat-top-title{ font-size:clamp(1rem, 4.6vw, 1.3rem); }
   }
   /* ---------- Escritorio (≥901px): "Fotos" + sus botones dejan de
      tener su propio position:fixed independiente y pasan a vivir en el
@@ -2707,7 +2708,7 @@
       left:auto;
       margin:0 0 clamp(10px, 2vh, 20px);
     }
-    .as-cat-top-title{ font-size:clamp(1.4rem, 2.2vw, 1.9rem); }
+    .as-cat-top-title{ font-size:clamp(1.8rem, 2.6vw, 2.4rem); }
     .as-cat-btn{ font-size:0.95rem; padding:12px 26px; }
   }
 
