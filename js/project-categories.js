@@ -15,6 +15,15 @@
   const PLACEHOLDER_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M12 4l-4.5 4.5M12 4l4.5 4.5"/><path d="M4 16v2.5A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V16"/></svg>';
 
   let currentCategories = []; // última versión confirmada, la que viene de la nube
+  // Distingue "todavía no ha respondido la nube" de "ya respondió y, de
+  // verdad, no hay categorías guardadas". Sin esto, el primer pintado
+  // (con currentCategories vacío por defecto, antes de que Firestore
+  // conteste) ocultaba el bloque entero de "Fotos" con display:none, y en
+  // conexiones lentas ese hueco vacío podía notarse un buen rato hasta
+  // que llegaba la respuesta real y el bloque reaparecía de golpe. Mismo
+  // patrón que ya usa el comparador de fotos (ver "cloudLoaded" en
+  // comparison-pairs.js).
+  let cloudLoaded = false;
 
   // ================= Vista pública: botones + galería a pantalla completa =================
   const catTopEl = document.getElementById('asCatTop');
@@ -26,7 +35,11 @@
 
   function renderCatButtonsPublic(){
     if (!catButtonsEl) return;
-    if (catTopEl) catTopEl.style.display = currentCategories.length ? '' : 'none';
+    // Mientras la nube no ha respondido todavía (cloudLoaded === false) se
+    // mantiene visible por defecto, para no ocultar/mostrar de golpe un
+    // bloque que sí tiene categorías guardadas. Solo se oculta una vez
+    // confirmado (cloudLoaded === true) que de verdad no hay ninguna.
+    if (catTopEl) catTopEl.style.display = (!cloudLoaded || currentCategories.length) ? '' : 'none';
     catButtonsEl.innerHTML = currentCategories.map(c =>
       '<button type="button" class="as-cat-btn" data-id="' + escapeAttr(c.id) + '">' + escapeHtml(c.label || 'Sin nombre') + '</button>'
     ).join('');
@@ -259,7 +272,8 @@
   // Se dispara en cuanto se registra (con lo que haya en caché, aunque
   // sea vacío) y de nuevo cada vez que llega un cambio real de Firestore.
   if (window.CloudDB){
-    window.CloudDB.onContentChange((data) => {
+    window.CloudDB.onContentChange((data, loaded) => {
+      cloudLoaded = !!loaded;
       currentCategories = Array.isArray(data.projectCategories) ? data.projectCategories : [];
       renderCatButtonsPublic();
       // Mismo patrón que el resto de editores de esta web (parejas del
@@ -269,6 +283,7 @@
       fillCatEditor();
     });
   } else {
+    cloudLoaded = true; // sin CloudDB no hay nube que esperar, no hay "cargando" que respetar
     renderCatButtonsPublic();
     fillCatEditor();
   }
