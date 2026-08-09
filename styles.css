@@ -223,6 +223,13 @@
     width:15%;
     pointer-events:none;
     z-index:5;
+    /* Desenfoque real de lo que hay justo detrás (el propio borde de la
+       foto), no solo un fundido de color: así el corte se percibe
+       claramente disuelto/borroso, no solo "tapado" por un velo blanco.
+       -webkit- para Safari/iOS, donde backdrop-filter necesita el
+       prefijo. */
+    -webkit-backdrop-filter:blur(14px);
+    backdrop-filter:blur(14px);
   }
   .scene-pin-fade-left{
     left:0;
