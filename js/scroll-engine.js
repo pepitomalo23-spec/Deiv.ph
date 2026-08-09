@@ -15,6 +15,7 @@
   // lleva justo debajo su equivalente para proyectosHeaderEl.
   const proyectosHeaderEl = document.getElementById('proyectosHeader');
   const menuToggleBtn = document.getElementById('menuToggle');
+  const socialIconsEl = document.getElementById('socialIcons');
   const sceneProgress = document.getElementById('sceneProgress');
   const themeColorMeta = document.getElementById('themeColorMeta');
   const sceneTitle = document.getElementById('sceneTitle');
@@ -1934,11 +1935,13 @@
     waitForSiteAssets().then(() => {
       if (loaderSpinner) loaderSpinner.classList.remove('is-visible');
       loader.style.opacity = '0';
-      // La hamburguesa se mantenía oculta durante toda la pantalla de
+      // La hamburguesa (y los botones de correo/Instagram, mismo
+      // mecanismo) se mantenían ocultos durante toda la pantalla de
       // carga (ver clase inicial "intro-hidden" en el HTML); en cuanto
       // esa pantalla empieza a desvanecerse, ya estamos "dentro" de la
-      // web propiamente dicha, así que se muestra.
+      // web propiamente dicha, así que se muestran.
       if (menuToggleBtn) menuToggleBtn.classList.remove('intro-hidden');
+      if (socialIconsEl) socialIconsEl.classList.remove('intro-hidden');
       setTimeout(() => { loader.style.display = 'none'; }, 500);
     });
   });
