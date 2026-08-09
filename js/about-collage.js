@@ -1,9 +1,7 @@
 (function(){
   const MAX_COLLAGE = 6;
 
-  const collageGrid   = document.getElementById('aboutCollageGrid');
-  const collageHint   = document.getElementById('aboutCollageHint');
-  const goAjustesBtn  = document.getElementById('aboutCollageGoAjustes');
+  const collagePlaceholderWrap = document.getElementById('aboutCollage');
 
   const fileInput   = document.getElementById('ajustesCollageFileInput');
   const uploader    = document.getElementById('ajustesCollageUploader');
@@ -48,28 +46,35 @@
   }
 
   // ---- Collage en "Sobre mí" ----
+  // Antes: mosaico fijo de recortes cuadrados, todos visibles de golpe al
+  // entrar. Ahora: las fotos se muestran ENTERAS (sin recortar) e
+  // intercaladas junto a los párrafos del texto, alternando lado
+  // izquierdo/derecho, y van apareciendo una a una (fundido + deslizamiento)
+  // a medida que se hace scroll y cada una entra en pantalla -en vez de
+  // cargarlas todas ya visibles-. Ver revealObserver más abajo.
+  const aboutBody = document.getElementById('aboutBody');
+
+  function clearInsertedPhotos(){
+    document.querySelectorAll('.about-photo').forEach(el => {
+      if (revealObserver) revealObserver.unobserve(el);
+      el.remove();
+    });
+  }
+
   function renderAboutCollage(){
-    if (!collageGrid) return;
+    if (!collagePlaceholderWrap) return;
     const images = loadImages();
     const isAdmin = !!window.isAdminDevice;
 
-    // Cada número de fotos (1 a 5) tiene su propio mosaico cuidado en CSS
-    // para que en móvil, tablet y escritorio se vea bien repartido y sin
-    // fotos sueltas o descompensadas. Con 6 se usa la cuadrícula base.
-    collageGrid.classList.remove(
-      'about-collage-grid--n1', 'about-collage-grid--n2', 'about-collage-grid--n3',
-      'about-collage-grid--n4', 'about-collage-grid--n5'
-    );
-    if (images.length >= 1 && images.length <= 5){
-      collageGrid.classList.add(`about-collage-grid--n${images.length}`);
-    }
+    clearInsertedPhotos();
 
     if (!images.length){
       // "Ajustes" es solo para el administrador: si no hay fotos, un
       // visitante normal no debe ver ninguna invitación a añadirlas. Al
       // admin sí le mostramos la tarjeta, para que sepa dónde subirlas.
       if (isAdmin){
-        collageGrid.innerHTML = `
+        collagePlaceholderWrap.style.display = '';
+        collagePlaceholderWrap.innerHTML = `
           <div class="about-collage-item is-placeholder" id="aboutCollagePlaceholder">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="8" height="8" rx="1.5"/>
@@ -81,32 +86,64 @@
           </div>`;
         const placeholder = document.getElementById('aboutCollagePlaceholder');
         if (placeholder) placeholder.addEventListener('click', openAjustesCollage);
-        if (collageHint) collageHint.style.display = '';
       } else {
-        collageGrid.innerHTML = '';
-        if (collageHint) collageHint.style.display = 'none';
+        collagePlaceholderWrap.style.display = 'none';
       }
-    } else {
-      collageGrid.innerHTML = images.map(item => `
-        <div class="about-collage-item">
-          <img src="${item.img}" alt="Foto de David" loading="lazy" style="object-position:center ${item.pos ?? 50}%">
-          <span class="about-collage-dot"></span>
-        </div>`).join('');
-      if (collageHint) collageHint.style.display = 'none';
+      return;
     }
 
-    const wrapper = collageGrid.closest('.about-collage');
-    if (wrapper) wrapper.style.display = (!images.length && !isAdmin) ? 'none' : '';
+    collagePlaceholderWrap.style.display = 'none';
+    if (!aboutBody) return;
+
+    const paragraphs = Array.from(aboutBody.querySelectorAll('p[id^="aboutPara"]'));
+
+    images.forEach((item, i) => {
+      const side = (i % 2 === 0) ? 'right' : 'left';
+      const img = document.createElement('img');
+      img.className = `about-photo about-photo--${side}`;
+      img.src = item.img;
+      img.alt = 'Foto de David';
+      img.loading = 'lazy';
+
+      if (i < paragraphs.length){
+        // Se inserta justo ANTES del párrafo correspondiente, como pieza
+        // propia (no floto el texto alrededor a propósito: con párrafos
+        // tan cortos, dos fotos flotando en lados opuestos podían acabar
+        // solapándose). Alineada a un lado u otro por CSS.
+        paragraphs[i].before(img);
+      } else {
+        // Más fotos que párrafos (4ª, 5ª, 6ª): se añaden igual, seguidas,
+        // al final del bloque de texto, siguiendo la misma alternancia.
+        aboutBody.append(img);
+      }
+
+      if (revealObserver) revealObserver.observe(img);
+    });
   }
   window.renderAboutCollage = renderAboutCollage;
+
+  // Aparición al hacer scroll: cada foto empieza en opacity:0 (ver CSS,
+  // estado por defecto) y solo gana la clase "is-visible" -que dispara la
+  // transición de fundido+deslizamiento- cuando entra en el viewport. Se
+  // deja de observar en cuanto aparece una vez (no tiene sentido que se
+  // repita el gesto si el visitante hace scroll arriba y abajo).
+  let revealObserver = null;
+  if ('IntersectionObserver' in window){
+    revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting){
+          entry.target.classList.add('is-visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold:0.15, rootMargin:'0px 0px -8% 0px' });
+  }
 
   function openAjustesCollage(){
     if (typeof window.goToView === 'function') window.goToView('ajustes');
     if (typeof window.setAjustesTab === 'function') window.setAjustesTab('collage');
     if (typeof window.renderAjustesCollageGrid === 'function') window.renderAjustesCollageGrid();
   }
-  if (goAjustesBtn) goAjustesBtn.addEventListener('click', openAjustesCollage);
-
   // ---- Gestión en Ajustes ----
   function renderAjustesCollageGrid(){
     if (!ajustesGrid) return;

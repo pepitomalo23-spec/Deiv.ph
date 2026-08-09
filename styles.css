@@ -995,7 +995,48 @@
     color:var(--dim);
   }
 
-  /* ---------- Sobre mí: collage animado de fotos ---------- */
+  /* ---------- Sobre mí: fotos enteras junto al texto ---------- */
+  /* Cada foto se inserta (ver about-collage.js) justo antes de un
+     párrafo, ENTERA -sin recortar, a diferencia del mosaico anterior que
+     usaba object-fit:cover- y alineada a un lado u otro, alternando.
+     Nace en opacity:0 + desplazada hacia abajo; solo gana ".is-visible"
+     -que dispara el fundido+deslizamiento hacia su sitio- cuando entra en
+     el viewport al hacer scroll (IntersectionObserver, ver JS): así van
+     apareciendo poco a poco, una a una, en vez de cargarse todas de
+     golpe. */
+  .about-photo{
+    display:block;
+    width:64%;
+    max-width:420px;
+    height:auto;
+    border-radius:16px;
+    box-shadow:0 16px 34px rgba(0,0,0,0.16);
+    margin:6px 0 26px;
+    opacity:0;
+    transition:opacity .85s cubic-bezier(.19,1,.22,1), transform .85s cubic-bezier(.19,1,.22,1);
+  }
+  .about-photo--right{
+    margin-left:auto;
+    margin-right:0;
+    transform:translateY(30px) rotate(1.3deg);
+  }
+  .about-photo--left{
+    margin-left:0;
+    margin-right:auto;
+    transform:translateY(30px) rotate(-1.3deg);
+  }
+  .about-photo--right.is-visible{ opacity:1; transform:translateY(0) rotate(1.3deg); }
+  .about-photo--left.is-visible{ opacity:1; transform:translateY(0) rotate(-1.3deg); }
+  @media (max-width:680px){
+    .about-photo{ width:80%; max-width:340px; margin:0 0 22px; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .about-photo{ transition:opacity .3s ease; }
+    .about-photo--right,
+    .about-photo--left{ transform:none; }
+  }
+
+  /* ---------- Sobre mí: tarjeta de invitación (sin fotos propias aún) ---------- */
   .about-collage{
     margin:6px 0 36px;
   }
