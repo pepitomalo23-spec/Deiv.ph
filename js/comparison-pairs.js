@@ -581,7 +581,7 @@
   let expSimSnapshot = null;
   let expSimEls = null;
   const EXP_ZOOM_MIN = 1;
-  const EXP_ZOOM_MAX = 3;
+  const EXP_ZOOM_MAX = 10;
 
   function ensureExpSimModal(){
     if (expSimEls) return expSimEls;
