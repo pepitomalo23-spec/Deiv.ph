@@ -266,7 +266,17 @@
   }
   window.addEventListener('resize', positionEquipoHeader);
 
-  setInterval(() => {
+  // ANTES: setInterval(fn, 40) -> 25 actualizaciones por segundo. La foto
+  // se anima a 60fps (requestAnimationFrame, ver scroll-engine.js), así que
+  // estas etiquetas -que se recolocan justo en base a dónde queda dibujada
+  // la foto en cada fotograma, dx/dy/dw/dh- se quedaban "a la cola" el resto
+  // del tiempo: en el tramo en que la foto se va encogiendo (plano de "solo
+  // cámara" en móvil, justo al llegar/salir de la 3ª posición), su tamaño
+  // cambia en cada uno de los 60 fotogramas por segundo de la foto, pero las
+  // etiquetas solo se ponían al día 25 veces por segundo -> se notaban
+  // pilladas/a saltos en vez de moverse fluidas junto con la foto. Ahora se
+  // recalculan en el mismo requestAnimationFrame, al mismo ritmo exacto.
+  function cameraLabelsLoop(){
     // A diferencia del resto del contenido del sitio (que aparece justo al
     // aterrizar en su parada), este bloque se anticipa: se muestra en
     // cuanto __storyCameraRevealP llega a 1, lo cual ocurre ANTES de que
@@ -284,7 +294,9 @@
     positionCarousel();
     positionCameraNames();
     positionEquipoHeader();
-  }, 40);
+    requestAnimationFrame(cameraLabelsLoop);
+  }
+  requestAnimationFrame(cameraLabelsLoop);
 
   // ---------- Ajustes: subir/quitar imágenes propias ----------
   function renderAjustesGrid(){

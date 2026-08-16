@@ -2008,7 +2008,12 @@
   // Exponemos el paso actual de la historia para que el carrusel de
   // cámaras sepa cuándo mostrarse (solo en el último fotograma, parado).
   window.STORY_LAST_STEP = WAYPOINTS.length - 1;
-  setInterval(() => {
+  // Se publica en el mismo ritmo (requestAnimationFrame, 60fps) al que
+  // ahora lo consume camera-carousel.js: antes esto era un setInterval a
+  // 40ms (25fps) y, aunque el consumidor pasara a 60fps, el valor en sí
+  // solo se ponía al día 25 veces por segundo -de nada sirve leer rápido
+  // un valor que se actualiza despacio-, así que seguía notándose a saltos.
+  function publishStoryState(){
     window.__storyStep = stepIndex;
     window.__storyAnimating = animating;
     // Progreso (0→1) de aparición anticipada del bloque "las dos cámaras":
@@ -2017,5 +2022,7 @@
     // así cubre por igual el salto animado, el arrastre en vivo y el
     // reposo, sin importar cuál de los tres está moviendo la escena.
     window.__storyCameraRevealP = computeCameraRevealP(currentFrameExact);
-  }, 40);
+    requestAnimationFrame(publishStoryState);
+  }
+  requestAnimationFrame(publishStoryState);
 })();
