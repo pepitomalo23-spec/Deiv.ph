@@ -359,19 +359,20 @@
     }
     ctx.globalAlpha = alpha;
     ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
-    // Aclarado del fotograma en la 2ª posición: en vez de ctx.filter (poco
-    // fiable en iOS/Safari -en muchos dispositivos no hace absolutamente
-    // nada-), se superpone un velo blanco semitransparente justo encima de
-    // la foto ya dibujada (mismo rectángulo dx/dy/dw/dh). Esto sí funciona
-    // igual en todos los navegadores, sin depender de soporte de filtros.
-    // photoBrightAmount (0..1) es la misma proximidad a la parada 1 que ya
-    // alimenta el recuadro Antes/Después (ver pushStep1Amount más abajo).
-    if (photoBrightAmount > 0){
-      ctx.globalAlpha = alpha * photoBrightAmount * PHOTO_BRIGHTEN_MAX;
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(dx, dy, dw, dh);
-    }
     ctx.globalAlpha = 1;
+
+    // FIX (flashes/parpadeo grisáceo al entrar/salir de la 2ª posición):
+    // el velo blanco de aclarado ANTES se pintaba aquí mismo, dentro de
+    // drawCover, una vez por cada uno de los dos fotogramas del crossfade
+    // (el "de salida" con alpha=1 y el "entrante" con alpha=frac). Como
+    // render() reinicia "frac" de ~1 a ~0 cada vez que se cruza de un
+    // fotograma al siguiente (son 135 en total), la cantidad de blanco
+    // resultante variaba en diente de sierra, sincronizada con cada salto
+    // de fotograma durante el scroll -eso eran los "mini flashazos"-.
+    // Ahora el velo se aplica una sola vez en render(), sobre el resultado
+    // YA compuesto de los dos fotogramas, con el propio rectángulo de la
+    // foto (ver __photoDX/DW/DY/DH más abajo) y el valor puro de
+    // photoBrightAmount, sin mezclarlo con el alpha del crossfade.
 
     // Se expone dónde ha quedado dibujada la foto en pantalla (en tablet/
     // iPad la imagen se pega a la izquierda, no queda centrada en toda la
@@ -975,6 +976,22 @@
     // crossfade the two nearest frames so individual frames are never "seen" popping in
     drawCover(a, 1, shrinkScale);
     if (frac > 0.001) drawCover(b, frac, shrinkScale);
+
+    // Aclarado del fotograma en la 2ª posición: en vez de ctx.filter (poco
+    // fiable en iOS/Safari -en muchos dispositivos no hace absolutamente
+    // nada-), se superpone un velo blanco semitransparente justo encima de
+    // la foto YA compuesta (crossfade incluido). Esto sí funciona igual en
+    // todos los navegadores, sin depender de soporte de filtros. Se aplica
+    // UNA sola vez por render, con el valor puro de photoBrightAmount (sin
+    // mezclarlo con el alpha del crossfade -eso era lo que causaba el
+    // parpadeo, ver nota en drawCover-), así el aclarado se ve estable
+    // fotograma a fotograma en vez de oscilar.
+    if (photoBrightAmount > 0 && window.__photoDW){
+      ctx.globalAlpha = photoBrightAmount * PHOTO_BRIGHTEN_MAX;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(window.__photoDX, window.__photoDY, window.__photoDW, window.__photoDH);
+      ctx.globalAlpha = 1;
+    }
 
     // El mismo color también alimenta el difuminado inferior (::after de
     // .scene-pin), para que ambos elementos queden fundidos sin costura.
