@@ -1238,7 +1238,16 @@
       // gesto -sea hacia delante o hacia atrás-, así que sirve tal cual
       // para mover el relleno naranja entre fromStep y targetStep.
       updateProgressTrack(fromStep + (targetStep - fromStep) * eased);
-      syncRealScrollForStepPosition(fromStep + (targetStep - fromStep) * eased);
+      // (el scroll real de la página YA NO se sincroniza aquí, fotograma a
+      // fotograma: eso obligaba al navegador a recalcular el layout de toda
+      // la página 60 veces por segundo -un "reflow forzado"-, además de
+      // dibujar el canvas y actualizar el resto de estilos, y era la causa
+      // de que el movimiento se notara a tirones/tramos en vez de fluido.
+      // Ahora el scroll real solo se coloca de golpe al ATERRIZAR, ver
+      // abajo -así ya no compite con el canvas por tiempo de frame-. Esto
+      // significa que la barra de direcciones de Safari ya no se recoge/
+      // despliega en sincronía con el movimiento de las fotos durante el
+      // salto, solo al terminar.
       // "p" aquí ya es el progreso a lo largo del eje baja→alta parada
       // (igual que localP en applySegmentProgress), así que sirve tal
       // cual para el mismo cálculo de difuminado del recuadro Antes/Después.
@@ -1274,6 +1283,10 @@
         render();
         updateCaptionAndHint();
         animating = false;
+        // El scroll real de la página se coloca aquí, de una sola vez, ya
+        // aterrizados en la parada final (ver comentario en el bucle de
+        // arriba sobre por qué ya no se sincroniza fotograma a fotograma).
+        syncRealScrollForStepPosition(targetStep);
         // el aviso de "desliza" se muestra en cualquier parada que no sea la
         // última, para invitar a seguir deslizando
         sceneHint.classList.toggle('visible', stepIndex < WAYPOINTS.length - 1);
