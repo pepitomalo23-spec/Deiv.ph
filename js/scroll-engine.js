@@ -1181,7 +1181,7 @@
   // Una vez arranca, siempre termina el tramo completo hasta la siguiente
   // parada: no hay forma de quedarse a mitad. Mientras "animating" es true
   // se ignora cualquier gesto nuevo.
-  const JUMP_DURATION = 1050;           // tramo 0↔1 (vídeo original)
+  const JUMP_DURATION = 1575;           // tramo 0↔1 (vídeo original) — x1.5 más lento que antes (1050), para que el movimiento se vea bien al dispararse solo (ya no sigue al dedo)
   // Tramo 1↔2 (la continuación, la sección de "los saltos"): una única
   // duración FIJA para ambas direcciones. Da igual lo rápido, lo fuerte o
   // lo brusco que sea el gesto (rueda, trackpad o dedo): el salto siempre
@@ -1196,7 +1196,7 @@
   // duración menor, ese margen se acorta y el aterrizaje se siente mucho
   // más fluido, sin dejar de ser una duración fija (no depende de lo
   // fuerte que se deslice).
-  const JUMP_DURATION_CONTINUATION = 1200;
+  const JUMP_DURATION_CONTINUATION = 1800; // x1.5 más lento que antes (1200), mismo motivo que JUMP_DURATION
   const JUMP_DURATION_CONTINUATION_DOWN = JUMP_DURATION_CONTINUATION; // bajando (avanzando)
   const JUMP_DURATION_CONTINUATION_UP = JUMP_DURATION_CONTINUATION;   // subiendo (retrocediendo)
   let lastJumpDuration = JUMP_DURATION;
@@ -1589,6 +1589,7 @@
   let touchStartY = null;
   let touchStartOffset = 0;
   let touchInPostEnd = false; // true si el gesto empezó ya en la última parada: se sigue el dedo en tiempo real
+  let touchJumpTriggered = false; // true en cuanto este gesto ya disparó su salto animado (fuera del tramo final)
 
   // ---- FIX: no confundir un toque/roce ligero sobre el contenido con un
   // gesto real de scroll ----
@@ -1720,6 +1721,7 @@
     touchInPostEnd = !animating && stepIndex === WAYPOINTS.length - 1;
     touchStartOffset = postEndTarget;
     touchIntentConfirmed = false;
+    touchJumpTriggered = false;
     dragToStep = -1;
     dragTargetP = 0;
     dragDisplayP = 0;
@@ -1761,29 +1763,25 @@
     }
     if (animating || touchStartY === null) return;
 
-    // Fuera del tramo final: seguimiento en vivo del dedo entre la parada
-    // actual y la siguiente/anterior (según la dirección del gesto), con el
-    // mismo mapeo de fotogramas que usa el salto animado, pero con el
-    // límite de velocidad explicado arriba.
+    // Fuera del tramo final: la escena YA NO sigue al dedo en vivo (antes
+    // se arrastraba con dragDisplayP/dragStepLoop, ver más abajo). Ahora,
+    // en cuanto se confirma el gesto (arriba, SCROLL_INTENT_THRESHOLD),
+    // basta con mirar la dirección para disparar el salto animado
+    // COMPLETO -igual que ya hacía la rueda/trackpad en onWheel-, más
+    // despacio que antes (JUMP_DURATION/_CONTINUATION), para que el
+    // movimiento se vea bien aunque el dedo ya no lo acompañe. Solo se
+    // dispara una vez por gesto físico (touchJumpTriggered): el resto de
+    // touchmove de este mismo gesto se ignoran, aunque el dedo se siga
+    // moviendo tras el disparo.
+    if (touchJumpTriggered) return;
+    touchJumpTriggered = true;
+
     const dy = touchStartY - e.touches[0].clientY;
     const dir = dy >= 0 ? 1 : -1;
     const target = stepIndex + dir;
-    if (target < 0 || target > WAYPOINTS.length - 1){
-      // ya no hay más paradas en esa dirección: nada que arrastrar
-      dragToStep = -1;
-      dragTargetP = 0;
-      dragDisplayP = 0;
-      stopDragRaf();
-      return;
-    }
-    if (target !== dragToStep){
-      // cambio de dirección a mitad de gesto: se reinicia el avance
-      // (limitado) desde 0 hacia el nuevo objetivo.
-      dragDisplayP = 0;
-    }
-    dragToStep = target;
-    dragTargetP = Math.max(0, Math.min(1, Math.abs(dy) / DRAG_RANGE()));
-    startDragRafIfNeeded();
+    if (target < 0 || target > WAYPOINTS.length - 1) return; // no hay más paradas en esa dirección
+
+    if (dir > 0) goNext(); else goPrev();
   }
 
   function onTouchEnd(e){
