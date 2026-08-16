@@ -1,6 +1,12 @@
 (function(){
   const canvas = document.getElementById('frameCanvas');
-  const ctx = canvas.getContext('2d', { alpha:false });
+  // "desynchronized:true" saca el <canvas> de la cola de sincronización
+  // normal con el resto de la página, cuando el navegador lo soporta
+  // (Chrome, Safari recientes): reduce la latencia entre "se pinta el
+  // fotograma" y "se ve en pantalla", ayudando a que la animación se sienta
+  // más fluida. Si no está soportado, el navegador simplemente ignora la
+  // opción y usa el comportamiento normal -no rompe nada-.
+  const ctx = canvas.getContext('2d', { alpha:false, desynchronized:true });
   const scenePinFadeRight = document.getElementById('scenePinFadeRight');
   const sceneWrap = document.getElementById('sceneWrap');
   const loader = document.getElementById('loader');
