@@ -2884,7 +2884,8 @@
       margin:0 0 clamp(10px, 2vh, 20px);
     }
     .as-cat-top-title{ font-size:clamp(1.8rem, 2.6vw, 2.4rem); }
-    .as-cat-btn{ font-size:0.95rem; padding:12px 26px; }
+    .as-cat-btn{ font-size:0.72rem; padding:9px 18px; }
+    .as-cat-buttons{ max-width:min(460px, 40vw); }
   }
 
   /* ---------- Botones de categorías de "Proyectos" (Deportes, Fiestas...)
@@ -2895,7 +2896,9 @@
   .as-cat-buttons{
     display:flex;
     flex-wrap:wrap;
-    gap:20px;
+    row-gap:10px;
+    column-gap:10px;
+    max-width:min(380px, calc(100vw - 60px));
   }
   /* Píldoras neumórficas (soft UI), fieles al vídeo de referencia:
      superficie MATE de un solo color (nada de cristal/blur, que
@@ -2908,7 +2911,9 @@
      (--as-cat-surface) es un gris muy claro, casi plano, para que las
      dos sombras (clara/oscura) se noten con fuerza como en el vídeo;
      lo reutiliza también el efecto de "burbuja" al abrir la galería
-     (ver .as-cat-morph). */
+     (ver .as-cat-morph). Tamaño pequeño y compacto a propósito -varias
+     píldoras cortas se leen y distribuyen mejor en varias líneas que
+     pocas píldoras grandes-. */
   .as-cat-btn{
     --as-cat-surface:#eef1f5;
     flex:none;
@@ -2917,33 +2922,33 @@
     background:var(--as-cat-surface);
     color:#3a3f47;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-    font-size:0.85rem;
+    font-size:0.68rem;
     font-weight:700;
     text-transform:uppercase;
-    letter-spacing:0.08em;
-    padding:14px 30px;
+    letter-spacing:0.06em;
+    padding:8px 16px;
     border-radius:999px;
     cursor:pointer;
     touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
     box-shadow:
-      8px 8px 18px rgba(17,24,39,0.28),
-      -8px -8px 18px rgba(255,255,255,0.95);
+      5px 5px 11px rgba(17,24,39,0.26),
+      -5px -5px 11px rgba(255,255,255,0.9);
     transition:color .25s ease, box-shadow .3s ease, transform .18s ease;
   }
   .as-cat-btn:hover{
     color:var(--accent);
-    transform:scale(1.04);
+    transform:scale(1.05);
     box-shadow:
-      9px 9px 20px rgba(17,24,39,0.3),
-      -9px -9px 20px rgba(255,255,255,1);
+      6px 6px 13px rgba(17,24,39,0.28),
+      -6px -6px 13px rgba(255,255,255,0.95);
   }
   .as-cat-btn:active{
     color:var(--accent);
-    transform:scale(0.96);
+    transform:scale(0.95);
     box-shadow:
-      inset 5px 5px 12px rgba(17,24,39,0.3),
-      inset -5px -5px 12px rgba(255,255,255,0.9);
+      inset 3px 3px 8px rgba(17,24,39,0.28),
+      inset -3px -3px 8px rgba(255,255,255,0.85);
   }
   /* Categoría activa (la que tiene su galería abierta ahora mismo):
      se queda "hundida" (inset) y en color de acento aunque el ratón no
@@ -2953,8 +2958,8 @@
   .as-cat-btn.is-active{
     color:var(--accent);
     box-shadow:
-      inset 5px 5px 12px rgba(17,24,39,0.3),
-      inset -5px -5px 12px rgba(255,255,255,0.9);
+      inset 3px 3px 8px rgba(17,24,39,0.28),
+      inset -3px -3px 8px rgba(255,255,255,0.85);
   }
 
   /* ---------- Efecto "burbuja" al abrir una categoría ----------
@@ -2962,22 +2967,32 @@
      divs EXACTAMENTE encima del botón (mismo tamaño/posición/radio) y
      lo anima hasta cubrir toda la pantalla -misma superficie clara del
      neumorfismo (--as-cat-surface)-, tapando el cambio de contenido.
-     Cuando ya cubre todo, se abre la galería (#asCatLightbox) debajo y
-     esta burbuja se desvanece, dando la sensación de que el propio
-     botón "se ha convertido" en la pantalla que aparece. z-index por
-     encima del lightbox (4000) para taparlo mientras crece. */
+     La galería (#asCatLightbox) se abre debajo un poco ANTES de que
+     termine de crecer del todo y la burbuja se desvanece encima con un
+     fundido corto: ese solape es lo que hace que se vea como un único
+     movimiento continuo -burbuja creciendo → contenido apareciendo-, en
+     vez de dos animaciones pegadas con un corte entre medias. Easing
+     "expo-out" (frena mucho al final, como si perdiera energía poco a
+     poco) para que el crecimiento se sienta suave y no mecánico.
+     z-index por encima del lightbox (4000) para taparlo mientras
+     crece. */
   .as-cat-morph{
     position:fixed;
     z-index:4500;
     background:#eef1f5;
+    box-shadow:
+      5px 5px 11px rgba(17,24,39,0.26),
+      -5px -5px 11px rgba(255,255,255,0.9);
     pointer-events:none;
+    will-change:left, top, width, height, border-radius, box-shadow, opacity;
     transition:
-      left .55s cubic-bezier(.65,0,.35,1),
-      top .55s cubic-bezier(.65,0,.35,1),
-      width .55s cubic-bezier(.65,0,.35,1),
-      height .55s cubic-bezier(.65,0,.35,1),
-      border-radius .55s cubic-bezier(.65,0,.35,1),
-      opacity .35s ease;
+      left .62s cubic-bezier(.16,1,.3,1),
+      top .62s cubic-bezier(.16,1,.3,1),
+      width .62s cubic-bezier(.16,1,.3,1),
+      height .62s cubic-bezier(.16,1,.3,1),
+      border-radius .5s cubic-bezier(.16,1,.3,1),
+      box-shadow .5s ease,
+      opacity .45s ease;
   }
   @media (prefers-reduced-motion:reduce){
     .as-cat-morph{ transition-duration:.01s; }

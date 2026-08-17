@@ -89,54 +89,47 @@
 
   // Efecto "burbuja": el botón pulsado crece hasta cubrir toda la
   // pantalla -mismo color de superficie que el propio botón (ver
-  // .as-cat-morph en styles.css)- y, cuando ya la cubre del todo, se
-  // abre la galería debajo y la burbuja se desvanece. Da la sensación
-  // de que el botón "se convierte" en la pantalla que aparece, en vez
-  // de abrirse de golpe. Respeta prefers-reduced-motion (duración casi
-  // nula) para quien prefiera no ver animaciones grandes.
+  // .as-cat-morph en styles.css)-. La galería se abre debajo un poco
+  // ANTES de que la burbuja termine de crecer del todo, y esta empieza
+  // a desvanecerse en ese mismo instante: ese solape (en vez de
+  // esperar a que una animación termine para arrancar la siguiente) es
+  // lo que hace que todo el gesto se sienta como un único movimiento
+  // continuo, no como dos animaciones pegadas con un corte entre
+  // medias. Respeta prefers-reduced-motion (duración casi nula) para
+  // quien prefiera no ver animaciones grandes.
+  const CAT_FX_GROW_MS = 620; // debe coincidir con la duración de left/top/width/height en .as-cat-morph
+  const CAT_FX_REVEAL_AT = 480; // instante -antes de que acabe de crecer- en el que se abre la galería y empieza el fundido
+
   function playCatExpandFx(fromEl){
-    return new Promise((resolve) => {
-      const rect = fromEl.getBoundingClientRect();
-      const morph = document.createElement('div');
-      morph.className = 'as-cat-morph';
-      morph.style.left = rect.left + 'px';
-      morph.style.top = rect.top + 'px';
-      morph.style.width = rect.width + 'px';
-      morph.style.height = rect.height + 'px';
-      morph.style.borderRadius = (rect.height / 2) + 'px';
-      morph.style.opacity = '1';
-      document.body.appendChild(morph);
-      // Fuerza al navegador a registrar la posición/tamaño de arranque
-      // antes de animar a la posición final -si no, salta directamente
-      // al estado final sin transición-.
-      // eslint-disable-next-line no-unused-expressions
-      morph.getBoundingClientRect();
-      requestAnimationFrame(() => {
-        morph.style.left = '0px';
-        morph.style.top = '0px';
-        morph.style.width = '100vw';
-        morph.style.height = '100vh';
-        morph.style.borderRadius = '0px';
-      });
-      let settled = false;
-      const finish = () => {
-        if (settled) return;
-        settled = true;
-        morph.removeEventListener('transitionend', onEnd);
-        resolve(morph);
-      };
-      const onEnd = (ev) => { if (ev.propertyName === 'width') finish(); };
-      morph.addEventListener('transitionend', onEnd);
-      // Red de seguridad por si transitionend no llega (p.ej. pestaña
-      // en segundo plano durante la animación).
-      setTimeout(finish, 700);
+    const rect = fromEl.getBoundingClientRect();
+    const morph = document.createElement('div');
+    morph.className = 'as-cat-morph';
+    morph.style.left = rect.left + 'px';
+    morph.style.top = rect.top + 'px';
+    morph.style.width = rect.width + 'px';
+    morph.style.height = rect.height + 'px';
+    morph.style.borderRadius = (rect.height / 2) + 'px';
+    morph.style.opacity = '1';
+    document.body.appendChild(morph);
+    // Fuerza al navegador a registrar la posición/tamaño de arranque
+    // antes de animar a la posición final -si no, salta directamente
+    // al estado final sin transición-.
+    // eslint-disable-next-line no-unused-expressions
+    morph.getBoundingClientRect();
+    requestAnimationFrame(() => {
+      morph.style.left = '0px';
+      morph.style.top = '0px';
+      morph.style.width = '100vw';
+      morph.style.height = '100vh';
+      morph.style.borderRadius = '0px';
+      morph.style.boxShadow = 'none'; // la sombra de relieve se disuelve mientras crece, para acabar como un panel liso a pantalla completa
     });
+    return morph;
   }
 
-  function fadeOutCatMorph(morph){
-    requestAnimationFrame(() => {
-      morph.style.opacity = '0';
-    });
+  function revealThroughCatMorph(morph, openFn){
+    openFn();
+    requestAnimationFrame(() => { morph.style.opacity = '0'; });
     morph.addEventListener('transitionend', function onFade(ev){
       if (ev.propertyName !== 'opacity') return;
       morph.removeEventListener('transitionend', onFade);
@@ -146,14 +139,13 @@
   }
 
   if (catButtonsEl){
-    catButtonsEl.addEventListener('click', async (e) => {
+    catButtonsEl.addEventListener('click', (e) => {
       const btn = e.target.closest('.as-cat-btn');
       if (!btn) return;
       const cat = currentCategories.find(c => c.id === btn.dataset.id);
       if (!cat) return;
-      const morph = await playCatExpandFx(btn);
-      openLightbox(cat, btn);
-      fadeOutCatMorph(morph);
+      const morph = playCatExpandFx(btn);
+      setTimeout(() => revealThroughCatMorph(morph, () => openLightbox(cat, btn)), CAT_FX_REVEAL_AT);
     });
   }
   if (lightboxCloseBtn) lightboxCloseBtn.addEventListener('click', closeLightbox);
