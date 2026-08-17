@@ -2865,8 +2865,19 @@
     flex-direction:column;
     align-items:flex-start;
     gap:8px;
-    pointer-events:auto;
+    /* BUGFIX: antes tenía pointer-events:auto siempre, sin condición.
+       Al ser position:fixed con coordenadas propias (top/left), ese
+       "auto" incondicional lo dejaba clicable en esa misma esquina de
+       la pantalla en CUALQUIER otra posición del scroll (Fotos, Mis
+       ediciones, etc.), aunque estuviera invisible ahí por el
+       opacity:0 heredado de #proyectosHeader -pointer-events no se
+       "hereda bloqueado" desde el ancestro: un hijo puede reactivarlo
+       igualmente aunque el padre lo tenga en none-. Ahora solo se
+       reactiva cuando el ancestro está realmente visible (clase
+       "visible", la misma que ya sincroniza scroll-engine.js). */
+    pointer-events:none;
   }
+  .proyectos-header.visible .as-cat-top{ pointer-events:auto; }
   .as-cat-top-title{
     margin:0;
     font-family:'Fraunces','Georgia',serif;
@@ -3017,7 +3028,14 @@
      así el recorte de cada foto es exactamente igual en todos los
      dispositivos. Con min(360px, 92vw) solo se encoge en los móviles más
      estrechos que 391px (391*0.92≈360), lo justo para no desbordar. */
-  .as-expand{ width:min(360px, 92vw); margin-top:clamp(4px, 1vh, 12px); pointer-events:auto; }
+  /* BUGFIX: mismo problema que .as-cat-top de arriba -pointer-events:auto
+     incondicional sobre un bloque que cuelga siempre de #proyectosHeader
+     (position:fixed en móvil vía display:contents del padre)-: quedaba
+     clicable en su rincón de pantalla aunque #proyectosHeader estuviera
+     invisible en otra posición del scroll. Se gatilla igual que
+     .as-cat-top, solo con el ancestro visible. */
+  .as-expand{ width:min(360px, 92vw); margin-top:clamp(4px, 1vh, 12px); pointer-events:none; }
+  .proyectos-header.visible .as-expand{ pointer-events:auto; }
   .as-expand-grid{
     display:flex;
     gap:8px;

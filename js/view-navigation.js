@@ -19,6 +19,23 @@
   const sceneTitle = document.getElementById('sceneTitle');
   const sceneHint = document.getElementById('sceneHint');
   const sceneProgress = document.getElementById('sceneProgress');
+  // BUGFIX: estos bloques (correo/Instagram, título "Ediciones" + sus
+  // botones, "Proyectos", "Mis ediciones" y el carrusel de cámaras) viven
+  // FUERA de #sceneWrap, como position:fixed propios a la altura de
+  // <body> (ver index.html) -por eso antes, al entrar en Ajustes o Sobre
+  // mí, solo se ocultaba sceneWrap/sceneTitle/sceneHint/sceneProgress y
+  // estos otros se quedaban colgados encima de esas vistas, visibles y
+  // -en los que tenían pointer-events:auto propio, como el correo/
+  // Instagram o los botones de categorías- también clicables, aunque no
+  // tuviera sentido ahí. Se agrupan aquí para ocultarlos/mostrarlos en
+  // bloque junto con el resto de la escena.
+  const sceneOverlayEls = [
+    document.getElementById('socialIcons'),
+    document.getElementById('equipoHeader'),
+    document.getElementById('proyectosHeader'),
+    document.getElementById('afterStoryHeader'),
+    document.getElementById('cameraCarousel')
+  ].filter(Boolean);
 
   let toastTimer = null;
 
@@ -77,6 +94,15 @@
     sceneTitle.style.display = showingResumen ? '' : 'none';
     sceneHint.style.display = showingResumen ? '' : 'none';
     if (sceneProgress) sceneProgress.style.display = showingResumen ? '' : 'none';
+    // BUGFIX (ver comentario junto a sceneOverlayEls más arriba): sin
+    // esto, correo/Instagram, "Ediciones"+categorías, "Proyectos", "Mis
+    // ediciones" y el carrusel de cámaras se quedaban visibles -y los
+    // que tienen su propio pointer-events:auto, también clicables-
+    // encima de Ajustes o Sobre mí. display:none los saca del todo,
+    // tanto visual como de interacción, pase lo que pase con su
+    // opacity/pointer-events internos (que gestiona scroll-engine.js
+    // para dentro de "resumen").
+    sceneOverlayEls.forEach(el => { el.style.display = showingResumen ? '' : 'none'; });
 
     viewSobreMi.classList.toggle('active', view === 'sobre-mi');
     viewAjustes.classList.toggle('active', view === 'ajustes');

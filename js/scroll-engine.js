@@ -1336,8 +1336,17 @@
         if (socialIconsEl){
           // Mismo FIX que proyectosHeaderEl: updateSocialFade también fija
           // style.opacity por JS, así que se fuerza el valor final aquí.
+          // BUGFIX: updateSocialFade también fija style.pointerEvents
+          // durante el arrastre, pero aquí -al ATERRIZAR en una parada,
+          // por ejemplo tras un salto directo del menú sin arrastre de
+          // por medio- solo se corregía el opacity y no el pointerEvents,
+          // así que un valor "auto" que hubiera quedado fijado desde un
+          // arrastre anterior podía sobrevivir en paradas donde el correo
+          // e Instagram ya estaban invisibles (opacity 0) pero seguían
+          // siendo clicables. Se fuerza aquí también, igual que opacity.
           socialIconsEl.classList.toggle('visible', stepIndex === 0); // Correo/Instagram solo en la 1ª posición
           socialIconsEl.style.opacity = stepIndex === 0 ? '1' : '0';
+          socialIconsEl.style.pointerEvents = stepIndex === 0 ? 'auto' : 'none';
         }
         updateEndOfPathUI();
 
@@ -1532,8 +1541,17 @@
         if (socialIconsEl){
           // Mismo FIX que proyectosHeaderEl: updateSocialFade también fija
           // style.opacity por JS, así que se fuerza el valor final aquí.
+          // BUGFIX: updateSocialFade también fija style.pointerEvents
+          // durante el arrastre, pero aquí -al ATERRIZAR en una parada,
+          // por ejemplo tras un salto directo del menú sin arrastre de
+          // por medio- solo se corregía el opacity y no el pointerEvents,
+          // así que un valor "auto" que hubiera quedado fijado desde un
+          // arrastre anterior podía sobrevivir en paradas donde el correo
+          // e Instagram ya estaban invisibles (opacity 0) pero seguían
+          // siendo clicables. Se fuerza aquí también, igual que opacity.
           socialIconsEl.classList.toggle('visible', stepIndex === 0); // Correo/Instagram solo en la 1ª posición
           socialIconsEl.style.opacity = stepIndex === 0 ? '1' : '0';
+          socialIconsEl.style.pointerEvents = stepIndex === 0 ? 'auto' : 'none';
         }
         updateEndOfPathUI();
         if (pendingDir !== 0){
