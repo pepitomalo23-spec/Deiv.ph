@@ -2697,8 +2697,23 @@
     -webkit-overflow-scrolling:touch;
     padding:56px 20px 28px;
     box-sizing:border-box;
+    opacity:0;
+    transform:scale(0.94);
+    transition:opacity .48s cubic-bezier(.16,1,.3,1), transform .48s cubic-bezier(.16,1,.3,1);
   }
   .as-cat-lightbox.is-open{ display:flex; }
+  /* project-categories.js añade "is-visible" un instante después de
+     "is-open" -truco necesario porque display:none no se puede
+     transicionar: primero se pasa a flex (invisible), y ya en el
+     siguiente frame se anima a opacidad 1 y escala normal, para que la
+     entrada se vea suave en vez de aparecer de golpe-. Al cerrar se
+     hace lo mismo al revés: se quita "is-visible" (se desvanece) y solo
+     cuando termina esa transición se quita "is-open" (vuelve a
+     display:none). */
+  .as-cat-lightbox.is-open.is-visible{ opacity:1; transform:scale(1); }
+  @media (prefers-reduced-motion:reduce){
+    .as-cat-lightbox{ transition-duration:.01s; }
+  }
   body.as-cat-lightbox-open{ overflow:hidden; }
   .as-cat-lightbox-close{
     position:fixed;
@@ -2962,40 +2977,26 @@
       inset -3px -3px 8px rgba(255,255,255,0.85);
   }
 
-  /* ---------- Efecto "burbuja" al abrir una categoría ----------
-     Al tocar un .as-cat-btn, project-categories.js crea uno de estos
-     divs EXACTAMENTE encima del botón (mismo tamaño/posición/radio) y
-     lo anima hasta cubrir toda la pantalla -misma superficie clara del
-     neumorfismo (--as-cat-surface)-, tapando el cambio de contenido.
-     La galería (#asCatLightbox) se abre debajo un poco ANTES de que
-     termine de crecer del todo y la burbuja se desvanece encima con un
-     fundido corto: ese solape es lo que hace que se vea como un único
-     movimiento continuo -burbuja creciendo → contenido apareciendo-, en
-     vez de dos animaciones pegadas con un corte entre medias. Easing
-     "expo-out" (frena mucho al final, como si perdiera energía poco a
-     poco) para que el crecimiento se sienta suave y no mecánico.
-     z-index por encima del lightbox (4000) para taparlo mientras
-     crece. */
-  .as-cat-morph{
-    position:fixed;
-    z-index:4500;
-    background:#eef1f5;
-    box-shadow:
-      5px 5px 11px rgba(17,24,39,0.26),
-      -5px -5px 11px rgba(255,255,255,0.9);
+  /* ---------- Efecto al pulsar una categoría: el BOTÓN se "implosiona"
+     (se encoge sobre sí mismo y desaparece), sin que el resto de la
+     página se mueva ni haga zoom en ningún momento -a diferencia de una
+     burbuja que crece cubriendo toda la pantalla, aquí la animación se
+     queda contenida en el propio botón-. La galería aparece justo
+     después con su propio fundido+escala suave (ver
+     .as-cat-lightbox.is-visible más arriba). Pequeño "squish" hacia
+     fuera antes de encogerse (35%) para que se sienta vivo y no
+     mecánico. */
+  @keyframes asCatImplode{
+    0%{ transform:scale(1); opacity:1; }
+    35%{ transform:scale(1.12); opacity:1; }
+    100%{ transform:scale(0); opacity:0; }
+  }
+  .as-cat-btn.is-launching{
+    animation:asCatImplode .42s cubic-bezier(.4,0,.2,1) forwards;
     pointer-events:none;
-    will-change:left, top, width, height, border-radius, box-shadow, opacity;
-    transition:
-      left .62s cubic-bezier(.16,1,.3,1),
-      top .62s cubic-bezier(.16,1,.3,1),
-      width .62s cubic-bezier(.16,1,.3,1),
-      height .62s cubic-bezier(.16,1,.3,1),
-      border-radius .5s cubic-bezier(.16,1,.3,1),
-      box-shadow .5s ease,
-      opacity .45s ease;
   }
   @media (prefers-reduced-motion:reduce){
-    .as-cat-morph{ transition-duration:.01s; }
+    .as-cat-btn.is-launching{ animation-duration:.01s; }
   }
 
   /* ---------- Galería que se expande (tarjetas estrechas -> foto grande

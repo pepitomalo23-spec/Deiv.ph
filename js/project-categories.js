@@ -68,6 +68,17 @@
     lightboxEl.classList.add('is-open');
     lightboxEl.setAttribute('aria-hidden', 'false');
     document.body.classList.add('as-cat-lightbox-open');
+    // "is-visible" se añade un frame después de "is-open" a propósito:
+    // display:none → flex no se puede animar, así que primero se pasa a
+    // flex (todavía con opacity:0/scale menor, ver CSS) y solo en el
+    // siguiente frame se activa la transición a opacidad 1 y escala
+    // normal, para que la entrada se vea como un fundido+acercamiento
+    // suave en vez de un cambio brusco. Doble rAF (en vez de uno solo)
+    // para asegurar que el navegador ya ha pintado el frame "de partida"
+    // antes de animar.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => lightboxEl.classList.add('is-visible'));
+    });
     // Resalta en naranja el botón de la categoría que está abierta ahora
     // mismo (ver .as-cat-btn.is-active en styles.css), y quita ese
     // resalte de cualquier otro botón que lo tuviera puesto.
@@ -79,73 +90,44 @@
 
   function closeLightbox(){
     if (!lightboxEl) return;
-    lightboxEl.classList.remove('is-open');
+    lightboxEl.classList.remove('is-visible');
     lightboxEl.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('as-cat-lightbox-open');
     if (catButtonsEl){
       catButtonsEl.querySelectorAll('.as-cat-btn.is-active').forEach(el => el.classList.remove('is-active'));
     }
-  }
-
-  // Efecto "burbuja": el botón pulsado crece hasta cubrir toda la
-  // pantalla -mismo color de superficie que el propio botón (ver
-  // .as-cat-morph en styles.css)-. La galería se abre debajo un poco
-  // ANTES de que la burbuja termine de crecer del todo, y esta empieza
-  // a desvanecerse en ese mismo instante: ese solape (en vez de
-  // esperar a que una animación termine para arrancar la siguiente) es
-  // lo que hace que todo el gesto se sienta como un único movimiento
-  // continuo, no como dos animaciones pegadas con un corte entre
-  // medias. Respeta prefers-reduced-motion (duración casi nula) para
-  // quien prefiera no ver animaciones grandes.
-  const CAT_FX_GROW_MS = 620; // debe coincidir con la duración de left/top/width/height en .as-cat-morph
-  const CAT_FX_REVEAL_AT = 480; // instante -antes de que acabe de crecer- en el que se abre la galería y empieza el fundido
-
-  function playCatExpandFx(fromEl){
-    const rect = fromEl.getBoundingClientRect();
-    const morph = document.createElement('div');
-    morph.className = 'as-cat-morph';
-    morph.style.left = rect.left + 'px';
-    morph.style.top = rect.top + 'px';
-    morph.style.width = rect.width + 'px';
-    morph.style.height = rect.height + 'px';
-    morph.style.borderRadius = (rect.height / 2) + 'px';
-    morph.style.opacity = '1';
-    document.body.appendChild(morph);
-    // Fuerza al navegador a registrar la posición/tamaño de arranque
-    // antes de animar a la posición final -si no, salta directamente
-    // al estado final sin transición-.
-    // eslint-disable-next-line no-unused-expressions
-    morph.getBoundingClientRect();
-    requestAnimationFrame(() => {
-      morph.style.left = '0px';
-      morph.style.top = '0px';
-      morph.style.width = '100vw';
-      morph.style.height = '100vh';
-      morph.style.borderRadius = '0px';
-      morph.style.boxShadow = 'none'; // la sombra de relieve se disuelve mientras crece, para acabar como un panel liso a pantalla completa
-    });
-    return morph;
-  }
-
-  function revealThroughCatMorph(morph, openFn){
-    openFn();
-    requestAnimationFrame(() => { morph.style.opacity = '0'; });
-    morph.addEventListener('transitionend', function onFade(ev){
+    // Espera a que termine el fundido de salida antes de quitar
+    // "is-open" (lo que vuelve a poner display:none) -si se quitara ya
+    // mismo, el cierre se vería de golpe en vez de con el mismo fundido
+    // suave que la apertura-.
+    const onFadeOut = (ev) => {
       if (ev.propertyName !== 'opacity') return;
-      morph.removeEventListener('transitionend', onFade);
-      morph.remove();
-    });
-    setTimeout(() => morph.remove(), 900);
+      lightboxEl.removeEventListener('transitionend', onFadeOut);
+      lightboxEl.classList.remove('is-open');
+    };
+    lightboxEl.addEventListener('transitionend', onFadeOut);
+    setTimeout(() => lightboxEl.classList.remove('is-open'), 600);
   }
+
+  // Efecto al pulsar una categoría: el BOTÓN se implosiona -se encoge
+  // sobre sí mismo y desaparece- sin que el resto de la página se mueva
+  // ni haga zoom en ningún momento (ver @keyframes asCatImplode y
+  // .as-cat-btn.is-launching en styles.css). La galería aparece justo
+  // después con su propio fundido+escala suave. Un pequeño solape entre
+  // ambas -abrir la galería un poco antes de que termine del todo la
+  // implosión- evita que se note un corte entre las dos animaciones.
+  const CAT_IMPLODE_MS = 420; // debe coincidir con la duración de @keyframes asCatImplode
+  const CAT_REVEAL_AT = 260; // instante -antes de que el botón acabe de implosionar- en el que se abre la galería
 
   if (catButtonsEl){
     catButtonsEl.addEventListener('click', (e) => {
       const btn = e.target.closest('.as-cat-btn');
-      if (!btn) return;
+      if (!btn || btn.classList.contains('is-launching')) return;
       const cat = currentCategories.find(c => c.id === btn.dataset.id);
       if (!cat) return;
-      const morph = playCatExpandFx(btn);
-      setTimeout(() => revealThroughCatMorph(morph, () => openLightbox(cat, btn)), CAT_FX_REVEAL_AT);
+      btn.classList.add('is-launching');
+      btn.addEventListener('animationend', () => btn.classList.remove('is-launching'), { once:true });
+      setTimeout(() => openLightbox(cat, btn), CAT_REVEAL_AT);
     });
   }
   if (lightboxCloseBtn) lightboxCloseBtn.addEventListener('click', closeLightbox);
