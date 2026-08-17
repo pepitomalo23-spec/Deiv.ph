@@ -285,6 +285,23 @@
     // computeCameraRevealP en scroll-engine.js-.
     const show = window.currentView === 'resumen'
       && (window.__storyCameraRevealP || 0) >= 1;
+    const wasVisible = cameraCarousel.classList.contains('visible');
+    if (show && !wasVisible){
+      // FIX (flash al empezar a deslizar tras llegar a la 3ª posición): el
+      // carrusel entra con una transición CSS de transform de 0.3s (ver
+      // .camera-carousel en styles.css). Si el usuario empieza a deslizar
+      // hacia abajo (scroll "post-fin") ANTES de que esa animación de
+      // entrada termine, scroll-engine.js corta la transición de golpe
+      // (transitionProperty='opacity', quita 'transform' de la lista) para
+      // que el arrastre se note al instante -pero eso hacía que el
+      // transform saltase en seco desde donde iba a mitad de la animación
+      // hasta su valor final, viéndose como un pequeño flash/tirón, una
+      // sola vez. Aquí anotamos hasta cuándo dura esa entrada
+      // (__carouselEntranceUntil, leído en applyPostEndOffset) para que
+      // scroll-engine.js espere a que termine antes de cortar la
+      // transición.
+      window.__carouselEntranceUntil = performance.now() + 320;
+    }
     cameraCarousel.classList.toggle('visible', show);
     if (equipoTitle) equipoTitle.classList.toggle('visible', show);
     const equipoSubtitle = document.getElementById('equipoSubtitle');
