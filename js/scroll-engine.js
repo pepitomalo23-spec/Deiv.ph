@@ -621,7 +621,13 @@
     // .camera-carousel.visible), así conserva su centrado y su animación
     // de entrada, y solo añadimos el desplazamiento vertical del scroll.
     if (cameraCarouselEl){
-      cameraCarouselEl.style.transitionProperty = 'opacity'; // el desplazamiento debe notarse al instante, sin retraso
+      // Ver el FIX en camera-carousel.js (__carouselEntranceUntil): no se
+      // corta la transición de "transform" mientras la animación de
+      // entrada del carrusel (0.3s, ver CSS) todavía pueda estar en
+      // marcha, para que nunca se corte en seco a mitad de camino.
+      if (performance.now() >= (window.__carouselEntranceUntil || 0)){
+        cameraCarouselEl.style.transitionProperty = 'opacity'; // el desplazamiento debe notarse al instante, sin retraso
+      }
       cameraCarouselEl.style.setProperty('--pe', postEndOffset + 'px');
     }
     // El título "Mi material de trabajo" es parte del mismo bloque final que
