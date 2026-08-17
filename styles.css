@@ -2895,52 +2895,55 @@
   .as-cat-buttons{
     display:flex;
     flex-wrap:wrap;
-    gap:18px;
+    gap:20px;
   }
-  /* Píldoras neumórficas (soft UI): fondo cristal (glass) igual que antes
-     -para que sigan leyéndose sobre la foto de fondo- pero con la típica
-     sombra doble del neumorfismo (una oscura abajo-derecha + una clara
-     arriba-izquierda) que da sensación de relieve. Al pasar el ratón/tocar
-     y en la categoría activa, la sombra se invierte hacia dentro (inset),
-     como si el botón se "hundiera" al pulsarlo -mismo efecto que
-     div.circle:hover:before del ejemplo de referencia-. */
+  /* Píldoras neumórficas (soft UI), fieles al vídeo de referencia:
+     superficie MATE de un solo color (nada de cristal/blur, que
+     deslavaba la sombra y no dejaba ver el relieve) + sombra doble
+     grande y suave (una oscura abajo-derecha + una clara arriba-
+     izquierda) típica del neumorfismo. Al pasar el ratón/tocar y en la
+     categoría activa, la sombra se invierte hacia dentro (inset), como
+     si el botón se "hundiera" al pulsarlo -mismo patrón que
+     div.circle:hover:before del vídeo-. El color de superficie
+     (--as-cat-surface) es un gris muy claro, casi plano, para que las
+     dos sombras (clara/oscura) se noten con fuerza como en el vídeo;
+     lo reutiliza también el efecto de "burbuja" al abrir la galería
+     (ver .as-cat-morph). */
   .as-cat-btn{
+    --as-cat-surface:#eef1f5;
     flex:none;
     position:relative;
     border:none;
-    background:rgba(255,255,255,0.55);
-    -webkit-backdrop-filter:blur(10px) saturate(160%);
-    backdrop-filter:blur(10px) saturate(160%);
-    color:#111111;
+    background:var(--as-cat-surface);
+    color:#3a3f47;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-    font-size:0.82rem;
+    font-size:0.85rem;
     font-weight:700;
     text-transform:uppercase;
     letter-spacing:0.08em;
-    padding:9px 22px;
+    padding:14px 30px;
     border-radius:999px;
     cursor:pointer;
     touch-action:manipulation;
     -webkit-tap-highlight-color:transparent;
     box-shadow:
-      5px 5px 12px rgba(17,17,17,0.28),
-      -5px -5px 12px rgba(255,255,255,0.75);
-    transition:background .25s ease, color .25s ease, box-shadow .3s ease,
-      transform .18s ease;
+      8px 8px 18px rgba(17,24,39,0.28),
+      -8px -8px 18px rgba(255,255,255,0.95);
+    transition:color .25s ease, box-shadow .3s ease, transform .18s ease;
   }
   .as-cat-btn:hover{
     color:var(--accent);
-    transform:translateY(-1px) scale(1.03);
+    transform:scale(1.04);
     box-shadow:
-      6px 6px 14px rgba(17,17,17,0.3),
-      -6px -6px 14px rgba(255,255,255,0.8);
+      9px 9px 20px rgba(17,24,39,0.3),
+      -9px -9px 20px rgba(255,255,255,1);
   }
   .as-cat-btn:active{
     color:var(--accent);
-    transform:translateY(0) scale(0.96);
+    transform:scale(0.96);
     box-shadow:
-      inset 3px 3px 8px rgba(17,17,17,0.3),
-      inset -3px -3px 8px rgba(255,255,255,0.7);
+      inset 5px 5px 12px rgba(17,24,39,0.3),
+      inset -5px -5px 12px rgba(255,255,255,0.9);
   }
   /* Categoría activa (la que tiene su galería abierta ahora mismo):
      se queda "hundida" (inset) y en color de acento aunque el ratón no
@@ -2950,8 +2953,34 @@
   .as-cat-btn.is-active{
     color:var(--accent);
     box-shadow:
-      inset 3px 3px 8px rgba(17,17,17,0.3),
-      inset -3px -3px 8px rgba(255,255,255,0.7);
+      inset 5px 5px 12px rgba(17,24,39,0.3),
+      inset -5px -5px 12px rgba(255,255,255,0.9);
+  }
+
+  /* ---------- Efecto "burbuja" al abrir una categoría ----------
+     Al tocar un .as-cat-btn, project-categories.js crea uno de estos
+     divs EXACTAMENTE encima del botón (mismo tamaño/posición/radio) y
+     lo anima hasta cubrir toda la pantalla -misma superficie clara del
+     neumorfismo (--as-cat-surface)-, tapando el cambio de contenido.
+     Cuando ya cubre todo, se abre la galería (#asCatLightbox) debajo y
+     esta burbuja se desvanece, dando la sensación de que el propio
+     botón "se ha convertido" en la pantalla que aparece. z-index por
+     encima del lightbox (4000) para taparlo mientras crece. */
+  .as-cat-morph{
+    position:fixed;
+    z-index:4500;
+    background:#eef1f5;
+    pointer-events:none;
+    transition:
+      left .55s cubic-bezier(.65,0,.35,1),
+      top .55s cubic-bezier(.65,0,.35,1),
+      width .55s cubic-bezier(.65,0,.35,1),
+      height .55s cubic-bezier(.65,0,.35,1),
+      border-radius .55s cubic-bezier(.65,0,.35,1),
+      opacity .35s ease;
+  }
+  @media (prefers-reduced-motion:reduce){
+    .as-cat-morph{ transition-duration:.01s; }
   }
 
   /* ---------- Galería que se expande (tarjetas estrechas -> foto grande
