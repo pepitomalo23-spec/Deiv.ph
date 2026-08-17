@@ -1319,8 +1319,26 @@
         // el aviso de "desliza" se muestra en cualquier parada que no sea la
         // última, para invitar a seguir deslizando
         sceneHint.classList.toggle('visible', stepIndex < WAYPOINTS.length - 1);
-        if (proyectosHeaderEl) proyectosHeaderEl.classList.toggle('visible', stepIndex === 1); // Proyectos ahora en la 2ª posición, no la 1ª
-        if (socialIconsEl) socialIconsEl.classList.toggle('visible', stepIndex === 0); // Correo/Instagram solo en la 1ª posición
+        if (proyectosHeaderEl){
+          // FIX (Proyectos/"Ediciones" se quedaba pegado encima del
+          // carrusel o de "Mis ediciones"): updateProyectosFade fija
+          // style.opacity por JS en cada fotograma mientras dura el
+          // gesto -y un opacity puesto por JS siempre gana a la regla
+          // .visible de CSS-. Si un gesto rápido encadena varias paradas
+          // seguidas sin pausa, esa animación podía interrumpirse antes
+          // de llegar exactamente a 0, dejando un valor intermedio
+          // "pegado" que ninguna clase CSS podía ya corregir. Aquí, al
+          // aterrizar, se fija el valor final explícitamente (0 o 1) sin
+          // depender de dónde se quedara la última curva a medias.
+          proyectosHeaderEl.classList.toggle('visible', stepIndex === 1); // Proyectos ahora en la 2ª posición, no la 1ª
+          proyectosHeaderEl.style.opacity = stepIndex === 1 ? '1' : '0';
+        }
+        if (socialIconsEl){
+          // Mismo FIX que proyectosHeaderEl: updateSocialFade también fija
+          // style.opacity por JS, así que se fuerza el valor final aquí.
+          socialIconsEl.classList.toggle('visible', stepIndex === 0); // Correo/Instagram solo en la 1ª posición
+          socialIconsEl.style.opacity = stepIndex === 0 ? '1' : '0';
+        }
         updateEndOfPathUI();
 
         // Si durante esta animación llegó otro gesto (deslizar rápido), se
@@ -1505,8 +1523,18 @@
         updateCaptionAndHint();
         animating = false;
         sceneHint.classList.toggle('visible', stepIndex < WAYPOINTS.length - 1);
-        if (proyectosHeaderEl) proyectosHeaderEl.classList.toggle('visible', stepIndex === 1); // Proyectos ahora en la 2ª posición, no la 1ª
-        if (socialIconsEl) socialIconsEl.classList.toggle('visible', stepIndex === 0); // Correo/Instagram solo en la 1ª posición
+        if (proyectosHeaderEl){
+          // Mismo FIX que en jumpTo (ver comentario largo ahí): se fuerza
+          // el opacity final explícito, no solo la clase visible.
+          proyectosHeaderEl.classList.toggle('visible', stepIndex === 1); // Proyectos ahora en la 2ª posición, no la 1ª
+          proyectosHeaderEl.style.opacity = stepIndex === 1 ? '1' : '0';
+        }
+        if (socialIconsEl){
+          // Mismo FIX que proyectosHeaderEl: updateSocialFade también fija
+          // style.opacity por JS, así que se fuerza el valor final aquí.
+          socialIconsEl.classList.toggle('visible', stepIndex === 0); // Correo/Instagram solo en la 1ª posición
+          socialIconsEl.style.opacity = stepIndex === 0 ? '1' : '0';
+        }
         updateEndOfPathUI();
         if (pendingDir !== 0){
           const dir = pendingDir;
