@@ -68,7 +68,7 @@
       return;
     }
 
-    miniFloatWrap.style.display = '';
+    miniFloatWrap.style.display = 'block';
     const count = images.length;
     miniFloatWrap.innerHTML = `
       <div class="mini-float-stage" id="miniFloatStage">
