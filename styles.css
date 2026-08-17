@@ -995,6 +995,15 @@
     margin:0 0 10px;
     perspective:1200px;
     overflow:hidden;
+    /* Antes el contenedor cortaba las fotos laterales en seco al llegar
+       al borde (overflow:hidden hace falta para que no rompan el
+       layout ni generen scroll horizontal). Con esta máscara, en vez de
+       un corte recto, el contenido se desvanece de forma gradual hacia
+       los bordes izquierdo/derecho, así el difuminado de las fotos
+       secundarias se funde con el fondo en vez de chocar contra un
+       rectángulo visible. */
+    -webkit-mask-image:linear-gradient(to right, transparent 0%, #000 16%, #000 84%, transparent 100%);
+    mask-image:linear-gradient(to right, transparent 0%, #000 16%, #000 84%, transparent 100%);
   }
   .about-mini-float::before{
     /* halo suave detrás del carrusel, con el color de acento, para dar
