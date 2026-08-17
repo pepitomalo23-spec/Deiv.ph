@@ -276,6 +276,29 @@
   // etiquetas solo se ponían al día 25 veces por segundo -> se notaban
   // pilladas/a saltos en vez de moverse fluidas junto con la foto. Ahora se
   // recalculan en el mismo requestAnimationFrame, al mismo ritmo exacto.
+  // FIX ("desaparece por milésimas, pero vuelve" al llegar a la 3ª
+  // posición): __storyCameraRevealP lo publica un bucle de
+  // requestAnimationFrame TOTALMENTE INDEPENDIENTE de este mismo bucle
+  // (publishStoryState, en scroll-engine.js). Ambos corren a 60fps, pero al
+  // ser bucles separados no hay ninguna garantía de EN QUÉ ORDEN se
+  // ejecutan dentro de un mismo fotograma del navegador -normalmente
+  // convergen sin que se note, pero durante una animación rápida basta que,
+  // en un único fotograma puntual, este bucle lea el valor todavía no
+  // actualizado (p.ej. 0.998 en vez de 1) para que "show" pase a false ese
+  // fotograma y vuelva a true al siguiente: un parpadeo de solo 16-33ms,
+  // casi imperceptible pero real.
+  // En vez de perseguir esa carrera exacta entre los dos bucles, se aplica
+  // histéresis: una vez visible, el carrusel NO puede volver a ocultarse
+  // hasta que "show" lleve falso un buen puñado de fotogramas seguidos
+  // (HIDE_HYSTERESIS_FRAMES) -tiempo de sobra para filtrar un parpadeo de
+  // 1-2 fotogramas, pero insignificante frente a los ~1800ms que tarda
+  // cualquier salto real entre paradas, así que no retrasa de forma
+  // perceptible el momento en que el carrusel se oculta al volver atrás
+  // de verdad-. Aparecer, en cambio, sigue siendo inmediato (nunca hace
+  // falta "esperar" a que se confirme que hay que mostrarlo).
+  const HIDE_HYSTERESIS_FRAMES = 10;
+  let cameraHideStreak = 0;
+
   function cameraLabelsLoop(){
     // A diferencia del resto del contenido del sitio (que aparece justo al
     // aterrizar en su parada), este bloque se anticipa: se muestra en
@@ -283,8 +306,17 @@
     // termine el 2º salto (2ª->3ª parada), no al término. Es el único
     // contenido de la escena con esta aparición adelantada -ver
     // computeCameraRevealP en scroll-engine.js-.
-    const show = window.currentView === 'resumen'
+    const rawShow = window.currentView === 'resumen'
       && (window.__storyCameraRevealP || 0) >= 1;
+    let show;
+    if (rawShow){
+      cameraHideStreak = 0;
+      show = true;
+    } else {
+      cameraHideStreak++;
+      show = cameraHideStreak < HIDE_HYSTERESIS_FRAMES
+        && cameraCarousel.classList.contains('visible');
+    }
     const wasVisible = cameraCarousel.classList.contains('visible');
     if (show && !wasVisible){
       // FIX (flash al empezar a deslizar tras llegar a la 3ª posición): el
