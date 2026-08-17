@@ -23,12 +23,14 @@
     const previous = cloudCollageImages;
     cloudCollageImages = list.slice(0, MAX_COLLAGE);
     renderAboutCollage();
+    if (typeof window.renderAboutMiniFloat === 'function') window.renderAboutMiniFloat();
     if (typeof renderAjustesCollageGrid === 'function') renderAjustesCollageGrid();
     if (window.CloudDB){
       window.CloudDB.updateContent({ collageImages: cloudCollageImages }).catch(err => {
         console.error('No se pudo guardar el collage en la nube:', err.message || err);
         cloudCollageImages = previous;
         renderAboutCollage();
+        if (typeof window.renderAboutMiniFloat === 'function') window.renderAboutMiniFloat();
         if (typeof renderAjustesCollageGrid === 'function') renderAjustesCollageGrid();
         alert('No se pudo guardar el cambio en el collage (' + (err.message || 'error de conexión') + '). Inténtalo de nuevo.');
       });
@@ -41,7 +43,68 @@
         img: item.img, pos: (typeof item.pos === 'number' ? item.pos : 50)
       }));
       renderAboutCollage();
+      if (typeof window.renderAboutMiniFloat === 'function') window.renderAboutMiniFloat();
       if (typeof renderAjustesCollageGrid === 'function') renderAjustesCollageGrid();
+    });
+  }
+
+  // ---- Tira flotante 3D encima del título "Sobre mí" ----
+  // Pequeña pila de fotos (las mismas que el collage de abajo) que flotan
+  // con un balanceo continuo y además se inclinan en 3D siguiendo el
+  // puntero/dedo, para dar una sensación "viva" nada más entrar en la
+  // sección, antes de que empiece el texto. Si no hay fotos subidas, se
+  // queda oculta (no tiene sentido un espacio reservado vacío tan arriba).
+  const miniFloatWrap = document.getElementById('aboutMiniFloat');
+  let miniFloatStage = null;
+
+  function renderMiniFloat(){
+    if (!miniFloatWrap) return;
+    const images = loadImages().slice(0, 5);
+
+    if (!images.length){
+      miniFloatWrap.style.display = 'none';
+      miniFloatWrap.innerHTML = '';
+      miniFloatStage = null;
+      return;
+    }
+
+    miniFloatWrap.style.display = '';
+    const count = images.length;
+    miniFloatWrap.innerHTML = `
+      <div class="mini-float-stage" id="miniFloatStage">
+        ${images.map((item, i) => {
+          const left = ((i + 0.5) / count) * 100;
+          return `
+            <div class="mini-float-slot" style="left:${left}%">
+              <div class="mini-float-item">
+                <img src="${escapeAttr(item.img)}" alt="" loading="lazy" style="object-position:center ${item.pos ?? 50}%">
+              </div>
+            </div>`;
+        }).join('')}
+      </div>`;
+
+    miniFloatStage = document.getElementById('miniFloatStage');
+    attachMiniFloatParallax();
+  }
+  window.renderAboutMiniFloat = renderMiniFloat;
+
+  // Inclinación 3D suave según la posición del puntero dentro del bloque;
+  // en táctil no hay "mousemove" continuo, así que simplemente se queda
+  // en su balanceo normal (no hace falta gestionar touch aparte).
+  let miniFloatParallaxBound = false;
+  function attachMiniFloatParallax(){
+    if (miniFloatParallaxBound || !miniFloatWrap) return;
+    miniFloatParallaxBound = true;
+
+    miniFloatWrap.addEventListener('mousemove', (e) => {
+      if (!miniFloatStage) return;
+      const rect = miniFloatWrap.getBoundingClientRect();
+      const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+      miniFloatStage.style.transform = `rotateY(${nx * 10}deg) rotateX(${ny * -8}deg)`;
+    });
+    miniFloatWrap.addEventListener('mouseleave', () => {
+      if (miniFloatStage) miniFloatStage.style.transform = '';
     });
   }
 
@@ -180,6 +243,7 @@
           list[idx].pos = pos;
           saveImages(list);
           renderAboutCollage();
+          if (typeof window.renderAboutMiniFloat === 'function') window.renderAboutMiniFloat();
         }
       );
     });
@@ -276,6 +340,7 @@
   }
 
   renderAboutCollage();
+  renderMiniFloat();
   renderAjustesCollageGrid();
 
   // ---- Pantalla de entrada: que espere también a estas fotos ----

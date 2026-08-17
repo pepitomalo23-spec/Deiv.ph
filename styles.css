@@ -981,6 +981,88 @@
     font-size:1.2rem;
   }
 
+  /* ---------- Sobre mí: tira flotante 3D (encima del título) ----------
+     Pila pequeña con las mismas fotos del collage de abajo, pensada para
+     verse ANTES de que empiece cualquier texto: entra ya "viva" (fundido
+     + balanceo continuo por foto) y, además, toda la pila se inclina en
+     3D según la posición del ratón/dedo dentro del bloque (ver JS,
+     attachMiniFloatParallax). Oculta por completo si no hay fotos
+     propias subidas -no deja hueco reservado-. */
+  .about-mini-float{
+    display:none;
+    position:relative;
+    height:104px;
+    margin:0 0 8px;
+    perspective:900px;
+  }
+  .about-mini-float::before{
+    /* halo suave detrás de la pila, con el color de acento, para dar
+       algo de "brillo ambiental" al conjunto sin necesidad de luces 3D
+       reales */
+    content:"";
+    position:absolute;
+    inset:-20px -10% auto -10%;
+    height:140px;
+    background:radial-gradient(ellipse at center, rgba(255,90,31,0.16), transparent 70%);
+    filter:blur(2px);
+    pointer-events:none;
+    animation:miniFloatGlow 6s ease-in-out infinite;
+  }
+  .mini-float-stage{
+    position:relative;
+    width:100%;
+    height:100%;
+    transform-style:preserve-3d;
+    transition:transform .35s cubic-bezier(.19,1,.22,1);
+    will-change:transform;
+  }
+  .mini-float-slot{
+    position:absolute;
+    top:50%;
+    transform:translate(-50%, -50%);
+  }
+  .mini-float-item{
+    width:58px;
+    height:58px;
+    border-radius:14px;
+    overflow:hidden;
+    border:2px solid var(--bg);
+    box-shadow:0 14px 26px rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.12);
+    animation:miniFloatBob 4.2s ease-in-out infinite;
+    animation-delay:calc(var(--d, 0) * 1s);
+    transform-style:preserve-3d;
+  }
+  .mini-float-slot:nth-child(1) .mini-float-item{ --d:0;   --r:-6deg; --z:0px; }
+  .mini-float-slot:nth-child(2) .mini-float-item{ --d:.55; --r:4deg;  --z:26px; width:70px; height:70px; }
+  .mini-float-slot:nth-child(3) .mini-float-item{ --d:1.1; --r:-3deg; --z:46px; width:80px; height:80px; z-index:2; }
+  .mini-float-slot:nth-child(4) .mini-float-item{ --d:.3;  --r:5deg;  --z:22px; width:68px; height:68px; }
+  .mini-float-slot:nth-child(5) .mini-float-item{ --d:.85; --r:-5deg; --z:0px; }
+  .mini-float-item img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  @keyframes miniFloatBob{
+    0%, 100%{ transform:rotate(var(--r,0deg)) translateZ(var(--z,0px)) translateY(0); }
+    50%{ transform:rotate(var(--r,0deg)) translateZ(var(--z,0px)) translateY(-9px); }
+  }
+  @keyframes miniFloatGlow{
+    0%, 100%{ opacity:.7; }
+    50%{ opacity:1; }
+  }
+  @media (max-width:600px){
+    .about-mini-float{ height:88px; }
+    .mini-float-slot:nth-child(3) .mini-float-item{ width:68px; height:68px; }
+    .mini-float-slot:nth-child(2) .mini-float-item,
+    .mini-float-slot:nth-child(4) .mini-float-item{ width:58px; height:58px; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .mini-float-item{ animation:none; }
+    .mini-float-stage{ transition:none; }
+    .about-mini-float::before{ animation:none; }
+  }
+
   /* ---------- Sobre mí: bloque de contacto ---------- */
   .contact-block{
     margin-top:28px;
