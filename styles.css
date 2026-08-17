@@ -991,9 +991,9 @@
   .about-mini-float{
     display:none;
     position:relative;
-    height:104px;
-    margin:0 0 8px;
-    perspective:900px;
+    height:190px;
+    margin:0 0 14px;
+    perspective:1100px;
   }
   .about-mini-float::before{
     /* halo suave detrás de la pila, con el color de acento, para dar
@@ -1001,10 +1001,10 @@
        reales */
     content:"";
     position:absolute;
-    inset:-20px -10% auto -10%;
-    height:140px;
-    background:radial-gradient(ellipse at center, rgba(255,90,31,0.16), transparent 70%);
-    filter:blur(2px);
+    inset:-30px -6% auto -6%;
+    height:230px;
+    background:radial-gradient(ellipse at center, rgba(255,90,31,0.24), transparent 72%);
+    filter:blur(6px);
     pointer-events:none;
     animation:miniFloatGlow 6s ease-in-out infinite;
   }
@@ -1022,40 +1022,63 @@
     transform:translate(-50%, -50%);
   }
   .mini-float-item{
-    width:58px;
-    height:58px;
-    border-radius:14px;
+    position:relative;
+    width:92px;
+    height:92px;
+    border-radius:20px;
     overflow:hidden;
-    border:2px solid var(--bg);
-    box-shadow:0 14px 26px rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.12);
+    border:3px solid var(--bg);
+    box-shadow:0 22px 40px rgba(0,0,0,0.28), 0 4px 10px rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.04);
     animation:miniFloatBob 4.2s ease-in-out infinite;
     animation-delay:calc(var(--d, 0) * 1s);
     transform-style:preserve-3d;
+    transition:transform .3s ease, box-shadow .3s ease;
   }
-  .mini-float-slot:nth-child(1) .mini-float-item{ --d:0;   --r:-6deg; --z:0px; }
-  .mini-float-slot:nth-child(2) .mini-float-item{ --d:.55; --r:4deg;  --z:26px; width:70px; height:70px; }
-  .mini-float-slot:nth-child(3) .mini-float-item{ --d:1.1; --r:-3deg; --z:46px; width:80px; height:80px; z-index:2; }
-  .mini-float-slot:nth-child(4) .mini-float-item{ --d:.3;  --r:5deg;  --z:22px; width:68px; height:68px; }
-  .mini-float-slot:nth-child(5) .mini-float-item{ --d:.85; --r:-5deg; --z:0px; }
+  .mini-float-item::after{
+    /* brillo tipo "cristal" cruzando la esquina superior, para que se
+       note el efecto 3D/glossy incluso con la foto quieta */
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(135deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 30%, rgba(255,255,255,0) 70%, rgba(255,255,255,0.12) 100%);
+    pointer-events:none;
+  }
+  .mini-float-slot:nth-child(1) .mini-float-item{ --d:0;   --r:-8deg;  --z:0px; }
+  .mini-float-slot:nth-child(2) .mini-float-item{ --d:.55; --r:6deg;   --z:40px;  width:112px; height:112px; }
+  .mini-float-slot:nth-child(3) .mini-float-item{ --d:1.1; --r:-4deg;  --z:70px;  width:132px; height:132px; z-index:3; }
+  .mini-float-slot:nth-child(4) .mini-float-item{ --d:.3;  --r:7deg;   --z:70px;  width:132px; height:132px; z-index:3; }
+  .mini-float-slot:nth-child(5) .mini-float-item{ --d:.85; --r:-6deg;  --z:40px;  width:112px; height:112px; }
+  .mini-float-slot:nth-child(6) .mini-float-item{ --d:1.35;--r:8deg;   --z:0px; }
   .mini-float-item img{
     width:100%;
     height:100%;
     object-fit:cover;
     display:block;
   }
+  @media (hover:hover){
+    .mini-float-item:hover{
+      transform:translateY(-6px) scale(1.06) !important;
+      box-shadow:0 30px 50px rgba(0,0,0,0.32), 0 6px 14px rgba(0,0,0,0.18);
+      z-index:5;
+      animation-play-state:paused;
+    }
+  }
   @keyframes miniFloatBob{
     0%, 100%{ transform:rotate(var(--r,0deg)) translateZ(var(--z,0px)) translateY(0); }
-    50%{ transform:rotate(var(--r,0deg)) translateZ(var(--z,0px)) translateY(-9px); }
+    50%{ transform:rotate(var(--r,0deg)) translateZ(var(--z,0px)) translateY(-13px); }
   }
   @keyframes miniFloatGlow{
     0%, 100%{ opacity:.7; }
     50%{ opacity:1; }
   }
   @media (max-width:600px){
-    .about-mini-float{ height:88px; }
-    .mini-float-slot:nth-child(3) .mini-float-item{ width:68px; height:68px; }
+    .about-mini-float{ height:150px; }
+    .mini-float-slot:nth-child(3) .mini-float-item,
+    .mini-float-slot:nth-child(4) .mini-float-item{ width:104px; height:104px; }
     .mini-float-slot:nth-child(2) .mini-float-item,
-    .mini-float-slot:nth-child(4) .mini-float-item{ width:58px; height:58px; }
+    .mini-float-slot:nth-child(5) .mini-float-item{ width:88px; height:88px; }
+    .mini-float-slot:nth-child(1) .mini-float-item,
+    .mini-float-slot:nth-child(6) .mini-float-item{ width:72px; height:72px; }
   }
   @media (prefers-reduced-motion:reduce){
     .mini-float-item{ animation:none; }

@@ -59,7 +59,7 @@
 
   function renderMiniFloat(){
     if (!miniFloatWrap) return;
-    const images = loadImages().slice(0, 5);
+    const images = loadImages().slice(0, 6);
 
     if (!images.length){
       miniFloatWrap.style.display = 'none';
@@ -101,7 +101,7 @@
       const rect = miniFloatWrap.getBoundingClientRect();
       const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-      miniFloatStage.style.transform = `rotateY(${nx * 10}deg) rotateX(${ny * -8}deg)`;
+      miniFloatStage.style.transform = `rotateY(${nx * 14}deg) rotateX(${ny * -11}deg)`;
     });
     miniFloatWrap.addEventListener('mouseleave', () => {
       if (miniFloatStage) miniFloatStage.style.transform = '';
@@ -109,12 +109,11 @@
   }
 
   // ---- Collage en "Sobre mí" ----
-  // Antes: mosaico fijo de recortes cuadrados, todos visibles de golpe al
-  // entrar. Ahora: las fotos se muestran ENTERAS (sin recortar) e
-  // intercaladas junto a los párrafos del texto, alternando lado
-  // izquierdo/derecho, y van apareciendo una a una (fundido + deslizamiento)
-  // a medida que se hace scroll y cada una entra en pantalla -en vez de
-  // cargarlas todas ya visibles-. Ver revealObserver más abajo.
+  // Ya NO se insertan fotos sueltas junto a los párrafos del texto (eso
+  // se ha retirado a petición explícita): las fotos subidas solo se
+  // muestran en la tira flotante 3D de arriba (about-mini-float). Esta
+  // función se limita ahora a la tarjeta de invitación para el admin
+  // cuando aún no hay fotos.
   const aboutBody = document.getElementById('aboutBody');
 
   function clearInsertedPhotos(){
@@ -129,6 +128,8 @@
     const images = loadImages();
     const isAdmin = !!window.isAdminDevice;
 
+    // Por si quedara alguna foto de una versión anterior insertada en el
+    // DOM (o en caché del navegador), se limpia siempre.
     clearInsertedPhotos();
 
     if (!images.length){
@@ -136,7 +137,7 @@
       // visitante normal no debe ver ninguna invitación a añadirlas. Al
       // admin sí le mostramos la tarjeta, para que sepa dónde subirlas.
       if (isAdmin){
-        collagePlaceholderWrap.style.display = '';
+        collagePlaceholderWrap.style.display = 'block';
         collagePlaceholderWrap.innerHTML = `
           <div class="about-collage-item is-placeholder" id="aboutCollagePlaceholder">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -155,33 +156,9 @@
       return;
     }
 
+    // Con fotos ya subidas no se muestra nada aquí: viven solo en la
+    // tira flotante de arriba.
     collagePlaceholderWrap.style.display = 'none';
-    if (!aboutBody) return;
-
-    const paragraphs = Array.from(aboutBody.querySelectorAll('p[id^="aboutPara"]'));
-
-    images.forEach((item, i) => {
-      const side = (i % 2 === 0) ? 'right' : 'left';
-      const img = document.createElement('img');
-      img.className = `about-photo about-photo--${side}`;
-      img.src = item.img;
-      img.alt = 'Foto de David';
-      img.loading = 'lazy';
-
-      if (i < paragraphs.length){
-        // Se inserta justo ANTES del párrafo correspondiente, como pieza
-        // propia (no floto el texto alrededor a propósito: con párrafos
-        // tan cortos, dos fotos flotando en lados opuestos podían acabar
-        // solapándose). Alineada a un lado u otro por CSS.
-        paragraphs[i].before(img);
-      } else {
-        // Más fotos que párrafos (4ª, 5ª, 6ª): se añaden igual, seguidas,
-        // al final del bloque de texto, siguiendo la misma alternancia.
-        aboutBody.append(img);
-      }
-
-      if (revealObserver) revealObserver.observe(img);
-    });
   }
   window.renderAboutCollage = renderAboutCollage;
 
