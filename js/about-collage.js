@@ -48,49 +48,125 @@
     });
   }
 
-  // ---- Tira flotante 3D encima del título "Sobre mí" ----
-  // Pequeña pila de fotos (las mismas que el collage de abajo) que flotan
-  // con un balanceo continuo y además se inclinan en 3D siguiendo el
-  // puntero/dedo, para dar una sensación "viva" nada más entrar en la
-  // sección, antes de que empiece el texto. Si no hay fotos subidas, se
-  // queda oculta (no tiene sentido un espacio reservado vacío tan arriba).
+  // ---- Carrusel flotante 3D encima del título "Sobre mí" ----
+  // Las fotos del collage se muestran GRANDES, de una en una: la que
+  // está activa ocupa el centro a tamaño completo y las demás quedan
+  // más pequeñas y difuminadas a los lados, como en un coverflow. Cada
+  // pocos segundos avanza sola a la siguiente foto (deslizándose +
+  // ampliándose), y además la pila entera se inclina en 3D siguiendo el
+  // puntero/dedo. Si no hay fotos subidas, se queda oculta.
   const miniFloatWrap = document.getElementById('aboutMiniFloat');
   let miniFloatStage = null;
+  let miniFloatItems = [];
+  let miniFloatCurrent = 0;
+  let miniFloatTimer = null;
+  const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function clearMiniFloatTimer(){
+    if (miniFloatTimer){ clearInterval(miniFloatTimer); miniFloatTimer = null; }
+  }
+
+  function startMiniFloatCycle(count){
+    clearMiniFloatTimer();
+    if (count < 2 || prefersReducedMotion) return;
+    miniFloatTimer = setInterval(() => {
+      miniFloatCurrent = (miniFloatCurrent + 1) % count;
+      updateMiniFloatPositions();
+    }, 2600);
+  }
+
+  // Coloca cada foto según su distancia (offset) a la foto activa: la
+  // activa (offset 0) va centrada, a tamaño completo y nítida; el resto
+  // se van empequeñeciendo, difuminando y perdiendo opacidad cuanto más
+  // lejos están, envolviendo el "camino corto" (p.ej. con 6 fotos, la
+  // nº6 está más cerca de la nº1 pasando por detrás que dando toda la
+  // vuelta) para que el giro se sienta natural en ambos sentidos.
+  function updateMiniFloatPositions(){
+    if (!miniFloatStage || !miniFloatItems.length) return;
+    const count = miniFloatItems.length;
+    const stageWidth = miniFloatWrap.getBoundingClientRect().width || 320;
+    const spacing = Math.max(90, stageWidth * 0.30);
+
+    miniFloatItems.forEach((el, i) => {
+      let offset = i - miniFloatCurrent;
+      if (offset > count / 2) offset -= count;
+      if (offset < -count / 2) offset += count;
+      const abs = Math.abs(offset);
+
+      const scale = abs === 0 ? 1 : Math.max(0.42, 1 - abs * 0.26);
+      const translateX = offset * spacing;
+      const opacity = abs > 2.5 ? 0 : Math.max(0, 1 - abs * 0.38);
+      const blur = abs === 0 ? 0 : Math.min(5, abs * 2);
+      const rotate = offset * -8;
+
+      el.style.zIndex = String(200 - Math.round(abs * 10));
+      el.style.opacity = String(opacity);
+      el.style.filter = blur ? `blur(${blur}px)` : '';
+      el.style.transform = `translate(-50%, -50%) translateX(${translateX}px) rotate(${rotate}deg) scale(${scale})`;
+      el.classList.toggle('is-active', abs === 0);
+      el.style.pointerEvents = abs > 2.5 ? 'none' : '';
+    });
+  }
+
+  function goToMiniFloat(i){
+    const count = miniFloatItems.length;
+    if (!count) return;
+    miniFloatCurrent = ((i % count) + count) % count;
+    updateMiniFloatPositions();
+    startMiniFloatCycle(count);
+  }
 
   function renderMiniFloat(){
     if (!miniFloatWrap) return;
+    clearMiniFloatTimer();
     const images = loadImages().slice(0, 6);
 
     if (!images.length){
       miniFloatWrap.style.display = 'none';
       miniFloatWrap.innerHTML = '';
       miniFloatStage = null;
+      miniFloatItems = [];
       return;
     }
 
     miniFloatWrap.style.display = 'block';
-    const count = images.length;
     miniFloatWrap.innerHTML = `
       <div class="mini-float-stage" id="miniFloatStage">
-        ${images.map((item, i) => {
-          const left = ((i + 0.5) / count) * 100;
-          return `
-            <div class="mini-float-slot" style="left:${left}%">
-              <div class="mini-float-item">
-                <img src="${escapeAttr(item.img)}" alt="" loading="lazy" style="object-position:center ${item.pos ?? 50}%">
-              </div>
-            </div>`;
-        }).join('')}
+        ${images.map((item, i) => `
+          <div class="mini-float-item" data-idx="${i}">
+            <div class="mini-float-inner">
+              <img src="${escapeAttr(item.img)}" alt="" loading="lazy" style="object-position:center ${item.pos ?? 50}%">
+            </div>
+          </div>`).join('')}
       </div>`;
 
     miniFloatStage = document.getElementById('miniFloatStage');
+    miniFloatItems = Array.from(miniFloatStage.querySelectorAll('.mini-float-item'));
+    miniFloatCurrent = 0;
+    updateMiniFloatPositions();
     attachMiniFloatParallax();
+    attachMiniFloatClicks();
+    startMiniFloatCycle(images.length);
   }
   window.renderAboutMiniFloat = renderMiniFloat;
 
-  // Inclinación 3D suave según la posición del puntero dentro del bloque;
-  // en táctil no hay "mousemove" continuo, así que simplemente se queda
-  // en su balanceo normal (no hace falta gestionar touch aparte).
+  // Tocar/clicar una de las fotos secundarias la trae al centro
+  // directamente (además de reiniciar el ciclo automático desde ahí).
+  let miniFloatClicksBound = false;
+  function attachMiniFloatClicks(){
+    if (miniFloatClicksBound || !miniFloatStage) return;
+    miniFloatClicksBound = true;
+    miniFloatStage.addEventListener('click', (e) => {
+      const item = e.target.closest('.mini-float-item');
+      if (!item) return;
+      goToMiniFloat(parseInt(item.dataset.idx, 10));
+    });
+  }
+
+  // Inclinación 3D suave según la posición del puntero dentro del bloque
+  // (en táctil no hay "mousemove" continuo, así que se queda con el
+  // efecto de carrusel solo). También pausa el avance automático
+  // mientras el puntero está encima, para poder mirar bien la foto.
   let miniFloatParallaxBound = false;
   function attachMiniFloatParallax(){
     if (miniFloatParallaxBound || !miniFloatWrap) return;
@@ -101,10 +177,14 @@
       const rect = miniFloatWrap.getBoundingClientRect();
       const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-      miniFloatStage.style.transform = `rotateY(${nx * 14}deg) rotateX(${ny * -11}deg)`;
+      miniFloatStage.style.setProperty('--tiltY', (nx * 12) + 'deg');
+      miniFloatStage.style.setProperty('--tiltX', (ny * -9) + 'deg');
     });
+    miniFloatWrap.addEventListener('mouseenter', clearMiniFloatTimer);
     miniFloatWrap.addEventListener('mouseleave', () => {
-      if (miniFloatStage) miniFloatStage.style.transform = '';
+      miniFloatStage && miniFloatStage.style.removeProperty('--tiltY');
+      miniFloatStage && miniFloatStage.style.removeProperty('--tiltX');
+      startMiniFloatCycle(miniFloatItems.length);
     });
   }
 
