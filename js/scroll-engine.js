@@ -876,7 +876,36 @@
   // la 3ª parada siguen con el sistema anterior (postEndOffset) mientras se
   // confirma que el tacto de este primer tramo es correcto en dispositivo
   // real; se migran en un paso siguiente.
+  // BUGFIX iPad: "la escena da un salto hacia arriba durante 1-2
+  // fotogramas justo al aterrizar en una posición". Comprobado con
+  // grabación de pantalla real: no es el <canvas> quedándose en blanco,
+  // es la propia .scene-wrap (position:sticky) despegándose un instante
+  // de más antes de volver a engancharse sola.
+  //
+  // Causa: para decidir a qué scrollTop saltar en cada parada, este
+  // código preguntaba por el alto de pantalla vía JS (visualViewport.
+  // height / innerHeight) y lo multiplicaba por la posición. Pero quien
+  // decide DE VERDAD cuándo .scene-wrap se despega es el propio CSS, que
+  // usa su unidad "dvh" -pensada justo para la barra dinámica de
+  // Safari-. En el instante exacto de un aterrizaje esas dos medidas
+  // -la leída aquí por JS y la que ha resuelto el CSS- pueden no
+  // coincidir por unos píxeles en iPad, y ese desajuste hace que
+  // .scene-wrap se despegue de más un instante antes de que el propio
+  // navegador la reencaje.
+  //
+  // Arreglo: en vez de recalcular el alto de pantalla por su cuenta (y
+  // arriesgarse a que no coincida con lo que decidió el CSS), se mide
+  // directamente cuánto mide AHORA MISMO la propia .scene-wrap ya
+  // renderizada -su clientHeight es, por definición, el mismo valor que
+  // el CSS acaba de aplicarle-, así nunca puede haber dos cifras
+  // distintas para lo mismo. Solo se cae al cálculo antiguo si, por lo
+  // que sea, todavía no hay una medida real disponible (p.ej. el primer
+  // instante de carga).
   function viewportPx(){
+    if (sceneWrap){
+      const h = sceneWrap.clientHeight;
+      if (h > 0) return h;
+    }
     return (window.visualViewport && window.visualViewport.height) || window.innerHeight || document.documentElement.clientHeight;
   }
   function stopScrollTop(step){
