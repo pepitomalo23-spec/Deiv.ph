@@ -40,21 +40,6 @@
   // en iOS/Android se dispara aparte, al mostrarse/ocultarse la barra de
   // direcciones o el teclado, sin que siempre llegue un 'resize' normal
   // de window-.
-  // BUGFIX iPad "el salto se nota menos, pero sigue pasando": la barra de
-  // Safari no cambia de tamaño de golpe, la anima en varios pasos (unos
-  // 200-300ms), y CADA paso dispara este mismo evento -antes, cada uno de
-  // esos pasos volvía a llamar aquí a __resyncScrollToStep(), es decir,
-  // a otro salto de scroll correctivo. Con el arreglo anterior cada salto
-  // individual quedaba mejor calculado, pero podían seguir disparándose
-  // varios saltos pequeños en cadena mientras la barra terminaba de
-  // moverse -cada uno, aunque pequeño, se notaba-. Ahora ese salto
-  // correctivo se retrasa (debounce): si llega otro aviso antes de que
-  // pase el plazo, se cancela el anterior y se reinicia la espera. Así
-  // solo se hace UN salto correctivo, y solo cuando la barra de Safari ya
-  // ha terminado de moverse del todo -nunca mientras todavía se está
-  // animando-. El --vh (usado para colores/textos) se sigue actualizando
-  // al instante, sin ningún retraso; solo el salto de scroll espera.
-  let resyncStepDebounceTimer = null;
   function syncViewportHeightVar(){
     const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight || document.documentElement.clientHeight;
     document.documentElement.style.setProperty('--vh', (h * 0.01) + 'px');
@@ -64,11 +49,7 @@
     // exacta de esa parada -si no, quedaría "a medio camino" entre dos
     // fotos sin que el usuario haya hecho nada-. Solo se toca si NO hay
     // ningún salto/arrastre en curso (eso ya gestiona su propia posición).
-    if (resyncStepDebounceTimer !== null) clearTimeout(resyncStepDebounceTimer);
-    resyncStepDebounceTimer = setTimeout(() => {
-      resyncStepDebounceTimer = null;
-      if (typeof window.__resyncScrollToStep === 'function') window.__resyncScrollToStep();
-    }, 120);
+    if (typeof window.__resyncScrollToStep === 'function') window.__resyncScrollToStep();
   }
   // FIX: Safari intenta "recordar" la posición de scroll al recargar la
   // página (scroll restoration). Como el scroll ahora es real, eso podía
@@ -106,20 +87,6 @@
       // reaccionando a un gesto nativo del usuario, teclado, pellizco de
       // zoom...) tiene sentido resincronizar aquí.
       if (realScrollSyncActive) return;
-      // BUGFIX iPad/iOS: este evento es precisamente el que se dispara
-      // cuando la barra de Safari se recoge/despliega -cambia el alto
-      // real disponible-, pero antes solo se llamaba a render(), nunca a
-      // resizeCanvas(). El <canvas> seguía teniendo el mismo tamaño en
-      // píxeles de antes de que la barra se moviera, mientras que su caja
-      // CSS (que depende de --vh, ya actualizada arriba por
-      // syncViewportHeightVar()) sí había cambiado: durante esa fracción
-      // de segundo el navegador escala/recorta el contenido ya dibujado
-      // para encajarlo en la caja nueva, lo que se percibe como que "algo
-      // tapa" la foto. Al llamar aquí también a resizeCanvas() (ya con su
-      // propio guard contra lecturas de tamaño 0, ver más abajo), el
-      // <canvas> se redimensiona en el mismo tick antes de redibujar, así
-      // que nunca queda una caja y un contenido de tamaños distintos.
-      if (typeof resizeCanvas === 'function') resizeCanvas();
       if (typeof updatePageBgForPostEnd === 'function') updatePageBgForPostEnd();
       if (typeof render === 'function') render();
     });
@@ -300,38 +267,9 @@
   let dpr = Math.min(window.devicePixelRatio || 1, 2);
   let cw = 0, ch = 0;
 
-  // BUGFIX "foto en blanco durante casi un segundo al aterrizar en una
-  // posición" (visible en pantallas grandes, no solo móvil): clientWidth/
-  // clientHeight es una lectura de layout que, en el instante exacto de
-  // un evento 'resize' -por ejemplo, el propio Safari de escritorio
-  // recogiendo/desplegando su barra de pestañas al hacer scroll, no solo
-  // el móvil- puede devolver 0 durante un solo tick, aunque la escena siga
-  // perfectamente visible y con su tamaño real de sobra. Si eso ocurre,
-  // antes se fijaba canvas.width/height a 0 sin más comprobación: el
-  // <canvas> queda vacío (deja ver el blanco real de la página detrás,
-  // que es justo el "tapa blanco" que se ve) y, como resizeCanvas() ya
-  // no vuelve a llamarse hasta el PRÓXIMO evento 'resize' -no en cada
-  // frame-, ese blanco puede durar mucho más que el instante que lo causó,
-  // hasta que algún gesto adicional dispare otro resize. Ahora, ante una
-  // lectura de 0 se ignora ese resize concreto (se conserva el último
-  // tamaño válido, así que la foto sigue viéndose) y se reintenta en el
-  // siguiente frame -casi siempre el layout ya está resuelto entonces-.
-  let pendingResizeRetryRaf = null;
   function resizeCanvas(){
-    const measuredW = canvas.clientWidth;
-    const measuredH = canvas.clientHeight;
-    if (measuredW === 0 || measuredH === 0){
-      if (pendingResizeRetryRaf === null){
-        pendingResizeRetryRaf = requestAnimationFrame(() => {
-          pendingResizeRetryRaf = null;
-          resizeCanvas();
-          render();
-        });
-      }
-      return;
-    }
-    cw = measuredW;
-    ch = measuredH;
+    cw = canvas.clientWidth;
+    ch = canvas.clientHeight;
     canvas.width = Math.round(cw * dpr);
     canvas.height = Math.round(ch * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -895,36 +833,7 @@
   // la 3ª parada siguen con el sistema anterior (postEndOffset) mientras se
   // confirma que el tacto de este primer tramo es correcto en dispositivo
   // real; se migran en un paso siguiente.
-  // BUGFIX iPad: "la escena da un salto hacia arriba durante 1-2
-  // fotogramas justo al aterrizar en una posición". Comprobado con
-  // grabación de pantalla real: no es el <canvas> quedándose en blanco,
-  // es la propia .scene-wrap (position:sticky) despegándose un instante
-  // de más antes de volver a engancharse sola.
-  //
-  // Causa: para decidir a qué scrollTop saltar en cada parada, este
-  // código preguntaba por el alto de pantalla vía JS (visualViewport.
-  // height / innerHeight) y lo multiplicaba por la posición. Pero quien
-  // decide DE VERDAD cuándo .scene-wrap se despega es el propio CSS, que
-  // usa su unidad "dvh" -pensada justo para la barra dinámica de
-  // Safari-. En el instante exacto de un aterrizaje esas dos medidas
-  // -la leída aquí por JS y la que ha resuelto el CSS- pueden no
-  // coincidir por unos píxeles en iPad, y ese desajuste hace que
-  // .scene-wrap se despegue de más un instante antes de que el propio
-  // navegador la reencaje.
-  //
-  // Arreglo: en vez de recalcular el alto de pantalla por su cuenta (y
-  // arriesgarse a que no coincida con lo que decidió el CSS), se mide
-  // directamente cuánto mide AHORA MISMO la propia .scene-wrap ya
-  // renderizada -su clientHeight es, por definición, el mismo valor que
-  // el CSS acaba de aplicarle-, así nunca puede haber dos cifras
-  // distintas para lo mismo. Solo se cae al cálculo antiguo si, por lo
-  // que sea, todavía no hay una medida real disponible (p.ej. el primer
-  // instante de carga).
   function viewportPx(){
-    if (sceneWrap){
-      const h = sceneWrap.clientHeight;
-      if (h > 0) return h;
-    }
     return (window.visualViewport && window.visualViewport.height) || window.innerHeight || document.documentElement.clientHeight;
   }
   function stopScrollTop(step){
