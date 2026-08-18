@@ -262,10 +262,51 @@
        porque var(--bg)/el desenfoque no dependen de en qué parada se
        esté, solo de que la foto esté pegada a la izquierda (pantallas
        anchas). */
-    backdrop-filter:blur(22px);
-    -webkit-backdrop-filter:blur(22px);
-    -webkit-mask-image:linear-gradient(to right, transparent 0%, #000 55%, #000 100%);
-    mask-image:linear-gradient(to right, transparent 0%, #000 55%, #000 100%);
+    backdrop-filter:blur(9px);
+    -webkit-backdrop-filter:blur(9px);
+    /* Antes el desenfoque entraba con solo 2 tramos (transparente ->
+       sólido en la mitad del ancho): se notaba como un "parche" borroso
+       con un punto donde empieza a notarse. Ahora usa la misma curva de
+       easing (muchos escalones, suaves al principio y acelerando hacia
+       el final) que ya usan los difuminados de arriba/abajo/izquierda,
+       así el desenfoque va entrando de forma gradual y continua, sin que
+       se pueda señalar un punto exacto donde "empieza a difuminarse".
+       Junto con un blur más suave (9px en vez de 22px) y la zona más
+       ancha (45% en vez de 32%), el efecto deja de leerse como "hay un
+       borrón ahí" y pasa a sentirse como que la foto simplemente se
+       acaba de forma natural. */
+    -webkit-mask-image:linear-gradient(to right,
+      transparent 0%,
+      rgba(0,0,0,0.01) 8%,
+      rgba(0,0,0,0.03) 16%,
+      rgba(0,0,0,0.06) 24%,
+      rgba(0,0,0,0.11) 32%,
+      rgba(0,0,0,0.18) 40%,
+      rgba(0,0,0,0.27) 48%,
+      rgba(0,0,0,0.38) 55%,
+      rgba(0,0,0,0.50) 62%,
+      rgba(0,0,0,0.63) 69%,
+      rgba(0,0,0,0.75) 75%,
+      rgba(0,0,0,0.85) 81%,
+      rgba(0,0,0,0.92) 87%,
+      rgba(0,0,0,0.97) 93%,
+      #000 100%);
+    mask-image:linear-gradient(to right,
+      transparent 0%,
+      rgba(0,0,0,0.01) 8%,
+      rgba(0,0,0,0.03) 16%,
+      rgba(0,0,0,0.06) 24%,
+      rgba(0,0,0,0.11) 32%,
+      rgba(0,0,0,0.18) 40%,
+      rgba(0,0,0,0.27) 48%,
+      rgba(0,0,0,0.38) 55%,
+      rgba(0,0,0,0.50) 62%,
+      rgba(0,0,0,0.63) 69%,
+      rgba(0,0,0,0.75) 75%,
+      rgba(0,0,0,0.85) 81%,
+      rgba(0,0,0,0.92) 87%,
+      rgba(0,0,0,0.97) 93%,
+      #000 100%);
     background:linear-gradient(to right,
       color-mix(in srgb, var(--bg) 0%, transparent) 0%,
       color-mix(in srgb, var(--bg) 1%, transparent) 8%,
@@ -283,7 +324,7 @@
       color-mix(in srgb, var(--bg) 97%, transparent) 93%,
       var(--bg) 100%);
   }
-  .scene-pin-fade-right{ width:32%; }
+  .scene-pin-fade-right{ width:45%; }
 
   /* En móvil apenas hay huecos laterales que disimular (la foto ocupa
      casi todo el ancho), así que se oculta directamente. */
