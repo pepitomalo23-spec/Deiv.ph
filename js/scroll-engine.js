@@ -40,6 +40,21 @@
   // en iOS/Android se dispara aparte, al mostrarse/ocultarse la barra de
   // direcciones o el teclado, sin que siempre llegue un 'resize' normal
   // de window-.
+  // BUGFIX iPad "el salto se nota menos, pero sigue pasando": la barra de
+  // Safari no cambia de tamaño de golpe, la anima en varios pasos (unos
+  // 200-300ms), y CADA paso dispara este mismo evento -antes, cada uno de
+  // esos pasos volvía a llamar aquí a __resyncScrollToStep(), es decir,
+  // a otro salto de scroll correctivo. Con el arreglo anterior cada salto
+  // individual quedaba mejor calculado, pero podían seguir disparándose
+  // varios saltos pequeños en cadena mientras la barra terminaba de
+  // moverse -cada uno, aunque pequeño, se notaba-. Ahora ese salto
+  // correctivo se retrasa (debounce): si llega otro aviso antes de que
+  // pase el plazo, se cancela el anterior y se reinicia la espera. Así
+  // solo se hace UN salto correctivo, y solo cuando la barra de Safari ya
+  // ha terminado de moverse del todo -nunca mientras todavía se está
+  // animando-. El --vh (usado para colores/textos) se sigue actualizando
+  // al instante, sin ningún retraso; solo el salto de scroll espera.
+  let resyncStepDebounceTimer = null;
   function syncViewportHeightVar(){
     const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight || document.documentElement.clientHeight;
     document.documentElement.style.setProperty('--vh', (h * 0.01) + 'px');
@@ -49,7 +64,11 @@
     // exacta de esa parada -si no, quedaría "a medio camino" entre dos
     // fotos sin que el usuario haya hecho nada-. Solo se toca si NO hay
     // ningún salto/arrastre en curso (eso ya gestiona su propia posición).
-    if (typeof window.__resyncScrollToStep === 'function') window.__resyncScrollToStep();
+    if (resyncStepDebounceTimer !== null) clearTimeout(resyncStepDebounceTimer);
+    resyncStepDebounceTimer = setTimeout(() => {
+      resyncStepDebounceTimer = null;
+      if (typeof window.__resyncScrollToStep === 'function') window.__resyncScrollToStep();
+    }, 120);
   }
   // FIX: Safari intenta "recordar" la posición de scroll al recargar la
   // página (scroll restoration). Como el scroll ahora es real, eso podía
