@@ -245,9 +245,27 @@
   }
   .scene-pin-fade-right{
     right:0;
-    /* Mismo fundido liso que .scene-pin-fade-left (degradado de color hacia
-       var(--bg), sin textura ni ruido), solo que reflejado hacia la derecha:
-       la foto se va disolviendo hacia el blanco, no "rasgando". */
+    /* BUGFIX/mejora pedida: el degradado de color solo (igual que
+       .scene-pin-fade-left) no basta para disimular del todo el corte en
+       este borde -el blanco "real" de la propia foto (su fondo de
+       estudio, ligeramente distinto de un blanco puro) nunca coincide
+       exactamente con var(--bg), así que un simple cambio de tono seguía
+       dejando una costura perceptible-. Se ensancha bastante (del 15%
+       al 32% del ancho) y, sobre todo, se le añade un desenfoque real
+       (backdrop-filter) sobre la propia foto que hay debajo: eso
+       difumina los píxeles del final de la imagen en vez de solo
+       taparlos con otro color, así que cualquier diferencia de tono
+       queda disuelta de verdad, no solo camuflada. El desenfoque, igual
+       que el degradado de color, entra de 0 a su valor máximo de forma
+       gradual con mask-image -así tampoco se nota un "escalón" en el
+       propio borde del desenfoque-. Se aplica en los 3 saltos por igual,
+       porque var(--bg)/el desenfoque no dependen de en qué parada se
+       esté, solo de que la foto esté pegada a la izquierda (pantallas
+       anchas). */
+    backdrop-filter:blur(22px);
+    -webkit-backdrop-filter:blur(22px);
+    -webkit-mask-image:linear-gradient(to right, transparent 0%, #000 55%, #000 100%);
+    mask-image:linear-gradient(to right, transparent 0%, #000 55%, #000 100%);
     background:linear-gradient(to right,
       color-mix(in srgb, var(--bg) 0%, transparent) 0%,
       color-mix(in srgb, var(--bg) 1%, transparent) 8%,
@@ -265,6 +283,7 @@
       color-mix(in srgb, var(--bg) 97%, transparent) 93%,
       var(--bg) 100%);
   }
+  .scene-pin-fade-right{ width:32%; }
 
   /* En móvil apenas hay huecos laterales que disimular (la foto ocupa
      casi todo el ancho), así que se oculta directamente. */
