@@ -843,12 +843,27 @@
   // (salto animado o arrastre en vivo): evita que el listener de 'scroll'
   // de más abajo se interprete a sí mismo como un gesto nuevo del usuario.
   let realScrollSyncActive = false;
-  function syncRealScrollForStepPosition(stepPos){
-    if (currentView !== 'resumen') return;
-    const y = Math.max(0, Math.min(WAYPOINTS.length - 1, stepPos)) * viewportPx();
-    realScrollSyncActive = true;
-    window.scrollTo(0, y);
-    requestAnimationFrame(() => { realScrollSyncActive = false; });
+  // BUGFIX de raíz "blanco/salto en pantalla al llegar de hacer scroll"
+  // (iPad y pantallas grandes, confirmado con varias grabaciones reales):
+  // esta función movía el scroll real del documento -en CADA fotograma
+  // durante toda la animación del salto, no solo al aterrizar- solo para
+  // que Safari recogiera/desplegara su barra "de forma nativa, como en
+  // las apps de Apple". El problema es que esa animación de la barra la
+  // controla el propio sistema operativo, fuera del alcance de este
+  // JavaScript: por mucho que se afinara el cálculo (ver historial de
+  // commits), siempre quedaba una carrera entre lo que el sistema movía
+  // y lo que este código corregía a posteriori, y esa carrera es la que
+  // se veía como un blanco o un salto momentáneo.
+  //
+  // Toda la animación visual (fotogramas, textos, botones, colores) ya
+  // funciona de forma completamente independiente del scroll real de la
+  // página -se ve en que updateProgressTrack, render(), etc. no leen
+  // window.scrollY para nada-, así que dejar de tocar el scroll real no
+  // rompe ningún otro cálculo: sencillamente ya no hay ninguna animación
+  // nativa del sistema con la que competir, y con eso desaparece toda
+  // esta familia de bugs de raíz en vez de seguir puliendo la carrera.
+  function syncRealScrollForStepPosition(){
+    // deliberadamente vacío: ver comentario de arriba.
   }
   window.__resyncScrollToStep = function(){
     if (animating) return; // un salto en curso ya gestiona su propia posición
