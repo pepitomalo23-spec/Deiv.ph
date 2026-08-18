@@ -87,6 +87,20 @@
       // reaccionando a un gesto nativo del usuario, teclado, pellizco de
       // zoom...) tiene sentido resincronizar aquí.
       if (realScrollSyncActive) return;
+      // BUGFIX iPad/iOS: este evento es precisamente el que se dispara
+      // cuando la barra de Safari se recoge/despliega -cambia el alto
+      // real disponible-, pero antes solo se llamaba a render(), nunca a
+      // resizeCanvas(). El <canvas> seguía teniendo el mismo tamaño en
+      // píxeles de antes de que la barra se moviera, mientras que su caja
+      // CSS (que depende de --vh, ya actualizada arriba por
+      // syncViewportHeightVar()) sí había cambiado: durante esa fracción
+      // de segundo el navegador escala/recorta el contenido ya dibujado
+      // para encajarlo en la caja nueva, lo que se percibe como que "algo
+      // tapa" la foto. Al llamar aquí también a resizeCanvas() (ya con su
+      // propio guard contra lecturas de tamaño 0, ver más abajo), el
+      // <canvas> se redimensiona en el mismo tick antes de redibujar, así
+      // que nunca queda una caja y un contenido de tamaños distintos.
+      if (typeof resizeCanvas === 'function') resizeCanvas();
       if (typeof updatePageBgForPostEnd === 'function') updatePageBgForPostEnd();
       if (typeof render === 'function') render();
     });
