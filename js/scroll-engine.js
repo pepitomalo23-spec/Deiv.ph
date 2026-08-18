@@ -267,9 +267,38 @@
   let dpr = Math.min(window.devicePixelRatio || 1, 2);
   let cw = 0, ch = 0;
 
+  // BUGFIX "foto en blanco durante casi un segundo al aterrizar en una
+  // posición" (visible en pantallas grandes, no solo móvil): clientWidth/
+  // clientHeight es una lectura de layout que, en el instante exacto de
+  // un evento 'resize' -por ejemplo, el propio Safari de escritorio
+  // recogiendo/desplegando su barra de pestañas al hacer scroll, no solo
+  // el móvil- puede devolver 0 durante un solo tick, aunque la escena siga
+  // perfectamente visible y con su tamaño real de sobra. Si eso ocurre,
+  // antes se fijaba canvas.width/height a 0 sin más comprobación: el
+  // <canvas> queda vacío (deja ver el blanco real de la página detrás,
+  // que es justo el "tapa blanco" que se ve) y, como resizeCanvas() ya
+  // no vuelve a llamarse hasta el PRÓXIMO evento 'resize' -no en cada
+  // frame-, ese blanco puede durar mucho más que el instante que lo causó,
+  // hasta que algún gesto adicional dispare otro resize. Ahora, ante una
+  // lectura de 0 se ignora ese resize concreto (se conserva el último
+  // tamaño válido, así que la foto sigue viéndose) y se reintenta en el
+  // siguiente frame -casi siempre el layout ya está resuelto entonces-.
+  let pendingResizeRetryRaf = null;
   function resizeCanvas(){
-    cw = canvas.clientWidth;
-    ch = canvas.clientHeight;
+    const measuredW = canvas.clientWidth;
+    const measuredH = canvas.clientHeight;
+    if (measuredW === 0 || measuredH === 0){
+      if (pendingResizeRetryRaf === null){
+        pendingResizeRetryRaf = requestAnimationFrame(() => {
+          pendingResizeRetryRaf = null;
+          resizeCanvas();
+          render();
+        });
+      }
+      return;
+    }
+    cw = measuredW;
+    ch = measuredH;
     canvas.width = Math.round(cw * dpr);
     canvas.height = Math.round(ch * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
