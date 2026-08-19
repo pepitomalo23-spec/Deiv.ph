@@ -2965,6 +2965,29 @@
   }
   .as-photo-viewer-close:hover{ background:rgba(255,255,255,0.22); }
   .as-photo-viewer-close:active{ transform:scale(0.9); }
+  /* Spinner discreto, esquina inferior, mientras se ve ya la miniatura
+     de sobra pero la versión grande todavía está llegando de fondo (ver
+     .is-loading, que pone/quita openPhotoViewer en project-categories.js).
+     No se pone encima de la foto -ahí ya hay algo que ver, la miniatura-,
+     solo como pista discreta de que va a mejorar la nitidez en breve. */
+  .as-photo-viewer-spinner{
+    display:none;
+    position:fixed;
+    bottom:max(18px, env(safe-area-inset-bottom));
+    right:max(18px, env(safe-area-inset-right));
+    z-index:4102;
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    border:2.5px solid rgba(255,255,255,0.25);
+    border-top-color:#fff;
+    animation:asPhotoViewerSpin .8s linear infinite;
+  }
+  .as-photo-viewer.is-loading .as-photo-viewer-spinner{ display:block; }
+  @keyframes asPhotoViewerSpin{ to{ transform:rotate(360deg); } }
+  @media (prefers-reduced-motion:reduce){
+    .as-photo-viewer-spinner{ animation:none; }
+  }
   @media (max-width:900px){
     .as-photo-viewer{ padding:48px 12px; }
   }

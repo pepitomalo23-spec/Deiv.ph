@@ -117,23 +117,47 @@
   // Abre una foto concreta del mosaico a pantalla completa, por encima
   // del propio mosaico (mismo patrón de fundido+escala que openLightbox/
   // closeLightbox: primero se pasa a flex con "is-open" y solo en el
-  // siguiente frame se anima la entrada con "is-visible"). Pide la foto
-  // a una resolución más alta que las miniaturas del mosaico (900px),
-  // ya que aquí puede verse a tamaño de pantalla completa.
-  function openPhotoViewer(url){
-    if (!photoViewerEl || !photoViewerImgEl || !url) return;
-    photoViewerImgEl.src = (typeof optimizeCloudinaryUrl === 'function') ? optimizeCloudinaryUrl(url, 1800) : url;
+  // siguiente frame se anima la entrada con "is-visible").
+  // Carga en dos pasos para que no se note un hueco vacío mientras llega
+  // la foto grande: primero se pone la MISMA miniatura que ya se veía en
+  // el mosaico (thumbUrl) -esa ya está descargada por el navegador, así
+  // que aparece al instante, aunque algo más pequeña/blanda-, y en
+  // cuanto la versión grande (fullUrl, a 1800px) termina de cargar en
+  // segundo plano, se cambia el src por ella sin que se note el cambio
+  // (misma foto, solo más nítida). Mientras tanto se muestra un pequeño
+  // spinner (ver .as-photo-viewer.is-loading en styles.css) para que se
+  // note que algo está cargando y no parezca que se ha quedado colgado.
+  function openPhotoViewer(fullUrl, thumbUrl){
+    if (!photoViewerEl || !photoViewerImgEl || !fullUrl) return;
+    const fast = (typeof optimizeCloudinaryUrl === 'function') ? optimizeCloudinaryUrl(fullUrl, 1800) : fullUrl;
+    photoViewerImgEl.src = thumbUrl || fast;
     photoViewerEl.classList.add('is-open');
+    photoViewerEl.classList.toggle('is-loading', fast !== (thumbUrl || fast));
     photoViewerEl.setAttribute('aria-hidden', 'false');
     requestAnimationFrame(() => {
       requestAnimationFrame(() => photoViewerEl.classList.add('is-visible'));
     });
+    if (fast !== (thumbUrl || fast)){
+      const full = new Image();
+      full.onload = () => {
+        // Puede haberse cerrado el visor (o abierto otra foto distinta)
+        // mientras la versión grande terminaba de cargar en segundo
+        // plano: si ya no es la foto que se pidió, no se sustituye nada.
+        if (photoViewerImgEl.dataset.pending !== fast) return;
+        photoViewerImgEl.src = fast;
+        photoViewerEl.classList.remove('is-loading');
+      };
+      full.onerror = () => { photoViewerEl.classList.remove('is-loading'); };
+      photoViewerImgEl.dataset.pending = fast;
+      full.src = fast;
+    }
   }
 
   function closePhotoViewer(){
     if (!photoViewerEl) return;
-    photoViewerEl.classList.remove('is-visible');
+    photoViewerEl.classList.remove('is-visible', 'is-loading');
     photoViewerEl.setAttribute('aria-hidden', 'true');
+    if (photoViewerImgEl) delete photoViewerImgEl.dataset.pending;
     const onFadeOut = (ev) => {
       if (ev.propertyName !== 'opacity') return;
       photoViewerEl.removeEventListener('transitionend', onFadeOut);
@@ -175,11 +199,12 @@
     lightboxGridEl.addEventListener('click', (e) => {
       const img = e.target.closest('img');
       if (!img) return;
-      // Se usa data-full (la URL original, sin recortar a 900px) y no
-      // src (la miniatura del mosaico, ya optimizada a ese ancho): así
-      // la foto se ve nítida también al abrirse grande a pantalla
-      // completa, no ampliada a partir de una versión pequeña.
-      openPhotoViewer(img.dataset.full || img.getAttribute('src'));
+      // Se pasan las DOS versiones: la miniatura ya cargada (img.src,
+      // instantánea porque el navegador ya la tiene descargada del
+      // mosaico) y la URL original sin recortar (data-full), de la que
+      // se pide una versión grande en segundo plano -ver openPhotoViewer
+      // más arriba, que hace el cambio de una a otra sin que se note-.
+      openPhotoViewer(img.dataset.full || img.getAttribute('src'), img.getAttribute('src'));
     });
   }
   if (photoViewerCloseBtn) photoViewerCloseBtn.addEventListener('click', closePhotoViewer);
