@@ -140,6 +140,19 @@
     <div class="as-cat-lightbox-grid" id="asCatLightboxGrid"></div>
   </div>
 
+  <!-- ---------- Visor de una sola foto a pantalla completa ----------
+       Se abre al pulsar cualquier foto del mosaico de arriba
+       (#asCatLightboxGrid), por encima de él (ver project-categories.js
+       y .as-photo-viewer en styles.css, con z-index más alto que
+       #asCatLightbox). Vive aquí, junto al mosaico y fuera de cualquier
+       ancestro con transform, por el mismo motivo que #asCatLightbox. -->
+  <div class="as-photo-viewer" id="asPhotoViewer" data-no-scene-drag aria-hidden="true">
+    <button type="button" class="as-photo-viewer-close" id="asPhotoViewerClose" aria-label="Cerrar foto">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <img class="as-photo-viewer-img" id="asPhotoViewerImg" src="" alt="">
+  </div>
+
   <div class="scene-progress" id="sceneProgress" aria-hidden="true">
     <div class="scene-progress-track" id="sceneProgressTrack">
       <div class="scene-progress-line" id="sceneProgressLine"></div>

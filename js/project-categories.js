@@ -33,6 +33,11 @@
   const lightboxMoreEl = document.getElementById('asCatLightboxMore');
   const lightboxGridEl = document.getElementById('asCatLightboxGrid');
   const lightboxCloseBtn = document.getElementById('asCatLightboxClose');
+  // Visor de una sola foto a pantalla completa (se abre al pulsar
+  // cualquier foto del mosaico de arriba, ver más abajo).
+  const photoViewerEl = document.getElementById('asPhotoViewer');
+  const photoViewerImgEl = document.getElementById('asPhotoViewerImg');
+  const photoViewerCloseBtn = document.getElementById('asPhotoViewerClose');
 
   function renderCatButtonsPublic(){
     if (!catButtonsEl) return;
@@ -62,7 +67,7 @@
     const photos = Array.isArray(cat.photos) ? cat.photos.filter(Boolean) : [];
     if (lightboxGridEl){
       lightboxGridEl.innerHTML = photos.length
-        ? photos.map(url => '<img src="' + escapeAttr(optimizeCloudinaryUrl(url, 900)) + '" alt="' + escapeAttr(cat.label || '') + '" loading="lazy">').join('')
+        ? photos.map(url => '<img src="' + escapeAttr(optimizeCloudinaryUrl(url, 900)) + '" data-full="' + escapeAttr(url) + '" alt="' + escapeAttr(cat.label || '') + '" loading="lazy">').join('')
         : '<p class="as-cat-lightbox-empty">Todavía no hay fotos en esta categoría.</p>';
     }
     lightboxEl.classList.add('is-open');
@@ -109,6 +114,39 @@
     setTimeout(() => lightboxEl.classList.remove('is-open'), 600);
   }
 
+  // Abre una foto concreta del mosaico a pantalla completa, por encima
+  // del propio mosaico (mismo patrón de fundido+escala que openLightbox/
+  // closeLightbox: primero se pasa a flex con "is-open" y solo en el
+  // siguiente frame se anima la entrada con "is-visible"). Pide la foto
+  // a una resolución más alta que las miniaturas del mosaico (900px),
+  // ya que aquí puede verse a tamaño de pantalla completa.
+  function openPhotoViewer(url){
+    if (!photoViewerEl || !photoViewerImgEl || !url) return;
+    photoViewerImgEl.src = (typeof optimizeCloudinaryUrl === 'function') ? optimizeCloudinaryUrl(url, 1800) : url;
+    photoViewerEl.classList.add('is-open');
+    photoViewerEl.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => photoViewerEl.classList.add('is-visible'));
+    });
+  }
+
+  function closePhotoViewer(){
+    if (!photoViewerEl) return;
+    photoViewerEl.classList.remove('is-visible');
+    photoViewerEl.setAttribute('aria-hidden', 'true');
+    const onFadeOut = (ev) => {
+      if (ev.propertyName !== 'opacity') return;
+      photoViewerEl.removeEventListener('transitionend', onFadeOut);
+      photoViewerEl.classList.remove('is-open');
+      if (photoViewerImgEl) photoViewerImgEl.src = '';
+    };
+    photoViewerEl.addEventListener('transitionend', onFadeOut);
+    setTimeout(() => {
+      photoViewerEl.classList.remove('is-open');
+      if (photoViewerImgEl) photoViewerImgEl.src = '';
+    }, 400);
+  }
+
   // Efecto al pulsar una categoría: el BOTÓN se implosiona -se encoge
   // sobre sí mismo y desaparece- sin que el resto de la página se mueva
   // ni haga zoom en ningún momento (ver @keyframes asCatImplode y
@@ -131,8 +169,31 @@
     });
   }
   if (lightboxCloseBtn) lightboxCloseBtn.addEventListener('click', closeLightbox);
+  // Pulsar cualquier foto del mosaico la abre a pantalla completa en el
+  // visor de una sola foto (ver openPhotoViewer más arriba).
+  if (lightboxGridEl){
+    lightboxGridEl.addEventListener('click', (e) => {
+      const img = e.target.closest('img');
+      if (!img) return;
+      // Se usa data-full (la URL original, sin recortar a 900px) y no
+      // src (la miniatura del mosaico, ya optimizada a ese ancho): así
+      // la foto se ve nítida también al abrirse grande a pantalla
+      // completa, no ampliada a partir de una versión pequeña.
+      openPhotoViewer(img.dataset.full || img.getAttribute('src'));
+    });
+  }
+  if (photoViewerCloseBtn) photoViewerCloseBtn.addEventListener('click', closePhotoViewer);
+  // Pulsar el fondo oscuro también cierra el visor (pulsar la foto en sí
+  // no, gracias a e.target === photoViewerEl: solo se cuenta el fondo).
+  if (photoViewerEl){
+    photoViewerEl.addEventListener('click', (e) => {
+      if (e.target === photoViewerEl) closePhotoViewer();
+    });
+  }
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && lightboxEl && lightboxEl.classList.contains('is-open')) closeLightbox();
+    if (e.key !== 'Escape') return;
+    if (photoViewerEl && photoViewerEl.classList.contains('is-open')){ closePhotoViewer(); return; }
+    if (lightboxEl && lightboxEl.classList.contains('is-open')) closeLightbox();
   });
 
   // ================= Editor en Ajustes → Proyectos =================

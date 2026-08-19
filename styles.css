@@ -2870,17 +2870,17 @@
      recorta) porque solo se le fija el ancho, el alto es el que le
      corresponda según su proporción -al revés que el intento anterior,
      que forzaba un aspect-ratio fijo con object-fit:cover y acababa
-     recortando mal fotos que no eran justo esa proporción-. La 1ª foto
-     sí ocupa todo el ancho arriba (column-span:all), como banner, y el
-     resto se reparte solo en las columnas de abajo, cada una cayendo en
-     la columna más corta en cada momento (así es como funciona
-     column-count de forma nativa, sin necesitar JS).
+     recortando mal fotos que no eran justo esa proporción-. TODAS las
+     fotos, incluida la 1ª, se reparten igual por columnas (antes la 1ª
+     foto llevaba column-span:all y salía como banner a todo el ancho,
+     mucho más grande que el resto; ahora cae en la columna más corta en
+     cada momento, igual que las demás -así es como funciona
+     column-count de forma nativa, sin necesitar JS-).
      Mismo número de columnas (3) en TODOS los tamaños de pantalla: en
      móvil se ve exactamente la misma estructura de mosaico que en
-     escritorio (banner arriba + 3 columnas debajo), solo que a menor
-     tamaño -column-gap y el margen entre fotos se van reduciendo en los
-     media queries de abajo para que el mosaico completo quepa cómodo en
-     una pantalla estrecha-. */
+     escritorio, solo que a menor tamaño -column-gap y el margen entre
+     fotos se van reduciendo en los media queries de abajo para que el
+     mosaico completo quepa cómodo en una pantalla estrecha-. */
   .as-cat-lightbox-grid{
     column-count:3;
     column-gap:12px;
@@ -2896,16 +2896,80 @@
     border-radius:4px;
     background:rgba(255,255,255,0.06);
     break-inside:avoid;
+    cursor:zoom-in;
+    transition:opacity .2s ease;
   }
-  .as-cat-lightbox-grid img:nth-child(1){
-    column-span:all;
-    margin-bottom:16px;
-  }
+  .as-cat-lightbox-grid img:hover{ opacity:0.88; }
   .as-cat-lightbox-empty{
     color:rgba(255,255,255,0.6);
     font-size:0.85rem;
     text-align:center;
     margin:0 auto;
+  }
+
+  /* ---------- Visor de una sola foto a pantalla completa ----------
+     Se abre AL PULSAR una foto del mosaico de arriba (#asCatLightboxGrid),
+     por encima del propio mosaico (z-index más alto que #asCatLightbox,
+     que ya está en 4000). Mismo patrón de fundido+escala que el mosaico
+     (is-open pasa a display:flex, is-visible anima la entrada un frame
+     después -ver comentario de .as-cat-lightbox más arriba-). */
+  .as-photo-viewer{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:4100;
+    background:rgba(0,0,0,0.92);
+    align-items:center;
+    justify-content:center;
+    padding:56px 20px;
+    box-sizing:border-box;
+    opacity:0;
+    transform:scale(0.96);
+    transition:opacity .32s cubic-bezier(.16,1,.3,1), transform .32s cubic-bezier(.16,1,.3,1);
+    cursor:zoom-out;
+  }
+  .as-photo-viewer.is-open{ display:flex; }
+  .as-photo-viewer.is-open.is-visible{ opacity:1; transform:scale(1); }
+  @media (prefers-reduced-motion:reduce){
+    .as-photo-viewer{ transition-duration:.01s; }
+  }
+  .as-photo-viewer-img{
+    display:block;
+    max-width:100%;
+    max-height:100%;
+    width:auto;
+    height:auto;
+    border-radius:4px;
+    cursor:default;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  }
+  .as-photo-viewer-close{
+    position:fixed;
+    top:max(14px, env(safe-area-inset-top));
+    right:max(14px, env(safe-area-inset-right));
+    z-index:4102;
+    width:40px;
+    height:40px;
+    border:none;
+    border-radius:50%;
+    background:rgba(255,255,255,0.12);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+    transition:background .2s ease, transform .2s ease;
+  }
+  .as-photo-viewer-close:hover{ background:rgba(255,255,255,0.22); }
+  .as-photo-viewer-close:active{ transform:scale(0.9); }
+  @media (max-width:900px){
+    .as-photo-viewer{ padding:48px 12px; }
+  }
+  @media (max-width:480px){
+    .as-photo-viewer{ padding:40px 8px; }
   }
   /* Pantallas medianas (tablets/móviles grandes): se mantiene la misma
      estructura de 3 columnas, solo con menos aire entre fotos. */
@@ -2913,7 +2977,6 @@
     .as-cat-lightbox{ padding:52px 14px 24px; }
     .as-cat-lightbox-grid{ column-gap:9px; }
     .as-cat-lightbox-grid img{ margin-bottom:9px; border-radius:3px; }
-    .as-cat-lightbox-grid img:nth-child(1){ margin-bottom:11px; }
   }
   /* Móvil estrecho: sigue siendo el mismo mosaico de 3 columnas -no se
      colapsa a 1 sola columna, que es lo que rompía la estructura-, solo
@@ -2923,7 +2986,6 @@
     .as-cat-lightbox{ padding:48px 10px 20px; }
     .as-cat-lightbox-grid{ column-gap:6px; }
     .as-cat-lightbox-grid img{ margin-bottom:6px; border-radius:3px; }
-    .as-cat-lightbox-grid img:nth-child(1){ margin-bottom:8px; }
   }
 
 
