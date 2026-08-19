@@ -3,6 +3,14 @@
     --fg:#111111;
     --accent:#ff5a1f;
     --dim:#6b6b66;
+
+    /* Botón hamburguesa neumórfico ("soft UI"): sombras derivadas
+       automáticamente de --bg (65% mezcla con negro/blanco) para
+       conservar el mismo contraste relativo del diseño original,
+       sea cual sea el color de fondo. No tocar a mano. */
+    --neu-shadow-dark: color-mix(in srgb, var(--bg) 65%, black);
+    --neu-shadow-light: color-mix(in srgb, var(--bg) 65%, white);
+    --neu-icon-color: color-mix(in srgb, var(--bg) 40%, black);
     /* Fuerza de la viñeta OSCURA y fuerte (.scene-wrap-fade, la que vira
        hasta el gris casi negro sólido que empalma con el panel de detrás)
        en el borde inferior de la escena. 0 = invisible, 1 = intensidad
@@ -869,9 +877,7 @@
     width:44px;
     height:44px;
     border:none;
-    background:rgba(255,255,255,0.55);
-    backdrop-filter:blur(6px);
-    -webkit-backdrop-filter:blur(6px);
+    background:none;
     border-radius:50%;
     display:flex;
     flex-direction:column;
@@ -881,7 +887,38 @@
     cursor:pointer;
     padding:0;
     opacity:1;
+    -webkit-tap-highlight-color:transparent;
+    -webkit-touch-callout:none;
+    user-select:none;
     transition:opacity .35s ease;
+  }
+  /* Cáscara neumórfica: círculo con sombra doble (clara/oscura) que da
+     efecto de relieve sobre --bg, y se "hunde" (sombra invertida hacia
+     dentro) al pulsar. Tamaños escalados desde el diseño original de
+     150px a los 44px reales del botón, manteniendo la misma proporción. */
+  .menu-toggle::before{
+    position:absolute;
+    inset:0;
+    display:block;
+    content:" ";
+    border-radius:50%;
+    filter:blur(2px);
+    transform:scale(1);
+    transition:box-shadow .3s ease-out, transform .3s ease-out;
+    box-shadow:
+      3px 3px 6px var(--neu-shadow-dark),
+      -3px -3px 6px var(--neu-shadow-light),
+      inset -3px -3px 6px transparent,
+      inset 3px 3px 6px transparent;
+  }
+  .menu-toggle.open::before{
+    transition:box-shadow .3s ease-in, transform .3s ease-in;
+    transform:scale(1.05);
+    box-shadow:
+      3px 3px 6px var(--neu-shadow-dark),
+      -3px -3px 6px var(--neu-shadow-light),
+      inset -3px -3px 6px var(--neu-shadow-light),
+      inset 3px 3px 6px var(--neu-shadow-dark);
   }
   /* Mientras se está reproduciendo la intro de fotogramas (todavía no se
      ha llegado a la última parada del recorrido, ver stepIndex en
@@ -893,12 +930,16 @@
     pointer-events:none;
   }
   .menu-toggle span{
+    position:relative;
     display:block;
     width:20px;
     height:2px;
-    background:var(--fg);
+    background:var(--neu-icon-color);
     border-radius:2px;
-    transition:transform .3s ease, opacity .3s ease;
+    transition:transform .3s ease, opacity .3s ease, top .3s ease;
+  }
+  .menu-toggle.open span{
+    transition:transform .3s ease-in, opacity .3s ease-in, top .3s ease-in;
   }
   .menu-toggle.open span:nth-child(1){ transform:translateY(7px) rotate(45deg); }
   .menu-toggle.open span:nth-child(2){ opacity:0; }
