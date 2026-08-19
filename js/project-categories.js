@@ -38,6 +38,38 @@
   const photoViewerEl = document.getElementById('asPhotoViewer');
   const photoViewerImgEl = document.getElementById('asPhotoViewerImg');
   const photoViewerCloseBtn = document.getElementById('asPhotoViewerClose');
+  // Meta "theme-color": scroll-engine.js la va tiñendo en vivo (blanco ->
+  // gris/negro) según el punto de la historia en el que se esté, y ese
+  // mismo color es el que se cuela por cualquier hueco que se asome del
+  // fondo REAL de la página (detrás del notch, la barra de Safari, o al
+  // rebotar el scroll) -ver el comentario grande junto a setPageBgColor
+  // en scroll-engine.js-. Este mosaico a pantalla completa vive DELANTE
+  // de la escena, así que aunque se abra en un punto todavía blanco de
+  // la historia, ese fondo real y esa barra deben pasar a negro mientras
+  // el mosaico esté abierto (para que no se note un marco blanco arriba/
+  // abajo alrededor del recuadro negro), y volver a lo que tocara en
+  // cuanto se cierre (ver openLightbox/closeLightbox más abajo).
+  const themeColorMetaEl = document.getElementById('themeColorMeta');
+  let savedPageBg = null;
+  let savedThemeColor = null;
+
+  function forcePageBgBlack(){
+    savedPageBg = document.documentElement.style.getPropertyValue('--bg');
+    savedThemeColor = themeColorMetaEl ? themeColorMetaEl.getAttribute('content') : null;
+    document.documentElement.style.setProperty('--bg', '#000000');
+    if (themeColorMetaEl) themeColorMetaEl.setAttribute('content', '#000000');
+  }
+
+  function restorePageBg(){
+    if (savedPageBg){
+      document.documentElement.style.setProperty('--bg', savedPageBg);
+    } else {
+      document.documentElement.style.removeProperty('--bg');
+    }
+    if (themeColorMetaEl && savedThemeColor) themeColorMetaEl.setAttribute('content', savedThemeColor);
+    savedPageBg = null;
+    savedThemeColor = null;
+  }
 
   function renderCatButtonsPublic(){
     if (!catButtonsEl) return;
@@ -73,6 +105,7 @@
     lightboxEl.classList.add('is-open');
     lightboxEl.setAttribute('aria-hidden', 'false');
     document.body.classList.add('as-cat-lightbox-open');
+    forcePageBgBlack();
     // "is-visible" se añade un frame después de "is-open" a propósito:
     // display:none → flex no se puede animar, así que primero se pasa a
     // flex (todavía con opacity:0/scale menor, ver CSS) y solo en el
@@ -98,6 +131,7 @@
     lightboxEl.classList.remove('is-visible');
     lightboxEl.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('as-cat-lightbox-open');
+    restorePageBg();
     if (catButtonsEl){
       catButtonsEl.querySelectorAll('.as-cat-btn.is-active').forEach(el => el.classList.remove('is-active'));
     }
