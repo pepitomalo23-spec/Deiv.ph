@@ -1864,7 +1864,28 @@
       trackPostEndVelocitySample(postEndTarget);
       return;
     }
-    if (animating || touchStartY === null) return;
+    if (touchJumpTriggered) return;
+
+    // FIX "desliza pero no se mueve": cada salto animado dura 1.2-1.8s
+    // (JUMP_DURATION/_CONTINUATION), mucho más que un deslizamiento real
+    // con el dedo (~200-400ms). Antes, si este gesto llegaba mientras el
+    // salto anterior TODAVÍA estaba en marcha (animating === true), se
+    // descartaba sin más: como el scroll nativo ya se había bloqueado
+    // arriba (preventDefault), el gesto "se notaba" pero la foto no
+    // avanzaba -daba la sensación de que la web detectaba el deslizamiento
+    // (la barrita lateral de progreso seguía terminando de moverse por el
+    // salto anterior) sin que la escena respondiera a este nuevo toque.
+    // Ahora, en vez de perderlo, se encola su dirección en pendingDir:
+    // jumpTo() ya sabe dispararlo automáticamente en cuanto el salto en
+    // curso aterriza (ver el bloque "if (pendingDir !== 0)" al final de su
+    // función step()), el mismo mecanismo que ya existía para rueda/
+    // teclado pero que nunca llegó a conectarse aquí para el táctil.
+    if (animating){
+      touchJumpTriggered = true;
+      const dy = touchStartY - e.touches[0].clientY;
+      pendingDir = dy >= 0 ? 1 : -1;
+      return;
+    }
 
     // Fuera del tramo final: la escena YA NO sigue al dedo en vivo (antes
     // se arrastraba con dragDisplayP/dragStepLoop, ver más abajo). Ahora,
@@ -1876,7 +1897,6 @@
     // dispara una vez por gesto físico (touchJumpTriggered): el resto de
     // touchmove de este mismo gesto se ignoran, aunque el dedo se siga
     // moviendo tras el disparo.
-    if (touchJumpTriggered) return;
     touchJumpTriggered = true;
 
     const dy = touchStartY - e.touches[0].clientY;
