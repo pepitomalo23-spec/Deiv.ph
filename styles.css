@@ -2825,11 +2825,11 @@
     display:flex;
     flex-wrap:wrap;
     justify-content:center;
-    gap:clamp(12px, 2vw, 20px);
+    gap:clamp(16px, 2.6vw, 28px);
   }
   .youtube-card{
     display:block;
-    width:clamp(180px, 26vw, 240px);
+    width:clamp(240px, 34vw, 340px);
     text-decoration:none;
     color:inherit;
     /* Ligero levantamiento al pasar el ratón/tocar, igual que el resto de
@@ -2849,18 +2849,33 @@
     background-position:center;
     box-shadow:0 6px 18px rgba(0,0,0,0.16);
   }
+  /* El aviso de "pulsa para ver" vive en una franja baja con degradado,
+     no encima de toda la miniatura -así el propio fotograma se ve
+     entero y el aviso no "tapa" nada del centro de la imagen-. */
   .youtube-card-play{
     position:absolute;
-    inset:0;
+    left:0;
+    right:0;
+    bottom:0;
     display:flex;
     align-items:center;
-    justify-content:center;
+    gap:8px;
+    padding:22px 12px 10px;
+    background:linear-gradient(to top, rgba(0,0,0,0.62), rgba(0,0,0,0));
   }
   .youtube-card-play svg{
-    width:46px;
-    height:46px;
-    filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+    width:24px;
+    height:24px;
+    flex:none;
+    filter:drop-shadow(0 1px 3px rgba(0,0,0,0.5));
     transition:transform .2s ease;
+  }
+  .youtube-card-play-text{
+    color:#fff;
+    font-family:inherit;
+    font-size:0.8rem;
+    font-weight:600;
+    letter-spacing:0.01em;
   }
   .youtube-card:hover .youtube-card-play svg{ transform:scale(1.08); }
   .youtube-card-title{
@@ -2880,16 +2895,16 @@
     overflow:hidden;
   }
   @media (max-width:480px){
-    .youtube-card{ width:clamp(140px, 40vw, 170px); }
+    .youtube-card{ width:clamp(200px, 70vw, 280px); }
   }
 
   /* ---------- Cuadrícula completa dentro de #view-mis-videos ----------
      Mismas tarjetas (.youtube-card) que antes vivían sobre la escena;
-     aquí simplemente se alinean a la izquierda dentro de la página,
-     igual que el resto del contenido de las vistas secundarias, en vez
-     de centradas. */
+     centradas en la página (a diferencia del resto de listados de esta
+     subvista, aquí interesa que las tarjetas -más grandes que antes-
+     queden centradas en vez de pegadas al margen izquierdo). */
   .youtube-grid--full{
-    justify-content:flex-start;
+    justify-content:center;
     margin-top:8px;
   }
   #view-mis-videos h1 .as-word-accent{ color:var(--accent); }
