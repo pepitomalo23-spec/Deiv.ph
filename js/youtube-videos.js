@@ -1,10 +1,11 @@
 // ---------- "Proyectos en YouTube" ----------
-// Sección fija dentro de #afterStoryHeader, justo debajo del comparador
-// antes/después (ver #youtubeSection en index.html). Cada entrada es
+// Un único punto de entrada público: el botón #proyectosYtBtn, situado
+// entre "Ediciones" y "Proyectos" (ver index.html), que lleva a la
+// página #view-mis-videos con la cuadrícula completa. Cada entrada es
 // { id, title, url }: la miniatura se saca automáticamente del propio
 // enlace de YouTube (getYoutubeThumb), no hace falta subir ninguna foto.
-// Al tocar una tarjeta se abre el vídeo real en YouTube en una pestaña
-// nueva (target="_blank").
+// Al tocar una tarjeta de la cuadrícula se abre el vídeo real en
+// YouTube en una pestaña nueva (target="_blank").
 //
 // Dato guardado en Firestore: youtubeVideos = [
 //   { id, title, url }, ...
@@ -53,52 +54,34 @@
   // Firestore todavía está cargando.
   let cloudLoaded = false;
 
-  const sectionEl = document.getElementById('youtubeSection');
-  // Portada única + botón "Ver todos" (sobre la escena, dentro de
-  // #afterStoryHeader): sustituye a la cuadrícula completa que antes
-  // vivía aquí mismo.
-  const coverEl = document.getElementById('youtubeCover');
-  const coverThumbEl = document.getElementById('youtubeCoverThumb');
-  const coverTitleEl = document.getElementById('youtubeCoverTitle');
-  const seeAllBtn = document.getElementById('youtubeSeeAllBtn');
-  // Cuadrícula completa: ahora vive en su propia página (#view-mis-videos),
-  // a la que lleva el botón "Ver todos los vídeos" de arriba.
+  // Cuadrícula completa: vive en su propia página (#view-mis-videos), a
+  // la que lleva el botón "Vídeos de YouTube" de entre "Ediciones" y
+  // "Proyectos" (ver #proyectosYtBtn en index.html). Ya NO hay ninguna
+  // portada/botón bajo "Mis ediciones" -se quitó por duplicar ese mismo
+  // punto de entrada-.
   const gridFullEl = document.getElementById('youtubeGridFull');
-  // Segundo punto de entrada a la misma página, esta vez entre
-  // "Ediciones" y "Proyectos" (ver comentario junto a #proyectosYtBtn
-  // en index.html).
   const proyectosYtBtn = document.getElementById('proyectosYtBtn');
   const proyectosYtBtnThumb = document.getElementById('proyectosYtBtnThumb');
 
   function renderPublic(){
-    if (!coverEl && !gridFullEl && !proyectosYtBtn) return;
+    if (!gridFullEl && !proyectosYtBtn) return;
     // Mismo criterio que renderCatButtonsPublic (project-categories.js):
     // mientras la nube no ha respondido todavía se deja visible por
     // defecto (para no ocultar de golpe una sección que sí tiene vídeos
     // guardados); solo se oculta del todo una vez confirmado que, de
     // verdad, no hay ninguno.
-    if (sectionEl) sectionEl.style.display = (!cloudLoaded || currentVideos.length) ? '' : 'none';
     if (proyectosYtBtn) proyectosYtBtn.style.display = (!cloudLoaded || currentVideos.length) ? '' : 'none';
     if (!cloudLoaded || !currentVideos.length){
-      if (coverThumbEl) coverThumbEl.style.backgroundImage = '';
-      if (coverTitleEl) coverTitleEl.textContent = '';
-      if (coverEl) coverEl.setAttribute('href', '#');
       if (proyectosYtBtnThumb) proyectosYtBtnThumb.style.backgroundImage = '';
       if (gridFullEl) gridFullEl.innerHTML = '';
       return;
     }
 
-    // La portada siempre muestra el PRIMER vídeo de la lista (el orden
-    // se controla desde el mismo editor de Ajustes, con las flechas
-    // ↑/↓ que ya existían) y, al tocarla, abre ese vídeo real en
-    // YouTube -igual que hacía antes cualquier tarjeta de la cuadrícula.
+    // Miniatura del botón: la del PRIMER vídeo de la lista (el orden se
+    // controla desde el mismo editor de Ajustes, con las flechas ↑/↓
+    // que ya existían).
     const first = currentVideos[0];
     const firstThumb = getYoutubeThumb(first.url);
-    if (coverThumbEl){
-      coverThumbEl.style.backgroundImage = firstThumb ? "url('" + firstThumb + "')" : '';
-    }
-    if (coverTitleEl) coverTitleEl.textContent = first.title || '';
-    if (coverEl) coverEl.setAttribute('href', first.url || '#');
     if (proyectosYtBtnThumb){
       proyectosYtBtnThumb.style.backgroundImage = firstThumb ? "url('" + firstThumb + "')" : '';
     }
@@ -119,18 +102,10 @@
     }
   }
 
-  // Botón "Ver todos los vídeos": lleva a la página propia con la
-  // cuadrícula completa (#view-mis-videos), usando el mismo sistema de
-  // navegación entre vistas que "Sobre mí"/"Ajustes" (ver goToView en
-  // view-navigation.js).
-  if (seeAllBtn){
-    seeAllBtn.addEventListener('click', () => {
-      if (typeof window.goToView === 'function') window.goToView('mis-videos');
-    });
-  }
-
-  // Mismo destino que el botón de arriba: segundo punto de entrada,
-  // entre "Ediciones" y "Proyectos" (ver #proyectosYtBtn en index.html).
+  // Botón "Vídeos de YouTube" (entre "Ediciones" y "Proyectos"): lleva a
+  // la página propia con la cuadrícula completa (#view-mis-videos),
+  // usando el mismo sistema de navegación entre vistas que "Sobre mí"/
+  // "Ajustes" (ver goToView en view-navigation.js).
   if (proyectosYtBtn){
     proyectosYtBtn.addEventListener('click', () => {
       if (typeof window.goToView === 'function') window.goToView('mis-videos');
