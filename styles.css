@@ -3307,6 +3307,90 @@
     .as-cat-buttons{ max-width:min(460px, 40vw); }
   }
 
+  /* ---------- Botón "Vídeos de YouTube" (entre "Ediciones" y
+     "Proyectos") ----------
+     Tarjeta-botón horizontal: miniatura pequeña a la izquierda (la
+     portada del primer vídeo, ver proyectos-yt-btn-thumb más abajo y su
+     JS en youtube-videos.js), título+subtítulo en el centro y una
+     flecha a la derecha. Mismo lenguaje neumórfico que .as-cat-btn
+     (sombra doble suave) pero en formato tarjeta ancha, para que
+     destaque como su propio "apartado" y no como una píldora más de
+     categoría. */
+  .proyectos-yt-btn{
+    --as-cat-surface:#eef1f5;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    width:100%;
+    max-width:min(380px, calc(100vw - 60px));
+    margin:4px 0 clamp(10px, 2vh, 20px);
+    padding:10px 16px 10px 10px;
+    border:none;
+    border-radius:16px;
+    background:var(--as-cat-surface);
+    box-shadow:6px 6px 14px rgba(0,0,0,0.10), -5px -5px 12px rgba(255,255,255,0.7);
+    cursor:pointer;
+    text-align:left;
+    pointer-events:none; /* reactivado solo cuando el ancestro está "visible", igual que .as-cat-top/.as-expand */
+    transition:box-shadow .18s ease, transform .18s ease;
+  }
+  .proyectos-header.visible .proyectos-yt-btn{ pointer-events:auto; }
+  .proyectos-yt-btn:hover{ transform:translateY(-1px); }
+  .proyectos-yt-btn:active{
+    transform:translateY(0) scale(0.98);
+    box-shadow:inset 4px 4px 10px rgba(0,0,0,0.12), inset -3px -3px 8px rgba(255,255,255,0.7);
+  }
+  .proyectos-yt-btn-thumb{
+    flex:none;
+    width:48px;
+    height:48px;
+    border-radius:12px;
+    background-color:#dfe2e6;
+    background-size:cover;
+    background-position:center;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#4a4d4f;
+    overflow:hidden;
+  }
+  /* Icono "play" de repuesto (mientras no hay miniatura real todavía o
+     no hay ningún vídeo guardado): se oculta solo con CSS en cuanto la
+     miniatura de fondo se aplica por JS, sin tocar el marcado. */
+  .proyectos-yt-btn-thumb[style*="background-image"] svg{ display:none; }
+  .proyectos-yt-btn-text{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    min-width:0;
+    flex:1;
+  }
+  .proyectos-yt-btn-title{
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:600;
+    font-size:0.92rem;
+    color:#111111;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .proyectos-yt-btn-sub{
+    font-size:0.72rem;
+    color:#6b6f73;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .proyectos-yt-btn-arrow{
+    flex:none;
+    color:var(--accent);
+    transition:transform .18s ease;
+  }
+  .proyectos-yt-btn:hover .proyectos-yt-btn-arrow{ transform:translateX(3px); }
+  @media (min-width:901px){
+    .proyectos-yt-btn{ max-width:min(460px, 40vw); }
+  }
+
   /* ---------- Botones de categorías de "Proyectos" (Deportes, Fiestas...)
      ----------
      Fila de píldoras pequeñas. Cada una es una categoría creada desde

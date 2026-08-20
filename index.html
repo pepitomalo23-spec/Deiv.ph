@@ -235,6 +235,34 @@
       <div class="as-cat-buttons" id="asCatButtons"></div>
     </div>
 
+    <!-- ---------- Botón "Vídeos de YouTube" ----------
+         Vive aquí a propósito, entre "Ediciones" (as-cat-top, arriba) y
+         "Proyectos" (proyectos-body, abajo): en escritorio queda
+         apilado entre ambos bloques dentro de la misma columna de
+         #proyectosHeader (ver @media min-width:901px en styles.css). En
+         móvil, al no ser ni fixed ni display:contents, cae dentro del
+         flujo normal de #proyectosHeader (que en móvil es el bloque
+         fijo abajo-izquierda) justo antes del título "Proyectos" -lo
+         más parecido a "entre medias" que permite tener a la vez
+         "Ediciones" fijo arriba y "Proyectos" fijo abajo en pantallas
+         pequeñas.
+         Lleva a la página con la cuadrícula completa de "Proyectos en
+         YouTube" (#view-mis-videos, más abajo en este archivo) -mismo
+         destino que el botón "Ver todos los vídeos" de la portada en
+         "Mis ediciones", ver youtube-videos.js-. La miniatura de fondo
+         se saca automáticamente del primer vídeo de la lista, igual que
+         esa otra portada. -->
+    <button type="button" class="proyectos-yt-btn" id="proyectosYtBtn" data-no-scene-drag>
+      <span class="proyectos-yt-btn-thumb" id="proyectosYtBtnThumb" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      </span>
+      <span class="proyectos-yt-btn-text">
+        <span class="proyectos-yt-btn-title">Vídeos de YouTube</span>
+        <span class="proyectos-yt-btn-sub">Mis proyectos editados, en orden</span>
+      </span>
+      <svg class="proyectos-yt-btn-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+
     <!-- Título "Proyectos" + galería: agrupados en su propio contenedor
          (.proyectos-body) para poder moverlos/centrarlos como bloque
          independiente de "Fotos" en escritorio, sin arrastrarlo con ellos

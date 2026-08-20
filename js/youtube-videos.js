@@ -64,19 +64,26 @@
   // Cuadrícula completa: ahora vive en su propia página (#view-mis-videos),
   // a la que lleva el botón "Ver todos los vídeos" de arriba.
   const gridFullEl = document.getElementById('youtubeGridFull');
+  // Segundo punto de entrada a la misma página, esta vez entre
+  // "Ediciones" y "Proyectos" (ver comentario junto a #proyectosYtBtn
+  // en index.html).
+  const proyectosYtBtn = document.getElementById('proyectosYtBtn');
+  const proyectosYtBtnThumb = document.getElementById('proyectosYtBtnThumb');
 
   function renderPublic(){
-    if (!coverEl && !gridFullEl) return;
+    if (!coverEl && !gridFullEl && !proyectosYtBtn) return;
     // Mismo criterio que renderCatButtonsPublic (project-categories.js):
     // mientras la nube no ha respondido todavía se deja visible por
     // defecto (para no ocultar de golpe una sección que sí tiene vídeos
     // guardados); solo se oculta del todo una vez confirmado que, de
     // verdad, no hay ninguno.
     if (sectionEl) sectionEl.style.display = (!cloudLoaded || currentVideos.length) ? '' : 'none';
+    if (proyectosYtBtn) proyectosYtBtn.style.display = (!cloudLoaded || currentVideos.length) ? '' : 'none';
     if (!cloudLoaded || !currentVideos.length){
       if (coverThumbEl) coverThumbEl.style.backgroundImage = '';
       if (coverTitleEl) coverTitleEl.textContent = '';
       if (coverEl) coverEl.setAttribute('href', '#');
+      if (proyectosYtBtnThumb) proyectosYtBtnThumb.style.backgroundImage = '';
       if (gridFullEl) gridFullEl.innerHTML = '';
       return;
     }
@@ -92,6 +99,9 @@
     }
     if (coverTitleEl) coverTitleEl.textContent = first.title || '';
     if (coverEl) coverEl.setAttribute('href', first.url || '#');
+    if (proyectosYtBtnThumb){
+      proyectosYtBtnThumb.style.backgroundImage = firstThumb ? "url('" + firstThumb + "')" : '';
+    }
 
     if (gridFullEl){
       gridFullEl.innerHTML = currentVideos.map(v => {
@@ -115,6 +125,14 @@
   // view-navigation.js).
   if (seeAllBtn){
     seeAllBtn.addEventListener('click', () => {
+      if (typeof window.goToView === 'function') window.goToView('mis-videos');
+    });
+  }
+
+  // Mismo destino que el botón de arriba: segundo punto de entrada,
+  // entre "Ediciones" y "Proyectos" (ver #proyectosYtBtn en index.html).
+  if (proyectosYtBtn){
+    proyectosYtBtn.addEventListener('click', () => {
       if (typeof window.goToView === 'function') window.goToView('mis-videos');
     });
   }
