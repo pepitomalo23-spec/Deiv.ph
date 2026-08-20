@@ -2829,7 +2829,7 @@
   }
   .youtube-card{
     display:block;
-    width:clamp(240px, 34vw, 340px);
+    width:clamp(260px, 38vw, 420px);
     text-decoration:none;
     color:inherit;
     /* Ligero levantamiento al pasar el ratón/tocar, igual que el resto de
@@ -2849,35 +2849,6 @@
     background-position:center;
     box-shadow:0 6px 18px rgba(0,0,0,0.16);
   }
-  /* El aviso de "pulsa para ver" vive en una franja baja con degradado,
-     no encima de toda la miniatura -así el propio fotograma se ve
-     entero y el aviso no "tapa" nada del centro de la imagen-. */
-  .youtube-card-play{
-    position:absolute;
-    left:0;
-    right:0;
-    bottom:0;
-    display:flex;
-    align-items:center;
-    gap:8px;
-    padding:22px 12px 10px;
-    background:linear-gradient(to top, rgba(0,0,0,0.62), rgba(0,0,0,0));
-  }
-  .youtube-card-play svg{
-    width:24px;
-    height:24px;
-    flex:none;
-    filter:drop-shadow(0 1px 3px rgba(0,0,0,0.5));
-    transition:transform .2s ease;
-  }
-  .youtube-card-play-text{
-    color:#fff;
-    font-family:inherit;
-    font-size:0.8rem;
-    font-weight:600;
-    letter-spacing:0.01em;
-  }
-  .youtube-card:hover .youtube-card-play svg{ transform:scale(1.08); }
   .youtube-card-title{
     margin:10px 0 0;
     font-family:'Fraunces','Georgia',serif;
@@ -2894,8 +2865,33 @@
     -webkit-box-orient:vertical;
     overflow:hidden;
   }
+  /* Aviso de "toca para ver": fuera de la miniatura (que así se ve
+     limpia y entera), como una línea pequeña y discreta debajo del
+     título -mismo icono de play que antes, pero ahora en miniatura y
+     acompañado de texto, sin cubrir ni un píxel del fotograma-. */
+  .youtube-card-hint{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    margin-top:6px;
+    color:var(--dim);
+    opacity:0.85;
+    transition:opacity .2s ease, color .2s ease;
+  }
+  .youtube-card:hover .youtube-card-hint{ opacity:1; color:var(--accent); }
+  .youtube-card-hint svg{ width:14px; height:14px; flex:none; }
+  .youtube-card-hint-text{
+    font-family:inherit;
+    font-size:0.72rem;
+    font-weight:600;
+    letter-spacing:0.02em;
+    text-transform:uppercase;
+  }
   @media (max-width:480px){
-    .youtube-card{ width:clamp(200px, 70vw, 280px); }
+    /* En móvil la miniatura ocupa todo el ancho disponible (una sola
+       columna), en vez de intentar encajar varias tarjetas pequeñas. */
+    .youtube-card{ width:100%; max-width:480px; }
   }
 
   /* ---------- Cuadrícula completa dentro de #view-mis-videos ----------

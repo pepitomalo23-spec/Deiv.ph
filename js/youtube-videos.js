@@ -101,9 +101,9 @@
           '<a class="youtube-card" href="' + escapeAttr(v.url || '#') + '" target="_blank" rel="noopener">' +
             '<div class="youtube-card-thumb" style="' + bg + '">' +
               (stickers ? '<div class="youtube-card-stickers">' + stickers + '</div>' : '') +
-              '<span class="youtube-card-play" aria-hidden="true">' + PLAY_ICON + '<span class="youtube-card-play-text">Pulsa para ver</span></span>' +
             '</div>' +
             '<p class="youtube-card-title">' + escapeHtml(v.title || 'Sin título') + '</p>' +
+            '<span class="youtube-card-hint">' + PLAY_ICON + '<span class="youtube-card-hint-text">Toca para ver en YouTube</span></span>' +
           '</a>'
         );
       }).join('');
