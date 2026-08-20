@@ -299,7 +299,54 @@
   const HIDE_HYSTERESIS_FRAMES = 10;
   let cameraHideStreak = 0;
 
-  function cameraLabelsLoop(){
+  // FIX "fotos fantasma al volver de Ajustes/Sobre mí": este bucle (más
+  // abajo) sigue corriendo en segundo plano SIEMPRE, aunque no estemos en
+  // "resumen" -no hay forma de pausarlo desde aquí sin más contexto-, así
+  // que mientras el usuario está en Ajustes o Sobre mí, la histéresis de
+  // arriba (pensada solo para filtrar un parpadeo de 1-2 fotogramas
+  // DENTRO de "resumen") tarda hasta HIDE_HYSTERESIS_FRAMES fotogramas en
+  // quitar la clase "visible" del carrusel/etiquetas tras salir. Durante
+  // esa ventana (y, sobre todo, mientras el carrusel sigue oculto por
+  // display:none desde view-navigation.js), la cinta del carrusel
+  // -.marquee-track- puede quedar con su animación CSS a medio camino;
+  // algunos navegadores (Safari/iOS en particular) no "congelan" del todo
+  // el timeline de una animación CSS en un elemento con display:none, así
+  // que puede seguir avanzando sola con el reloj mientras está oculta. Al
+  // volver a "resumen", view-navigation.js restaura display:'' de golpe
+  // ANTES de que este bucle (que solo se entera en su siguiente
+  // fotograma) recalcule nada, así que por un instante se ve el carrusel
+  // con la cinta en cualquier punto -incluida la copia duplicada del
+  // final del recorrido (slides.concat(slides), ver buildMarquee)-,
+  // percibido como fotos "fantasma" superpuestas encima de las cámaras.
+  //
+  // La solución: en vez de esperar a la histéresis, view-navigation.js
+  // llama a __resetCameraOverlay() en el mismo instante en que se sale de
+  // "resumen" (antes de aplicar display:none), así la clase "visible" se
+  // quita ya mismo -lo que además pausa la animación de la cinta
+  // (animation-play-state:paused, ver CSS) durante TODA la ausencia, sin
+  // margen para que derive-, y __resyncCameraOverlayNow() se llama justo
+  // al volver, para recalcular todo con medidas ya correctas antes del
+  // siguiente pintado, en vez de esperar al próximo requestAnimationFrame.
+  function resetCameraOverlayVisibility(){
+    cameraHideStreak = HIDE_HYSTERESIS_FRAMES;
+    cameraCarousel.classList.remove('visible');
+    if (equipoTitle) equipoTitle.classList.remove('visible');
+    const equipoSubtitle = document.getElementById('equipoSubtitle');
+    if (equipoSubtitle) equipoSubtitle.classList.remove('visible');
+    if (cameraNameLeftEl2) cameraNameLeftEl2.classList.remove('visible');
+    if (cameraNameRightEl2) cameraNameRightEl2.classList.remove('visible');
+  }
+  window.__resetCameraOverlay = resetCameraOverlayVisibility;
+  window.__resyncCameraOverlayNow = function(){
+    // Vuelve a evaluar todo de inmediato (misma lógica que un fotograma
+    // normal de cameraLabelsLoop), en vez de esperar al próximo
+    // requestAnimationFrame -que, justo tras restaurar display:'', podría
+    // tardar un fotograma entero en pintar la posición/aparición
+    // correctas-.
+    cameraLabelsLoop({ skipSchedule: true });
+  };
+
+  function cameraLabelsLoop(opts){
     // A diferencia del resto del contenido del sitio (que aparece justo al
     // aterrizar en su parada), este bloque se anticipa: se muestra en
     // cuanto __storyCameraRevealP llega a 1, lo cual ocurre ANTES de que
@@ -340,10 +387,17 @@
     if (equipoSubtitle) equipoSubtitle.classList.toggle('visible', show);
     if (cameraNameLeftEl2) cameraNameLeftEl2.classList.toggle('visible', show);
     if (cameraNameRightEl2) cameraNameRightEl2.classList.toggle('visible', show);
-    positionCarousel();
-    positionCameraNames();
-    positionEquipoHeader();
-    requestAnimationFrame(cameraLabelsLoop);
+    // Mientras no estemos en "resumen" (Ajustes, Sobre mí...) la escena
+    // está oculta con display:none: medir/posicionar aquí no tiene
+    // ningún sentido (offsetHeight y compañía dan 0 o valores falsos con
+    // display:none) y solo dejaría escrito un style.top/left erróneo que
+    // se vería un instante al volver, antes del siguiente recálculo.
+    if (window.currentView === 'resumen'){
+      positionCarousel();
+      positionCameraNames();
+      positionEquipoHeader();
+    }
+    if (!opts || !opts.skipSchedule) requestAnimationFrame(cameraLabelsLoop);
   }
   requestAnimationFrame(cameraLabelsLoop);
 

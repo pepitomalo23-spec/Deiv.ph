@@ -90,6 +90,12 @@
     }
 
     const showingResumen = view === 'resumen';
+    // FIX "fotos fantasma al volver de Ajustes/Sobre mí" (ver
+    // resetCameraOverlayVisibility en camera-carousel.js): se resetea
+    // ANTES de aplicar display:none, así la cinta del carrusel queda
+    // pausada (sin margen para que su animación CSS derive mientras está
+    // oculta) durante toda la ausencia.
+    if (!showingResumen && typeof window.__resetCameraOverlay === 'function') window.__resetCameraOverlay();
     sceneWrap.style.display = showingResumen ? '' : 'none';
     sceneTitle.style.display = showingResumen ? '' : 'none';
     sceneHint.style.display = showingResumen ? '' : 'none';
@@ -118,6 +124,11 @@
       resizeCanvas();
       render();
     }
+    // Igual que resizeCanvas/render arriba: recalcula ya mismo (con
+    // display:'' ya aplicado, así que las medidas son correctas) en vez
+    // de esperar al próximo requestAnimationFrame del bucle interno de
+    // camera-carousel.js.
+    if (showingResumen && typeof window.__resyncCameraOverlayNow === 'function') window.__resyncCameraOverlayNow();
 
     if (view === 'ajustes' && typeof window.renderAjustesGrid === 'function'){
       window.renderAjustesGrid();
