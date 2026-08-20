@@ -1430,21 +1430,28 @@
   // 2ª posición (0.4 = +40% de brillo).
   const PHOTO_BRIGHTEN_MAX = 0.4;
 
-  // Muestra/oculta rápido el bloque "Proyectos" (2ª posición): en vez de un
-  // fundido lento que dura todo el trayecto entre paradas, se apaga poco a
-  // poco (nunca de golpe) pero completamente ANTES de llegar a la parada
-  // vecina -así nunca llega a verse ni un poco en la 1ª ni en la 3ª
-  // posición-. "amount" es la misma cercanía 0→1 a la parada 1 que ya
+  // Muestra/oculta rápido el bloque "Proyectos" (2ª posición): el
+  // contenido se apaga (nunca de golpe, con difuminado, pero SÍ rápido)
+  // nada más empezar a dejar la posición, MUCHO ANTES de que la foto de
+  // fondo termine de transicionar hacia la posición vecina -así no se
+  // ve nunca el texto semitransparente encima de una foto que ya está a
+  // medio cambiar, la mezcla que se veía antes-. Solo vuelve a
+  // aparecer, con el mismo criterio, en el último tramo de la llegada a
+  // esta posición (cuando la foto ya está prácticamente asentada).
+  // "amount" es la cercanía 0→1 a la posición de "Proyectos" que ya
   // calcula step1AmountFromAxis (0 = lejos, en cualquier dirección; 1 =
-  // asentado del todo en la 2ª posición). PROYECTOS_FADE_WINDOW controla lo
-  // ancho de esa zona de fundido (0.35 = el último/primer 35% del trayecto
-  // hacia cada lado); dentro de esa zona se aplica un "smoothstep" en vez
-  // de una rampa lineal, para que el fundido se note gradual y no como un
-  // corte seco.
-  const PROYECTOS_FADE_WINDOW = 0.35;
+  // asentado del todo). PROYECTOS_FADE_WINDOW controla lo ANGOSTA que es
+  // esa ventana de aparición/desaparición, medida desde el punto exacto
+  // de asentado (0.18 = el contenido solo es visible dentro del último/
+  // primer 18% del trayecto hacia esta posición); fuera de esa ventana
+  // permanece completamente invisible. Dentro de la ventana se aplica un
+  // "smoothstep" en vez de una rampa lineal, para que el fundido se note
+  // gradual y no como un corte seco.
+  const PROYECTOS_FADE_WINDOW = 0.18;
   function updateProyectosFade(amount){
     if (!proyectosHeaderEl) return;
-    const t = Math.min(1, amount / PROYECTOS_FADE_WINDOW);
+    const raw = 1 - (1 - amount) / PROYECTOS_FADE_WINDOW; // 1 justo en el punto de asentado, 0 en cuanto nos alejamos "ventana" de distancia
+    const t = Math.max(0, Math.min(1, raw));
     const smooth = t * t * (3 - 2 * t); // smoothstep: gradual en los dos extremos
     proyectosHeaderEl.style.opacity = String(smooth);
   }
@@ -1452,12 +1459,12 @@
   // Correo e Instagram (#socialIcons): mismo criterio que sceneHint (ver
   // arriba) pero SOLO en la 1ª posición -antes de deslizar-, y con el
   // mismo mecanismo de fundido en tiempo real que ya usa "Proyectos" para
-  // la 2ª (updateProyectosFade, justo arriba): en vez de aparecer/
-  // desaparecer de golpe al terminar cada salto, se van apagando o
-  // encendiendo al mismo ritmo exacto del gesto de deslizar. Además,
-  // introFinished evita que se enciendan antes de que la intro de
-  // fotogramas haya terminado del todo (se activa una sola vez, ver el
-  // "Promise.all(...).then(...)" más abajo).
+  // la 2ª (updateProyectosFade, justo arriba): igual de rápido a
+  // desaparecer nada más empezar a dejar la posición, para no mezclarse
+  // con la foto de fondo mientras cambia. Además, introFinished evita que
+  // se enciendan antes de que la intro de fotogramas haya terminado del
+  // todo (se activa una sola vez, ver el "Promise.all(...).then(...)" más
+  // abajo).
   let introFinished = false;
   function step0AmountFromAxis(low, high, axisP){
     if (low === 0) return 1 - axisP;   // la parada 0 es el extremo "bajo" de este tramo
@@ -1466,7 +1473,8 @@
   }
   function updateSocialFade(amount){
     if (!socialIconsEl || !introFinished) return;
-    const t = Math.min(1, amount / PROYECTOS_FADE_WINDOW);
+    const raw = 1 - (1 - amount) / PROYECTOS_FADE_WINDOW;
+    const t = Math.max(0, Math.min(1, raw));
     const smooth = t * t * (3 - 2 * t);
     socialIconsEl.style.opacity = String(smooth);
     socialIconsEl.style.pointerEvents = smooth > 0.05 ? 'auto' : 'none';
