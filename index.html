@@ -353,14 +353,26 @@
     </div>
 
     <!-- ---------- Proyectos en YouTube ----------
-         Justo debajo del comparador antes/después y sus flechas. Cada
-         entrada es { title, url }: la miniatura se saca automáticamente
-         del propio enlace de YouTube (no hace falta subir ninguna
-         imagen, ver getYoutubeThumb en youtube-videos.js). Al tocar una
-         tarjeta se abre el vídeo real en YouTube en una pestaña nueva. -->
+         Justo debajo del comparador antes/después y sus flechas. Ya NO se
+         muestra la cuadrícula completa aquí: solo UNA portada grande (la
+         miniatura del primer vídeo de la lista, sacada automáticamente de
+         su propio enlace de YouTube -ver getYoutubeThumb en
+         youtube-videos.js-) más un botón que lleva a una sección propia
+         con la cuadrícula completa (#view-mis-videos, más abajo en este
+         mismo archivo). Tocar la portada abre ese primer vídeo en YouTube
+         en una pestaña nueva, igual que hacían antes las tarjetas. -->
     <div class="youtube-section" id="youtubeSection">
       <h3 class="youtube-section-title">Mis proyectos en <span class="as-word-accent">YouTube</span></h3>
-      <div class="youtube-grid" id="youtubeGrid"></div>
+      <a class="youtube-cover" id="youtubeCover" href="#" target="_blank" rel="noopener" data-no-scene-drag>
+        <div class="youtube-cover-thumb" id="youtubeCoverThumb">
+          <span class="youtube-cover-play" aria-hidden="true"><svg viewBox="0 0 68 48" xmlns="http://www.w3.org/2000/svg"><path d="M66.52 7.74c-.78-2.93-2.49-5.41-5.42-6.19C55.79.13 34 0 34 0S12.21.13 6.9 1.55C3.98 2.33 2.27 4.81 1.49 7.74.07 13.05 0 24 0 24s.07 10.95 1.49 16.26c.78 2.93 2.49 5.41 5.42 6.19C12.21 47.87 34 48 34 48s21.79-.13 27.1-1.55c2.93-.78 4.64-3.26 5.42-6.19C67.93 34.95 68 24 68 24s-.07-10.95-1.48-16.26z" fill="rgba(0,0,0,0.75)"/><path d="M45 24 27 14v20" fill="#fff"/></svg></span>
+        </div>
+        <p class="youtube-cover-title" id="youtubeCoverTitle"></p>
+      </a>
+      <button type="button" class="youtube-seeall-btn" id="youtubeSeeAllBtn" data-no-scene-drag>
+        Ver todos los vídeos
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
     </div>
   </div>
 
@@ -387,6 +399,25 @@
         <p id="aboutPara3">Trabajo tanto en el rodaje como en la edición, así que puedo acompañar un proyecto de principio a fin: guion, dirección, cámara, montaje y color.</p>
       </div>
       <p style="color:var(--dim); font-style:italic;">— Este texto es un punto de partida. Puedes decirme qué quieres contar aquí y lo dejamos a tu medida.</p>
+    </div>
+  </section>
+
+  <!-- ---------- Sección: Mis vídeos (cuadrícula completa de "Proyectos en
+       YouTube") ----------
+       Se abre al pulsar el botón "Ver todos los vídeos" de la portada en
+       #youtubeSection (ver comentario junto a ese bloque, más arriba, y
+       el manejador del botón en youtube-videos.js). Misma vista secundaria
+       de pantalla completa que "Sobre mí"/"Ajustes" (clase .subview),
+       controlada por goToView en view-navigation.js: no aparece en el
+       menú principal a propósito -se entra solo desde ese botón-, y se
+       sale con el mismo menú de siempre (el icono de hamburguesa sigue
+       visible, a diferencia de en Ajustes). -->
+  <section class="subview" id="view-mis-videos">
+    <div class="subview-inner">
+      <p class="subview-eyebrow">Proyectos en YouTube</p>
+      <h1>Todos mis <span class="as-word-accent">vídeos</span></h1>
+      <p class="lead">Cada miniatura lleva directa al vídeo real en YouTube.</p>
+      <div class="youtube-grid youtube-grid--full" id="youtubeGridFull"></div>
     </div>
   </section>
 

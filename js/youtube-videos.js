@@ -54,10 +54,19 @@
   let cloudLoaded = false;
 
   const sectionEl = document.getElementById('youtubeSection');
-  const gridEl = document.getElementById('youtubeGrid');
+  // Portada única + botón "Ver todos" (sobre la escena, dentro de
+  // #afterStoryHeader): sustituye a la cuadrícula completa que antes
+  // vivía aquí mismo.
+  const coverEl = document.getElementById('youtubeCover');
+  const coverThumbEl = document.getElementById('youtubeCoverThumb');
+  const coverTitleEl = document.getElementById('youtubeCoverTitle');
+  const seeAllBtn = document.getElementById('youtubeSeeAllBtn');
+  // Cuadrícula completa: ahora vive en su propia página (#view-mis-videos),
+  // a la que lleva el botón "Ver todos los vídeos" de arriba.
+  const gridFullEl = document.getElementById('youtubeGridFull');
 
   function renderPublic(){
-    if (!gridEl) return;
+    if (!coverEl && !gridFullEl) return;
     // Mismo criterio que renderCatButtonsPublic (project-categories.js):
     // mientras la nube no ha respondido todavía se deja visible por
     // defecto (para no ocultar de golpe una sección que sí tiene vídeos
@@ -65,21 +74,49 @@
     // verdad, no hay ninguno.
     if (sectionEl) sectionEl.style.display = (!cloudLoaded || currentVideos.length) ? '' : 'none';
     if (!cloudLoaded || !currentVideos.length){
-      gridEl.innerHTML = '';
+      if (coverThumbEl) coverThumbEl.style.backgroundImage = '';
+      if (coverTitleEl) coverTitleEl.textContent = '';
+      if (coverEl) coverEl.setAttribute('href', '#');
+      if (gridFullEl) gridFullEl.innerHTML = '';
       return;
     }
-    gridEl.innerHTML = currentVideos.map(v => {
-      const thumb = getYoutubeThumb(v.url);
-      const bg = thumb ? 'background-image:url(\'' + escapeAttr(thumb) + '\');' : '';
-      return (
-        '<a class="youtube-card" href="' + escapeAttr(v.url || '#') + '" target="_blank" rel="noopener">' +
-          '<div class="youtube-card-thumb" style="' + bg + '">' +
-            '<span class="youtube-card-play" aria-hidden="true">' + PLAY_ICON + '</span>' +
-          '</div>' +
-          '<p class="youtube-card-title">' + escapeHtml(v.title || 'Sin título') + '</p>' +
-        '</a>'
-      );
-    }).join('');
+
+    // La portada siempre muestra el PRIMER vídeo de la lista (el orden
+    // se controla desde el mismo editor de Ajustes, con las flechas
+    // ↑/↓ que ya existían) y, al tocarla, abre ese vídeo real en
+    // YouTube -igual que hacía antes cualquier tarjeta de la cuadrícula.
+    const first = currentVideos[0];
+    const firstThumb = getYoutubeThumb(first.url);
+    if (coverThumbEl){
+      coverThumbEl.style.backgroundImage = firstThumb ? "url('" + firstThumb + "')" : '';
+    }
+    if (coverTitleEl) coverTitleEl.textContent = first.title || '';
+    if (coverEl) coverEl.setAttribute('href', first.url || '#');
+
+    if (gridFullEl){
+      gridFullEl.innerHTML = currentVideos.map(v => {
+        const thumb = getYoutubeThumb(v.url);
+        const bg = thumb ? 'background-image:url(\'' + escapeAttr(thumb) + '\');' : '';
+        return (
+          '<a class="youtube-card" href="' + escapeAttr(v.url || '#') + '" target="_blank" rel="noopener">' +
+            '<div class="youtube-card-thumb" style="' + bg + '">' +
+              '<span class="youtube-card-play" aria-hidden="true">' + PLAY_ICON + '</span>' +
+            '</div>' +
+            '<p class="youtube-card-title">' + escapeHtml(v.title || 'Sin título') + '</p>' +
+          '</a>'
+        );
+      }).join('');
+    }
+  }
+
+  // Botón "Ver todos los vídeos": lleva a la página propia con la
+  // cuadrícula completa (#view-mis-videos), usando el mismo sistema de
+  // navegación entre vistas que "Sobre mí"/"Ajustes" (ver goToView en
+  // view-navigation.js).
+  if (seeAllBtn){
+    seeAllBtn.addEventListener('click', () => {
+      if (typeof window.goToView === 'function') window.goToView('mis-videos');
+    });
   }
 
   // ================= Editor en Ajustes → YouTube =================

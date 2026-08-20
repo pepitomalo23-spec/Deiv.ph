@@ -2902,6 +2902,90 @@
     .youtube-card{ width:clamp(140px, 40vw, 170px); }
   }
 
+  /* ---------- Portada única + botón "Ver todos" (sustituye a la
+     cuadrícula completa dentro de #youtubeSection; la cuadrícula
+     completa ahora vive en su propia página, #view-mis-videos, ver
+     .youtube-grid--full más abajo) ---------- */
+  .youtube-cover{
+    display:block;
+    width:100%;
+    max-width:520px;
+    margin:0 auto;
+    text-decoration:none;
+    color:inherit;
+    transition:transform .2s ease;
+  }
+  .youtube-cover:hover{ transform:translateY(-2px); }
+  .youtube-cover:active{ transform:translateY(0) scale(0.98); }
+  .youtube-cover-thumb{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/9;
+    border-radius:16px;
+    overflow:hidden;
+    background-color:#e8e6e1;
+    background-size:cover;
+    background-position:center;
+    box-shadow:0 10px 28px rgba(0,0,0,0.2);
+  }
+  .youtube-cover-play{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .youtube-cover-play svg{
+    width:64px;
+    height:64px;
+    filter:drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+    transition:transform .2s ease;
+  }
+  .youtube-cover:hover .youtube-cover-play svg{ transform:scale(1.08); }
+  .youtube-cover-title{
+    margin:14px 0 0;
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:500;
+    font-size:clamp(0.92rem, 2.2vw, 1.05rem);
+    line-height:1.35;
+    color:#111111;
+    text-align:center;
+  }
+  .youtube-cover-title:empty{ display:none; }
+  .youtube-seeall-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin:20px auto 0;
+    padding:12px 24px;
+    border:none;
+    border-radius:999px;
+    background:var(--accent);
+    color:#fff;
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:500;
+    font-size:0.92rem;
+    letter-spacing:0.01em;
+    cursor:pointer;
+    transition:transform .2s ease, opacity .2s ease;
+  }
+  .youtube-seeall-btn:hover{ transform:translateY(-1px); opacity:0.92; }
+  .youtube-seeall-btn:active{ transform:translateY(0) scale(0.97); }
+  .youtube-seeall-btn svg{ transition:transform .2s ease; }
+  .youtube-seeall-btn:hover svg{ transform:translateX(2px); }
+
+  /* ---------- Cuadrícula completa dentro de #view-mis-videos ----------
+     Mismas tarjetas (.youtube-card) que antes vivían sobre la escena;
+     aquí simplemente se alinean a la izquierda dentro de la página,
+     igual que el resto del contenido de las vistas secundarias, en vez
+     de centradas. */
+  .youtube-grid--full{
+    justify-content:flex-start;
+    margin-top:8px;
+  }
+  #view-mis-videos h1 .as-word-accent{ color:var(--accent); }
+
   /* ---------- Galería a pantalla completa de una categoría de "Proyectos"
      ----------
      El elemento ya vive de fábrica fuera de cualquier ancestro con

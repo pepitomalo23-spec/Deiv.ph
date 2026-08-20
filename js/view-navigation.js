@@ -15,6 +15,12 @@
   });
   const viewSobreMi = document.getElementById('view-sobre-mi');
   const viewAjustes = document.getElementById('view-ajustes');
+  // "Mis vídeos": cuadrícula completa de "Proyectos en YouTube", a la
+  // que lleva el botón "Ver todos los vídeos" de la portada (ver
+  // youtube-videos.js). No tiene entrada propia en el menú principal
+  // -se entra solo desde ese botón-, pero se sale igual que de
+  // "Sobre mí": con el mismo menú de siempre.
+  const viewMisVideos = document.getElementById('view-mis-videos');
   const sceneWrap = document.getElementById('sceneWrap');
   const sceneTitle = document.getElementById('sceneTitle');
   const sceneHint = document.getElementById('sceneHint');
@@ -112,6 +118,7 @@
 
     viewSobreMi.classList.toggle('active', view === 'sobre-mi');
     viewAjustes.classList.toggle('active', view === 'ajustes');
+    if (viewMisVideos) viewMisVideos.classList.toggle('active', view === 'mis-videos');
 
     if (!showingResumen) window.scrollTo(0, 0);
     if (!showingResumen && typeof window.__resetWhiteEnd === 'function') window.__resetWhiteEnd();
