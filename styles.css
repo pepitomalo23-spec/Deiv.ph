@@ -4717,3 +4717,65 @@
   #view-ajustes .cat-editor-thumb{ border-color:var(--adm-border); }
   #view-ajustes .cat-editor-add-photo{ border-color:var(--adm-border); background:var(--adm-surface); color:var(--adm-dim); }
   #view-ajustes .cat-editor-add-photo:hover{ border-color:var(--adm-accent); }
+
+  /* ---------- Etiquetas "Editado"/"Creado" del editor de YouTube ----------
+     Dos botones independientes por vídeo (ver .yt-tag-toggle en
+     youtube-videos.js): cada uno se puede activar o no sin afectar al
+     otro, así un vídeo puede llevar ninguna etiqueta, una o las dos. El
+     estado activo se refleja también en el sticker de la tarjeta pública
+     (ver .youtube-card-sticker más abajo), con los mismos colores. */
+  .yt-tag-row{ display:flex; gap:8px; }
+  .yt-tag-toggle{
+    padding:6px 14px;
+    border-radius:999px;
+    border:1px solid rgba(0,0,0,0.16);
+    background:transparent;
+    color:var(--dim);
+    font-family:inherit;
+    font-size:0.78rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:border-color .15s ease, color .15s ease, background-color .15s ease;
+  }
+  .yt-tag-toggle:hover{ border-color:var(--accent); color:var(--accent); }
+  .yt-tag-toggle--edited.is-active{
+    border-color:#2f7d4f;
+    background:#2f7d4f;
+    color:#fff;
+  }
+  .yt-tag-toggle--created.is-active{
+    border-color:#2f5fa8;
+    background:#2f5fa8;
+    color:#fff;
+  }
+  #view-ajustes .yt-tag-toggle{ border-color:var(--adm-border); color:var(--adm-dim); }
+  #view-ajustes .yt-tag-toggle:hover{ border-color:var(--adm-accent); color:var(--adm-accent); }
+  #view-ajustes .yt-tag-toggle--edited.is-active,
+  #view-ajustes .yt-tag-toggle--created.is-active{ color:#fff; }
+
+  /* ---------- Sticker "Editado"/"Creado" sobre la miniatura pública ----------
+     Se pintan solo en la cuadrícula pública de vídeos (.youtube-card-thumb),
+     no en el editor de Ajustes. Van en la esquina superior izquierda, uno
+     debajo del otro si el vídeo lleva las dos etiquetas a la vez. */
+  .youtube-card-stickers{
+    position:absolute;
+    top:8px;
+    left:8px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    z-index:1;
+  }
+  .youtube-card-sticker{
+    padding:3px 9px;
+    border-radius:999px;
+    font-family:inherit;
+    font-size:0.68rem;
+    font-weight:700;
+    letter-spacing:0.02em;
+    color:#fff;
+    text-transform:uppercase;
+    box-shadow:0 2px 6px rgba(0,0,0,0.35);
+  }
+  .youtube-card-sticker--edited{ background:#2f7d4f; }
+  .youtube-card-sticker--created{ background:#2f5fa8; }

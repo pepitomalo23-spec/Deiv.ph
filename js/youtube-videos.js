@@ -90,9 +90,17 @@
       gridFullEl.innerHTML = currentVideos.map(v => {
         const thumb = getYoutubeThumb(v.url);
         const bg = thumb ? 'background-image:url(\'' + escapeAttr(thumb) + '\');' : '';
+        // Stickers "Editado"/"Creado": independientes entre sí (un vídeo
+        // puede llevar ninguno, uno o los dos), controlados desde el
+        // editor de Ajustes con los botones yt-tag-toggle.
+        const stickers = (
+          (v.edited ? '<span class="youtube-card-sticker youtube-card-sticker--edited">Editado</span>' : '') +
+          (v.created ? '<span class="youtube-card-sticker youtube-card-sticker--created">Creado</span>' : '')
+        );
         return (
           '<a class="youtube-card" href="' + escapeAttr(v.url || '#') + '" target="_blank" rel="noopener">' +
             '<div class="youtube-card-thumb" style="' + bg + '">' +
+              (stickers ? '<div class="youtube-card-stickers">' + stickers + '</div>' : '') +
               '<span class="youtube-card-play" aria-hidden="true">' + PLAY_ICON + '</span>' +
             '</div>' +
             '<p class="youtube-card-title">' + escapeHtml(v.title || 'Sin título') + '</p>' +
@@ -136,6 +144,10 @@
           '</div>' +
         '</div>' +
         '<input type="url" class="cat-editor-link" value="' + escapeAttr(v.url) + '" placeholder="Enlace del vídeo en YouTube">' +
+        '<div class="yt-tag-row">' +
+          '<button type="button" class="yt-tag-toggle yt-tag-toggle--edited' + (v.edited ? ' is-active' : '') + '" data-tag="edited" aria-pressed="' + (v.edited ? 'true' : 'false') + '">Editado</button>' +
+          '<button type="button" class="yt-tag-toggle yt-tag-toggle--created' + (v.created ? ' is-active' : '') + '" data-tag="created" aria-pressed="' + (v.created ? 'true' : 'false') + '">Creado</button>' +
+        '</div>' +
       '</div>'
     )).join('');
     if (ytEmptyEl) ytEmptyEl.style.display = ytDraft.length ? 'none' : '';
@@ -176,6 +188,19 @@
         const i = Number(row.dataset.index);
         ytDraft.splice(i, 1);
         renderYtEditor();
+        return;
+      }
+      // Botones "Editado"/"Creado": cada uno es independiente del otro,
+      // así que solo se alterna el que se ha tocado (a diferencia de un
+      // <select>, aquí un vídeo puede llevar ambas etiquetas a la vez).
+      const tagBtn = e.target.closest('.yt-tag-toggle');
+      if (tagBtn){
+        const row = tagBtn.closest('.cat-editor-item');
+        const i = Number(row.dataset.index);
+        if (!ytDraft[i]) return;
+        const tag = tagBtn.dataset.tag; // 'edited' | 'created'
+        ytDraft[i][tag] = !ytDraft[i][tag];
+        renderYtEditor();
       }
     });
   }
@@ -200,7 +225,9 @@
         .map(v => ({
           id: v.id || ('yt-' + Date.now()),
           title: (v.title || '').trim() || 'Sin título',
-          url: (v.url || '').trim()
+          url: (v.url || '').trim(),
+          edited: !!v.edited,
+          created: !!v.created
         }));
       if (!window.CloudDB){
         flashMsg(ytMsgEl, 'No se pudo guardar: la conexión con la nube no está lista.', false);
