@@ -275,6 +275,52 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
+  // ---- rendimiento adaptativo ----
+  // No hay ninguna forma fiable de preguntarle al navegador si el ahorro
+  // de batería (o cualquier otro modo de bajo consumo del sistema) está
+  // activo: ni iOS ni la mayoría de navegadores lo exponen a la web, por
+  // privacidad. En vez de intentar detectar la CAUSA, se reacciona al
+  // SÍNTOMA real -fotogramas lentos durante el arrastre/salto entre
+  // fotos-, sea cual sea su origen (ahorro de batería, hardware modesto,
+  // CPU compartida con otra app en segundo plano...). Si el tiempo medio
+  // entre fotogramas pintados se mantiene alto un rato (indicio de que no
+  // se está llegando a un ritmo fluido), se reduce una sola vez la
+  // resolución interna del canvas: menos píxeles que dibujar en cada
+  // fotograma cuesta menos CPU/GPU, y esa diferencia es justo la que se
+  // nota como "va fluido" en vez de "va pillado" mientras se desliza. Es
+  // un cambio de una sola vía (una vez degradado, no se vuelve a subir):
+  // subir y bajar la resolución sobre la marcha, en respuesta a cada
+  // pequeño hueco, se notaría más que el propio problema que intenta
+  // arreglar.
+  const PERF_SAMPLE_SIZE = 20;
+  const PERF_DEGRADE_MS = 42; // ~24fps sostenidos o menos
+  let perfFrameTimes = [];
+  let perfLastRenderAt = 0;
+  let perfDegraded = false;
+  function maybeDegradePerf(){
+    if (perfDegraded || dpr <= 1) return;
+    const now = performance.now();
+    if (perfLastRenderAt){
+      const dt = now - perfLastRenderAt;
+      // Se ignoran huecos largos (pestaña en 2º plano, primer fotograma
+      // tras un rato sin dibujar nada...): eso no es "el dispositivo va
+      // lento", es simplemente que no había nada que pintar entretanto.
+      if (dt > 0 && dt < 250){
+        perfFrameTimes.push(dt);
+        if (perfFrameTimes.length > PERF_SAMPLE_SIZE) perfFrameTimes.shift();
+      }
+    }
+    perfLastRenderAt = now;
+    if (perfFrameTimes.length >= PERF_SAMPLE_SIZE){
+      const avg = perfFrameTimes.reduce((a, b) => a + b, 0) / perfFrameTimes.length;
+      if (avg > PERF_DEGRADE_MS){
+        perfDegraded = true;
+        dpr = 1;
+        resizeCanvas();
+      }
+    }
+  }
+
   // draw an image "contain"-fit inside the canvas box, WITHOUT ever
   // upscaling past its natural size. El fondo del vídeo es blanco, así que
   // no pasa nada si la imagen queda más pequeña dentro del hueco; lo
@@ -962,6 +1008,7 @@
   }
 
   function render(){
+    maybeDegradePerf();
     const idxFloat = currentFrameExact;
     const idx = Math.floor(idxFloat);
     const frac = idxFloat - idx;
@@ -2125,6 +2172,7 @@
   // 40ms (25fps) y, aunque el consumidor pasara a 60fps, el valor en sí
   // solo se ponía al día 25 veces por segundo -de nada sirve leer rápido
   // un valor que se actualiza despacio-, así que seguía notándose a saltos.
+  let publishStoryStateRaf = null;
   function publishStoryState(){
     window.__storyStep = stepIndex;
     window.__storyAnimating = animating;
@@ -2134,7 +2182,22 @@
     // así cubre por igual el salto animado, el arrastre en vivo y el
     // reposo, sin importar cuál de los tres está moviendo la escena.
     window.__storyCameraRevealP = computeCameraRevealP(currentFrameExact);
-    requestAnimationFrame(publishStoryState);
+    publishStoryStateRaf = requestAnimationFrame(publishStoryState);
   }
-  requestAnimationFrame(publishStoryState);
+  // Con la pestaña/app en segundo plano (pantalla bloqueada, cambio de
+  // app en el móvil...) este bucle no aporta nada -nadie lo ve- y solo
+  // gasta batería y CPU de fondo. Además, al volver a primer plano de
+  // golpe tras un rato oculto, retomar un rAF que llevaba corriendo
+  // "a ciegas" puede notarse como un pequeño tirón de recuperación. Por
+  // eso se para del todo al ocultarse y se relanza limpio al volver,
+  // en vez de dejarlo corriendo indefinidamente de fondo.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden){
+      if (publishStoryStateRaf !== null) cancelAnimationFrame(publishStoryStateRaf);
+      publishStoryStateRaf = null;
+    } else if (publishStoryStateRaf === null){
+      publishStoryStateRaf = requestAnimationFrame(publishStoryState);
+    }
+  });
+  publishStoryStateRaf = requestAnimationFrame(publishStoryState);
 })();

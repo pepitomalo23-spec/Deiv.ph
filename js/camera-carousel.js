@@ -397,9 +397,21 @@
       positionCameraNames();
       positionEquipoHeader();
     }
-    if (!opts || !opts.skipSchedule) requestAnimationFrame(cameraLabelsLoop);
+    if (!opts || !opts.skipSchedule) cameraLabelsRaf = requestAnimationFrame(cameraLabelsLoop);
   }
-  requestAnimationFrame(cameraLabelsLoop);
+  let cameraLabelsRaf = requestAnimationFrame(cameraLabelsLoop);
+  // Con la pestaña/app oculta (pantalla bloqueada, cambio de app) este
+  // bucle tampoco aporta nada visible: se para para no gastar CPU/batería
+  // de fondo y se retoma limpio al volver (mismo motivo que el bucle
+  // publishStoryState de scroll-engine.js).
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden){
+      if (cameraLabelsRaf !== null) cancelAnimationFrame(cameraLabelsRaf);
+      cameraLabelsRaf = null;
+    } else if (cameraLabelsRaf === null){
+      cameraLabelsRaf = requestAnimationFrame(cameraLabelsLoop);
+    }
+  });
 
   // ---------- Ajustes: subir/quitar imágenes propias ----------
   function renderAjustesGrid(){
