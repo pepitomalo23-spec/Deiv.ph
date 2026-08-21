@@ -1,11 +1,4 @@
 {
-  "rewrites": [
-    {
-      "source": "/",
-      "has": [{ "type": "host", "value": "panel.deivph.com" }],
-      "destination": "/yo.html"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)\\.html",
