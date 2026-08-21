@@ -1,6 +1,10 @@
 {
   "rewrites": [
-    { "source": "/yo", "destination": "/yo.html" }
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "panel.deivph.com" }],
+      "destination": "/yo.html"
+    }
   ],
   "headers": [
     {

@@ -46,10 +46,11 @@
           Database" y "Storage", y crear ahí tu único usuario admin.
        2) Pegar los datos de tu proyecto en firebaseConfig, aquí abajo.
 
-     El acceso de administrador ahora es una página aparte: /yo.
-     Inicias sesión ahí con el correo y la contraseña de tu cuenta y te
-     lleva directo a Ajustes. Como es una cuenta real en la nube, te
-     sirve para entrar desde cualquier dispositivo, no solo desde uno. -->
+     El acceso de administrador ahora es un subdominio aparte:
+     panel.deivph.com. Inicias sesión ahí con el correo y la contraseña
+     de tu cuenta y te lleva directo a Ajustes en el dominio principal.
+     Como es una cuenta real en la nube, te sirve para entrar desde
+     cualquier dispositivo, no solo desde uno. -->
 <!-- Utilidades compartidas (escapeHtml, escapeAttr, flashMsg) usadas por varios
      módulos de abajo: siempre debe cargarse antes que ellos. -->
 <script src="js/utils.js"></script>
@@ -61,10 +62,10 @@
 
 <script src="js/cloud-db.js"></script>
 
-<!-- ---------- Vuelta desde /yo ----------
-     Tras iniciar sesión en /yo, redirige aquí con ?ajustes=1 en la
-     URL; este script espera a que Firebase confirme la sesión y abre
-     Ajustes automáticamente (ver js/admin-redirect.js). -->
+<!-- ---------- Vuelta desde panel.deivph.com ----------
+     Tras iniciar sesión en panel.deivph.com, redirige aquí con
+     ?ajustes=1 en la URL; este script espera a que Firebase confirme la
+     sesión y abre Ajustes automáticamente (ver js/admin-redirect.js). -->
 <script src="js/admin-redirect.js"></script>
 
   <div class="loader" id="loader">

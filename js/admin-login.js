@@ -19,9 +19,23 @@
   // se pasa directo a Ajustes. onAuthChange también dispara justo después
   // de un login recién hecho más abajo, así que este mismo listener cubre
   // los dos casos.
+  // El login vive ahora en su propio subdominio (panel.deivph.com), pero
+  // Ajustes y el resto de la web viven en el dominio principal
+  // (deivph.com). Antes esto era 'index.html?ajustes=1' -una ruta
+  // relativa-, lo cual funcionaba mientras el login vivía en la MISMA
+  // web bajo /yo; ahora, servido desde un subdominio distinto, esa misma
+  // ruta relativa llevaría de vuelta al propio subdominio (que no sirve
+  // index.html, solo yo.html) en vez de al sitio principal. Se construye
+  // aquí la URL absoluta al dominio principal quitando el prefijo
+  // "panel." del host actual, para no dejar el dominio escrito a mano.
+  function mainSiteAjustesUrl(){
+    const host = location.hostname.replace(/^panel\./, '');
+    return location.protocol + '//' + host + '/?ajustes=1';
+  }
+
   if (window.__firebaseConfigured && window.CloudDB){
     window.CloudDB.onAuthChange((user) => {
-      if (user) location.href = 'index.html?ajustes=1';
+      if (user) location.href = mainSiteAjustesUrl();
     });
   }
 
