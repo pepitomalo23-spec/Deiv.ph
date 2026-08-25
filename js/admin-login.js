@@ -73,11 +73,23 @@
     if (!window.__firebaseConfigured) return;
     const email = emailInput.value.trim() || prompt('Escribe tu correo para enviarte el enlace de recuperación:');
     if (!email) return;
+    // Firebase, por defecto, avisa de forma distinta si el correo existe
+    // o no (auth/user-not-found vs éxito) -así que dejar que ese error
+    // decida qué alert() mostrar permitiría a cualquiera probar
+    // direcciones una a una y descubrir cuáles son cuentas de admin
+    // reales-. Por eso aquí SIEMPRE se muestra el mismo mensaje, exista
+    // o no esa cuenta; el único caso que se trata aparte es un email con
+    // formato inválido, ya que eso no revela si la cuenta existe.
     try{
       await window.CloudDB.resetPassword(email);
-      alert('Te hemos enviado un correo para restablecer tu contraseña.');
     }catch(err){
-      alert('No se pudo enviar el correo. Comprueba que la dirección es correcta.');
+      if (err && err.code === 'auth/invalid-email'){
+        alert('Ese correo no tiene un formato válido.');
+        return;
+      }
+      // Cualquier otro error (incluido "no existe esa cuenta") se trata
+      // igual que un envío correcto, a propósito.
     }
+    alert('Si esa dirección tiene una cuenta, te hemos enviado un correo para restablecer la contraseña.');
   });
 })();
