@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1b1f3b">
+<meta name="robots" content="noindex, nofollow">
+<title>Carrera de Preguntas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap" rel="stylesheet">
+<style>
+  /* Juego tipo "Subway Surfers": tres calles, obstáculos durante 20 s y,
+     después, una pregunta con 10 s para colocarse en la calle de la
+     respuesta correcta. Todo va en este archivo (canvas + JS), sin
+     depender del resto de la web. */
+  :root{
+    --bg:#1b1f3b;
+    --panel:rgba(12,14,32,0.82);
+    --text:#ffffff;
+    --dim:#b8bdd9;
+    --a:#ff5c6c;
+    --b:#3fa9ff;
+    --c:#3ddc84;
+    --gold:#ffd23f;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body{
+    margin:0; height:100%; overflow:hidden;
+    background:var(--bg); color:var(--text);
+    font-family:'Fraunces','Georgia',serif;
+    touch-action:none; user-select:none; -webkit-user-select:none;
+  }
+  #game{ position:fixed; inset:0; width:100%; height:100%; display:block; }
+
+  .hud{
+    position:fixed; top:0; left:0; right:0;
+    display:flex; justify-content:space-between; align-items:flex-start;
+    padding:calc(12px + env(safe-area-inset-top)) 16px 0;
+    pointer-events:none; font-weight:700;
+  }
+  .hud .score{ font-size:1.5rem; text-shadow:0 2px 6px rgba(0,0,0,.5); }
+  .hud .sub{ font-size:.8rem; color:var(--dim); font-weight:500; }
+  .hud .lives{ font-size:1.3rem; letter-spacing:2px; }
+  .hud .right{ text-align:right; }
+
+  #nextQ{
+    position:fixed; left:50%; transform:translateX(-50%);
+    top:calc(64px + env(safe-area-inset-top));
+    width:min(260px, 60vw); height:6px; border-radius:3px;
+    background:rgba(255,255,255,.2); overflow:hidden; pointer-events:none;
+  }
+  #nextQ span{ display:block; height:100%; width:0; background:var(--gold); }
+
+  /* Pregunta */
+  #question{
+    position:fixed; left:16px; right:16px;
+    top:calc(84px + env(safe-area-inset-top));
+    max-width:560px; margin:0 auto;
+    background:var(--panel); border-radius:16px; padding:14px 14px 12px;
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    box-shadow:0 10px 30px rgba(0,0,0,.35);
+    display:none;
+  }
+  #question.show{ display:block; animation:pop .25s ease-out; }
+  @keyframes pop{ from{ transform:scale(.9); opacity:0; } to{ transform:none; opacity:1; } }
+  #qText{ margin:0 0 10px; font-size:1.05rem; line-height:1.3; text-align:center; }
+  #qTimer{ height:8px; border-radius:4px; background:rgba(255,255,255,.15); overflow:hidden; margin-bottom:10px; }
+  #qTimer span{ display:block; height:100%; width:100%; background:var(--gold); }
+  #qSecs{ text-align:center; font-size:.8rem; color:var(--dim); margin:-4px 0 8px; }
+  .opts{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .opt{
+    border:none; border-radius:10px; padding:8px 6px; min-height:52px;
+    font:inherit; font-size:.85rem; font-weight:700; color:#fff; line-height:1.15;
+    cursor:pointer; opacity:.75; transition:transform .1s, opacity .1s, outline-color .1s;
+    outline:3px solid transparent; outline-offset:2px;
+  }
+  .opt small{ display:block; font-size:.65rem; font-weight:500; opacity:.85; margin-bottom:2px; }
+  .opt[data-lane="0"]{ background:var(--a); }
+  .opt[data-lane="1"]{ background:var(--b); }
+  .opt[data-lane="2"]{ background:var(--c); }
+  .opt.active{ opacity:1; transform:scale(1.04); outline-color:#fff; }
+
+  #toast{
+    position:fixed; left:50%; top:45%; transform:translate(-50%,-50%);
+    font-size:2rem; font-weight:700; text-align:center; pointer-events:none;
+    text-shadow:0 3px 12px rgba(0,0,0,.6); opacity:0; transition:opacity .25s;
+    width:90%;
+  }
+  #toast small{ display:block; font-size:1rem; font-weight:500; margin-top:6px; }
+  #toast.show{ opacity:1; }
+
+  /* Pantallas de inicio / fin */
+  .screen{
+    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+    background:rgba(10,12,28,.72); padding:16px;
+  }
+  .screen.hidden{ display:none; }
+  .card{
+    width:100%; max-width:420px; background:var(--panel); border-radius:20px;
+    padding:24px 20px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.45);
+  }
+  .card h1{ margin:0 0 6px; font-size:1.8rem; }
+  .card p{ color:var(--dim); margin:8px 0; line-height:1.4; font-size:.95rem; }
+  .card ul{ text-align:left; color:var(--dim); font-size:.88rem; padding-left:20px; line-height:1.5; }
+  .card b{ color:var(--text); }
+  .btn{
+    margin-top:14px; border:none; border-radius:999px; padding:14px 28px;
+    font:inherit; font-size:1.1rem; font-weight:700; cursor:pointer;
+    background:var(--gold); color:#1b1f3b;
+  }
+  .big{ font-size:2.4rem; font-weight:700; color:var(--gold); margin:6px 0; }
+
+  #pauseBtn{
+    position:fixed; right:16px; bottom:calc(16px + env(safe-area-inset-bottom));
+    width:44px; height:44px; border-radius:50%; border:none;
+    background:var(--panel); color:#fff; font-size:1.1rem; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<div class="hud">
+  <div>
+    <div class="score" id="score">0</div>
+    <div class="sub" id="best">Récord: 0</div>
+  </div>
+  <div class="right">
+    <div class="lives" id="lives">❤❤❤</div>
+    <div class="sub" id="correct">Aciertos: 0</div>
+  </div>
+</div>
+<div id="nextQ" aria-hidden="true"><span></span></div>
+
+<div id="question" role="dialog" aria-live="polite">
+  <p id="qText"></p>
+  <div id="qTimer"><span></span></div>
+  <div id="qSecs"></div>
+  <div class="opts">
+    <button class="opt" data-lane="0"><small>Izquierda</small><span></span></button>
+    <button class="opt" data-lane="1"><small>Centro</small><span></span></button>
+    <button class="opt" data-lane="2"><small>Derecha</small><span></span></button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<button id="pauseBtn" aria-label="Pausa">❚❚</button>
+
+<div class="screen" id="startScreen">
+  <div class="card">
+    <h1>Carrera de Preguntas</h1>
+    <p>Esquiva obstáculos durante <b>20 segundos</b>. Luego aparece una pregunta y tienes <b>10 segundos</b> para ponerte en la calle de la respuesta correcta.</p>
+    <ul>
+      <li><b>← →</b> o deslizar: cambiar de calle</li>
+      <li><b>↑</b> / espacio o deslizar arriba: saltar vallas</li>
+      <li><b>↓</b> o deslizar abajo: agacharse bajo barras</li>
+      <li>Los trenes solo se esquivan cambiando de calle</li>
+      <li>En la pregunta también puedes tocar la respuesta</li>
+    </ul>
+    <button class="btn" id="startBtn">Jugar</button>
+  </div>
+</div>
+
+<div class="screen hidden" id="overScreen">
+  <div class="card">
+    <h1>Fin de la partida</h1>
+    <div class="big" id="finalScore">0</div>
+    <p id="finalInfo"></p>
+    <button class="btn" id="againBtn">Otra vez</button>
+  </div>
+</div>
+
+<div class="screen hidden" id="pauseScreen">
+  <div class="card">
+    <h1>Pausa</h1>
+    <button class="btn" id="resumeBtn">Seguir</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ---------- Ajustes del juego ----------
+  const RUN_TIME = 20;        // segundos de obstáculos entre preguntas
+  const QUESTION_TIME = 10;   // segundos para responder
+  const LANE_W = 2.2;         // ancho de calle (unidades de mundo)
+  const Z_FAR = 110;          // distancia a la que aparecen los objetos
+  const CAM_D = 5;            // distancia de la cámara detrás del jugador
+  const CAM_H = 3;            // altura de la cámara
+  const START_SPEED = 26;
+  const MAX_SPEED = 55;
+  // ?dios en la URL: sin choques con obstáculos (útil para probar preguntas).
+  const GOD = /[?&]dios\b/.test(location.search);
+  const LANE_COLORS = ['#ff5c6c', '#3fa9ff', '#3ddc84'];
+
+  // ---------- Preguntas (la primera opción es la correcta; se barajan) ----------
+  const QUESTIONS = [
+    ['¿Cuál es la capital de Australia?', 'Canberra', 'Sídney', 'Melbourne'],
+    ['¿Cuántos lados tiene un hexágono?', '6', '8', '5'],
+    ['¿Qué planeta es conocido como el planeta rojo?', 'Marte', 'Júpiter', 'Venus'],
+    ['¿Quién pintó la Mona Lisa?', 'Leonardo da Vinci', 'Picasso', 'Van Gogh'],
+    ['¿Cuánto es 7 × 8?', '56', '54', '64'],
+    ['¿Cuál es el océano más grande?', 'Pacífico', 'Atlántico', 'Índico'],
+    ['¿En qué año llegó Colón a América?', '1492', '1592', '1452'],
+    ['¿Cuál es el símbolo químico del oro?', 'Au', 'Ag', 'Or'],
+    ['¿Cuántos continentes hay?', '7', '5', '6'],
+    ['¿Qué animal es el más grande del mundo?', 'Ballena azul', 'Elefante', 'Tiburón blanco'],
+    ['¿Cuál es el río más largo de Europa?', 'Volga', 'Danubio', 'Rin'],
+    ['¿Quién escribió "Don Quijote"?', 'Cervantes', 'Lope de Vega', 'Quevedo'],
+    ['¿Cuántos minutos tiene una hora y media?', '90', '80', '100'],
+    ['¿Qué gas respiran las plantas para la fotosíntesis?', 'CO₂', 'Oxígeno', 'Helio'],
+    ['¿Cuál es el país más grande del mundo?', 'Rusia', 'Canadá', 'China'],
+    ['¿Cuántos jugadores tiene un equipo de fútbol en el campo?', '11', '10', '12'],
+    ['¿Cuál es la raíz cuadrada de 144?', '12', '14', '11'],
+    ['¿En qué país están las pirámides de Giza?', 'Egipto', 'México', 'Perú'],
+    ['¿Qué idioma se habla en Brasil?', 'Portugués', 'Español', 'Brasileño'],
+    ['¿Cuántas patas tiene una araña?', '8', '6', '10'],
+    ['¿Cuál es la capital de Japón?', 'Tokio', 'Kioto', 'Osaka'],
+    ['¿Cuál es el metal líquido a temperatura ambiente?', 'Mercurio', 'Plomo', 'Estaño'],
+    ['¿Cuántos días tiene un año bisiesto?', '366', '365', '364'],
+    ['¿Qué instrumento tiene 88 teclas?', 'Piano', 'Órgano', 'Acordeón'],
+    ['¿Cuál es el hueso más largo del cuerpo?', 'Fémur', 'Tibia', 'Húmero'],
+    ['¿Quién formuló la teoría de la relatividad?', 'Einstein', 'Newton', 'Galileo'],
+    ['¿Cuál es la moneda de Japón?', 'Yen', 'Won', 'Yuan'],
+    ['¿Qué color resulta de mezclar azul y amarillo?', 'Verde', 'Morado', 'Naranja'],
+    ['¿Cuál es el planeta más cercano al Sol?', 'Mercurio', 'Venus', 'Tierra'],
+    ['¿Cuántos grados tiene un ángulo recto?', '90', '180', '45'],
+    ['¿En qué ciudad está la Torre Eiffel?', 'París', 'Londres', 'Roma'],
+    ['¿Cuál es el animal terrestre más rápido?', 'Guepardo', 'León', 'Caballo'],
+    ['¿Cuánto es 15 + 27?', '42', '41', '43'],
+    ['¿Qué órgano bombea la sangre?', 'Corazón', 'Pulmón', 'Hígado'],
+    ['¿Cuál es la montaña más alta del mundo?', 'Everest', 'K2', 'Aconcagua'],
+    ['¿Cuántas cuerdas tiene una guitarra española?', '6', '4', '7'],
+    ['¿Cuál es la capital de Canadá?', 'Ottawa', 'Toronto', 'Vancouver'],
+    ['¿Qué vitamina nos da el sol?', 'Vitamina D', 'Vitamina C', 'Vitamina A'],
+    ['¿Cuánto es 100 ÷ 4?', '25', '20', '40'],
+    ['¿Cuál es el desierto cálido más grande?', 'Sahara', 'Gobi', 'Atacama'],
+  ];
+
+  // ---------- DOM ----------
+  const $ = (id) => document.getElementById(id);
+  const canvas = $('game');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = $('score'), bestEl = $('best'), livesEl = $('lives'), correctEl = $('correct');
+  const nextQBar = $('nextQ').firstElementChild;
+  const qBox = $('question'), qText = $('qText'), qTimerBar = $('qTimer').firstElementChild, qSecs = $('qSecs');
+  const optBtns = Array.from(document.querySelectorAll('.opt'));
+  const toast = $('toast');
+
+  let W = 0, H = 0, DPR = 1, K = 1, horizon = 0, cx = 0;
+
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    cx = W / 2;
+    // K = píxeles por unidad a la distancia del jugador. Se limita por el
+    // ancho para que las tres calles quepan en pantallas de móvil.
+    K = Math.min(W / 8.2, H / 6.5);
+    horizon = Math.max(H * 0.28, H * 0.9 - CAM_H * K);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // Proyección: (x, y, z) del mundo → pantalla. z = 0 es el jugador.
+  function proj(x, y, z){
+    const s = CAM_D / (CAM_D + z);
+    return { x: cx + x * s * K, y: horizon + (CAM_H - y) * s * K, s };
+  }
+
+  // ---------- Estado ----------
+  let best = 0;
+  try { best = parseInt(localStorage.getItem('carreraPreguntasRecord') || '0', 10) || 0; } catch(e){}
+  bestEl.textContent = 'Récord: ' + best;
+
+  let state = 'menu'; // menu | play | pause | over
+  let phase = 'run';  // run | question
+  let score, lives, speed, dist, runTimer, qTimer, spawnDist, obstacles, coins, gates;
+  let player, invuln, correctCount, qCount, currentQ, deck, feedbackTimer;
+
+  function shuffle(a){
+    for (let i = a.length - 1; i > 0; i--){ const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  }
+
+  function reset(){
+    score = 0; lives = 3; speed = START_SPEED; dist = 0;
+    runTimer = 0; qTimer = 0; spawnDist = 30;
+    obstacles = []; coins = []; gates = null;
+    player = { lane: 1, x: 0, y: 0, vy: 0, slide: 0, run: 0 };
+    invuln = 0; correctCount = 0; qCount = 0; feedbackTimer = 0;
+    deck = shuffle(QUESTIONS.slice());
+    phase = 'run';
+    qBox.classList.remove('show');
+    updateHud();
+  }
+
+  function updateHud(){
+    scoreEl.textContent = Math.floor(score);
+    livesEl.textContent = '❤'.repeat(Math.max(lives, 0)) + '♡'.repeat(Math.max(3 - lives, 0));
+    correctEl.textContent = 'Aciertos: ' + correctCount + (qCount ? ' / ' + qCount : '');
+  }
+
+  function showToast(html, color, ms){
+    toast.innerHTML = html;
+    toast.style.color = color || '#fff';
+    toast.classList.add('show');
+    clearTimeout(showToast.t);
+    showToast.t = setTimeout(() => toast.classList.remove('show'), ms || 1200);
+  }
+
+  // ---------- Obstáculos ----------
+  // Tipos: 'fence' (valla baja: saltar), 'bar' (barra alta: agacharse),
+  // 'train' (bloque largo: cambiar de calle).
+  function spawnRow(){
+    const lanes = shuffle([0, 1, 2]);
+    const count = Math.random() < 0.55 ? 1 : 2;
+    const z = Z_FAR;
+    let blockedByTrain = 0;
+    for (let i = 0; i < count; i++){
+      const r = Math.random();
+      let type = r < 0.38 ? 'fence' : r < 0.66 ? 'bar' : 'train';
+      if (type === 'train' && blockedByTrain >= 1 && count === 2) type = 'fence';
+      if (type === 'train') blockedByTrain++;
+      obstacles.push(makeObstacle(type, lanes[i], z));
+    }
+    // Monedas en una calle libre
+    const free = lanes[count];
+    if (free !== undefined && Math.random() < 0.7){
+      for (let i = 0; i < 5; i++) coins.push({ lane: free, z: z + i * 3, y: 0.9, got: false });
+    }
+  }
+
+  function makeObstacle(type, lane, z){
+    if (type === 'fence') return { type, lane, z, depth: 0.4, y0: 0, y1: 1.0, color: '#f2b134' };
+    if (type === 'bar')   return { type, lane, z, depth: 0.4, y0: 1.25, y1: 1.7, color: '#e0554f' };
+    return { type, lane, z, depth: 9, y0: 0, y1: 3.0, color: '#5b6ee1' };
+  }
+
+  // ---------- Preguntas ----------
+  function startQuestion(){
+    phase = 'question';
+    qTimer = 0;
+    if (!deck.length) deck = shuffle(QUESTIONS.slice());
+    const q = deck.pop();
+    const opts = shuffle([q[1], q[2], q[3]]);
+    currentQ = { text: q[0], opts, correct: opts.indexOf(q[1]) };
+    qText.textContent = currentQ.text;
+    optBtns.forEach((b, i) => { b.querySelector('span').textContent = opts[i]; });
+    qBox.classList.add('show');
+    gates = { z: 60 };
+    // Se quitan los obstáculos lejanos para dejar el camino a las puertas.
+    obstacles = obstacles.filter(o => o.z < 45);
+    coins = coins.filter(c => c.z < 45);
+  }
+
+  function resolveQuestion(){
+    const lane = player.lane;
+    qCount++;
+    const ok = lane === currentQ.correct;
+    if (ok){
+      correctCount++;
+      score += 500;
+      showToast('¡Correcto! +500', '#3ddc84', 1400);
+    } else {
+      lives--;
+      invuln = 1.2;
+      showToast('Incorrecto<small>Era: ' + escapeHtml(currentQ.opts[currentQ.correct]) + '</small>', '#ff5c6c', 1800);
+    }
+    qBox.classList.remove('show');
+    gates = null;
+    phase = 'run';
+    runTimer = 0;
+    spawnDist = 40;
+    speed = Math.min(MAX_SPEED, speed + 2.5);
+    updateHud();
+    if (lives <= 0) gameOver();
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  }
+
+  // ---------- Controles ----------
+  function moveLane(d){ if (state === 'play') player.lane = Math.max(0, Math.min(2, player.lane + d)); }
+  function jump(){
+    if (state !== 'play') return;
+    if (player.y <= 0.001){ player.vy = 11; player.slide = 0; }
+  }
+  function slide(){
+    if (state !== 'play') return;
+    player.slide = 0.7;
+    if (player.y > 0) player.vy = -16; // caer rápido si está en el aire
+  }
+
+  window.addEventListener('keydown', (e) => {
+    const k = e.key;
+    if (k === 'ArrowLeft' || k === 'a' || k === 'A') moveLane(-1);
+    else if (k === 'ArrowRight' || k === 'd' || k === 'D') moveLane(1);
+    else if (k === 'ArrowUp' || k === 'w' || k === 'W' || k === ' ') jump();
+    else if (k === 'ArrowDown' || k === 's' || k === 'S') slide();
+    else if (k === 'p' || k === 'P' || k === 'Escape') togglePause();
+    else if (k === 'Enter' && state !== 'play' && state !== 'pause') start();
+    else return;
+    e.preventDefault();
+  });
+
+  let touchStart = null;
+  canvas.addEventListener('touchstart', (e) => {
+    const t = e.changedTouches[0];
+    touchStart = { x: t.clientX, y: t.clientY, used: false };
+  }, { passive: true });
+  canvas.addEventListener('touchmove', (e) => {
+    if (!touchStart || touchStart.used) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStart.x, dy = t.clientY - touchStart.y;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 28) return;
+    touchStart.used = true;
+    if (Math.abs(dx) > Math.abs(dy)) moveLane(dx > 0 ? 1 : -1);
+    else if (dy < 0) jump(); else slide();
+  }, { passive: true });
+  canvas.addEventListener('touchend', () => { touchStart = null; }, { passive: true });
+
+  // Tocar una respuesta te lleva directamente a esa calle.
+  optBtns.forEach(b => b.addEventListener('click', () => {
+    if (state === 'play' && phase === 'question') player.lane = +b.dataset.lane;
+  }));
+
+  // ---------- Pantallas ----------
+  const startScreen = $('startScreen'), overScreen = $('overScreen'), pauseScreen = $('pauseScreen');
+  $('startBtn').addEventListener('click', start);
+  $('againBtn').addEventListener('click', start);
+  $('resumeBtn').addEventListener('click', togglePause);
+  $('pauseBtn').addEventListener('click', togglePause);
+  document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'play') togglePause(); });
+
+  function start(){
+    reset();
+    startScreen.classList.add('hidden');
+    overScreen.classList.add('hidden');
+    pauseScreen.classList.add('hidden');
+    state = 'play';
+    last = performance.now();
+  }
+
+  function togglePause(){
+    if (state === 'play'){ state = 'pause'; pauseScreen.classList.remove('hidden'); }
+    else if (state === 'pause'){ state = 'play'; pauseScreen.classList.add('hidden'); last = performance.now(); }
+  }
+
+  function gameOver(){
+    state = 'over';
+    qBox.classList.remove('show');
+    const s = Math.floor(score);
+    if (s > best){
+      best = s;
+      try { localStorage.setItem('carreraPreguntasRecord', String(best)); } catch(e){}
+    }
+    bestEl.textContent = 'Récord: ' + best;
+    $('finalScore').textContent = s;
+    $('finalInfo').textContent = 'Respuestas correctas: ' + correctCount + ' de ' + qCount + ' · Récord: ' + best;
+    setTimeout(() => overScreen.classList.remove('hidden'), 600);
+  }
+
+  // ---------- Bucle ----------
+  let last = performance.now();
+
+  function update(dt){
+    // Velocidad que sube poco a poco
+    speed = Math.min(MAX_SPEED, speed + dt * 0.35);
+    const step = speed * dt;
+    dist += step;
+    score += step * 0.5;
+
+    // Jugador
+    const targetX = (player.lane - 1) * LANE_W;
+    player.x += (targetX - player.x) * Math.min(1, dt * 14);
+    player.vy -= 32 * dt;
+    player.y = Math.max(0, player.y + player.vy * dt);
+    if (player.y === 0 && player.vy < 0) player.vy = 0;
+    player.slide = Math.max(0, player.slide - dt);
+    player.run += dt * speed * 0.35;
+    invuln = Math.max(0, invuln - dt);
+
+    // Fases
+    if (phase === 'run'){
+      runTimer += dt;
+      nextQBar.style.width = Math.min(100, runTimer / RUN_TIME * 100) + '%';
+      // Se dejan de generar obstáculos un poco antes para que la
+      // pregunta no aparezca con el camino lleno.
+      if (runTimer < RUN_TIME - 1.5){
+        spawnDist -= step;
+        if (spawnDist <= 0){
+          spawnRow();
+          spawnDist = 16 + Math.random() * 10 + speed * 0.15;
+        }
+      }
+      if (runTimer >= RUN_TIME) startQuestion();
+    } else if (phase === 'question'){
+      qTimer += dt;
+      const left = Math.max(0, QUESTION_TIME - qTimer);
+      qTimerBar.style.width = (left / QUESTION_TIME * 100) + '%';
+      qTimerBar.style.background = left < 3 ? '#ff5c6c' : '#ffd23f';
+      qSecs.textContent = Math.ceil(left) + ' s · ponte en la calle de la respuesta';
+      nextQBar.style.width = '0%';
+      // Las puertas llegan justo cuando se acaba el tiempo
+      gates.z = 60 * (1 - qTimer / QUESTION_TIME);
+      optBtns.forEach((b, i) => b.classList.toggle('active', i === player.lane));
+      if (qTimer >= QUESTION_TIME){ resolveQuestion(); if (state !== 'play') return; }
+    }
+
+    // Obstáculos y colisiones
+    for (const o of obstacles){
+      o.z -= step;
+      if (o.hit) continue;
+      const zFront = o.z - o.depth / 2, zBack = o.z + o.depth / 2;
+      if (zFront < 0.45 && zBack > -0.45 && Math.abs(player.x - (o.lane - 1) * LANE_W) < LANE_W * 0.55){
+        const pTop = player.slide > 0 ? 0.9 : 1.9;
+        const pBottom = player.y;
+        const overlap = pBottom < o.y1 - 0.05 && player.y + pTop > o.y0 + 0.05;
+        if (overlap && invuln <= 0 && !GOD){
+          o.hit = true;
+          lives--;
+          invuln = 1.5;
+          showToast('¡Ay!', '#ff5c6c', 700);
+          updateHud();
+          if (lives <= 0){ gameOver(); return; }
+        }
+      }
+    }
+    obstacles = obstacles.filter(o => o.z + o.depth / 2 > -CAM_D + 0.5);
+
+    for (const c of coins){
+      c.z -= step;
+      if (!c.got && Math.abs(c.z) < 0.8 && Math.abs(player.x - (c.lane - 1) * LANE_W) < LANE_W * 0.5 && Math.abs(player.y + 0.9 - c.y) < 1.2){
+        c.got = true; score += 10;
+      }
+    }
+    coins = coins.filter(c => !c.got && c.z > -CAM_D + 0.5);
+
+    updateHud();
+  }
+
+  // ---------- Dibujo ----------
+  function drawScene(){
+    // Cielo
+    const sky = ctx.createLinearGradient(0, 0, 0, horizon);
+    sky.addColorStop(0, '#2b2f6b'); sky.addColorStop(1, '#f59e7a');
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, W, horizon + 1);
+    // Sol
+    ctx.fillStyle = 'rgba(255,220,150,.9)';
+    ctx.beginPath(); ctx.arc(cx, horizon - 10, Math.min(W, H) * 0.08, Math.PI, 0); ctx.fill();
+    // Suelo
+    ctx.fillStyle = '#3a3f58'; ctx.fillRect(0, horizon, W, H - horizon);
+
+    // Carretera (tres calles)
+    const half = LANE_W * 1.5 + 0.3;
+    const nearZ = -CAM_D + 0.6;
+    const a = proj(-half, 0, Z_FAR), b = proj(half, 0, Z_FAR), c = proj(half, 0, nearZ), d = proj(-half, 0, nearZ);
+    ctx.fillStyle = '#5a5470';
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.lineTo(d.x, d.y); ctx.fill();
+
+    // Traviesas que se mueven para dar sensación de velocidad
+    const spacing = 4;
+    const off = dist % spacing;
+    ctx.fillStyle = 'rgba(0,0,0,.18)';
+    for (let z = Z_FAR - off; z > nearZ; z -= spacing){
+      const p1 = proj(-half, 0, z), p2 = proj(half, 0, z), p3 = proj(half, 0, z + 0.7), p4 = proj(-half, 0, z + 0.7);
+      ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.lineTo(p3.x, p3.y); ctx.lineTo(p4.x, p4.y); ctx.fill();
+    }
+    // Raíles de cada calle
+    ctx.strokeStyle = 'rgba(220,220,235,.55)'; ctx.lineWidth = 2;
+    for (let l = 0; l < 3; l++){
+      for (const side of [-0.55, 0.55]){
+        const x = (l - 1) * LANE_W + side;
+        const p1 = proj(x, 0, Z_FAR), p2 = proj(x, 0, nearZ);
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+      }
+    }
+
+    // Edificios a los lados
+    const bSpacing = 9;
+    const bOff = dist % bSpacing;
+    // Solo por delante del jugador: los muy cercanos quedan enormes.
+    for (let z = Z_FAR - bOff; z > 1; z -= bSpacing){
+      const idx = Math.floor((dist + z) / bSpacing);
+      for (const side of [-1, 1]){
+        const h = 4 + ((idx * 7 + (side > 0 ? 3 : 0)) % 5) * 1.6;
+        const hue = ((idx * 37 + (side > 0 ? 90 : 0)) % 360);
+        drawBox(side * (half + 2.6), 3.4, 0, h, z, 6, 'hsl(' + hue + ',35%,45%)', true);
+      }
+    }
+  }
+
+  // Caja: centro x, ancho w, de y0 a y1, centro z, profundidad dp
+  function drawBox(x, w, y0, y1, z, dp, color, building){
+    const zf = Math.max(z - dp / 2, -CAM_D + 0.4), zb = z + dp / 2;
+    if (zb <= -CAM_D + 0.4) return;
+    const l = x - w / 2, r = x + w / 2;
+    const f = [proj(l, y0, zf), proj(r, y0, zf), proj(r, y1, zf), proj(l, y1, zf)];
+    const bk = [proj(l, y0, zb), proj(r, y0, zb), proj(r, y1, zb), proj(l, y1, zb)];
+    // Lado visible
+    ctx.fillStyle = shade(color, -25);
+    if (l > 0){ poly([f[0], bk[0], bk[3], f[3]]); }
+    else if (r < 0){ poly([f[1], bk[1], bk[2], f[2]]); }
+    // Techo
+    ctx.fillStyle = shade(color, 20);
+    poly([f[3], f[2], bk[2], bk[3]]);
+    // Frente
+    ctx.fillStyle = color;
+    poly(f);
+    if (building){
+      // Ventanas
+      const s = f[0].s;
+      if (s > 0.08){
+        ctx.fillStyle = 'rgba(255,230,160,.55)';
+        const cols = 3, rows = Math.floor((y1 - y0) / 1.4);
+        for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++){
+          const wx = l + 0.5 + i * (w - 1) / cols, wy = y0 + 0.6 + j * 1.4;
+          const p = proj(wx, wy + 0.7, zf), q = proj(wx + 0.5, wy, zf);
+          ctx.fillRect(p.x, p.y, q.x - p.x, q.y - p.y);
+        }
+      }
+    }
+  }
+
+  function poly(pts){
+    ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.closePath(); ctx.fill();
+  }
+
+  function shade(hex, amt){
+    if (hex.startsWith('hsl')){
+      return hex.replace(/(\d+)%\)$/, (m, v) => Math.max(0, Math.min(100, +v + amt / 3)) + '%)');
+    }
+    const n = parseInt(hex.slice(1), 16);
+    const r = Math.max(0, Math.min(255, (n >> 16) + amt));
+    const g = Math.max(0, Math.min(255, ((n >> 8) & 255) + amt));
+    const b = Math.max(0, Math.min(255, (n & 255) + amt));
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+  }
+
+  function drawObstacle(o){
+    const x = (o.lane - 1) * LANE_W;
+    if (o.hit) ctx.globalAlpha = 0.35;
+    if (o.type === 'fence'){
+      // Valla con dos patas y franja
+      drawBox(x, 1.7, 0.55, 1.0, o.z, o.depth, o.color);
+      drawBox(x - 0.7, 0.18, 0, 0.55, o.z, 0.2, '#888');
+      drawBox(x + 0.7, 0.18, 0, 0.55, o.z, 0.2, '#888');
+    } else if (o.type === 'bar'){
+      drawBox(x - 0.85, 0.2, 0, o.y1, o.z, 0.2, '#999');
+      drawBox(x + 0.85, 0.2, 0, o.y1, o.z, 0.2, '#999');
+      drawBox(x, 1.9, o.y0, o.y1, o.z, o.depth, o.color);
+    } else {
+      drawBox(x, 1.8, 0, o.y1, o.z, o.depth, o.color);
+      // Ventanas del tren (en la cara frontal)
+      const zf = o.z - o.depth / 2;
+      if (zf > -CAM_D + 0.5){
+        ctx.fillStyle = '#bfe3ff';
+        const p = proj(x - 0.6, 2.5, zf), q = proj(x + 0.6, 1.6, zf);
+        ctx.fillRect(p.x, p.y, q.x - p.x, q.y - p.y);
+        ctx.fillStyle = '#ffd23f';
+        const l1 = proj(x - 0.6, 0.6, zf), l2 = proj(x + 0.6, 0.6, zf);
+        ctx.beginPath(); ctx.arc(l1.x, l1.y, 4 * l1.s * K / 30, 0, 7); ctx.arc(l2.x, l2.y, 4 * l2.s * K / 30, 0, 7); ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawCoin(c){
+    const x = (c.lane - 1) * LANE_W;
+    const p = proj(x, c.y, c.z);
+    const r = 0.35 * p.s * K;
+    const squish = Math.abs(Math.cos(dist * 0.15 + c.z));
+    ctx.fillStyle = '#ffd23f';
+    ctx.beginPath(); ctx.ellipse(p.x, p.y, Math.max(1, r * squish), r, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#c99a00'; ctx.lineWidth = Math.max(1, r * 0.15); ctx.stroke();
+  }
+
+  function drawGates(){
+    if (!gates || !currentQ) return;
+    const z = gates.z;
+    for (let i = 0; i < 3; i++){
+      const x = (i - 1) * LANE_W;
+      const col = LANE_COLORS[i];
+      drawBox(x - 0.95, 0.2, 0, 3.2, z, 0.2, col);
+      drawBox(x + 0.95, 0.2, 0, 3.2, z, 0.2, col);
+      drawBox(x, 2.1, 2.5, 3.2, z, 0.2, col);
+      // Letrero con la respuesta
+      const p = proj(x, 2.85, z);
+      const size = Math.max(6, 0.32 * p.s * K);
+      if (size > 7){
+        ctx.fillStyle = '#fff';
+        ctx.font = '700 ' + size + 'px Fraunces, Georgia, serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        fitText(currentQ.opts[i], p.x, p.y, 1.9 * p.s * K, size);
+      }
+      // Velo translúcido dentro de la puerta
+      const a1 = proj(x - 0.85, 0, z), a2 = proj(x + 0.85, 2.5, z);
+      ctx.fillStyle = col; ctx.globalAlpha = 0.22;
+      ctx.fillRect(a1.x, a2.y, a2.x - a1.x, a1.y - a2.y);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function fitText(t, x, y, maxW, size){
+    let s = size;
+    ctx.font = '700 ' + s + 'px Fraunces, Georgia, serif';
+    while (ctx.measureText(t).width > maxW && s > 6){
+      s -= 1; ctx.font = '700 ' + s + 'px Fraunces, Georgia, serif';
+    }
+    ctx.fillText(t, x, y);
+  }
+
+  function drawPlayer(){
+    const blink = invuln > 0 && Math.floor(invuln * 12) % 2 === 0;
+    if (blink) return;
+    const z = 0;
+    const sliding = player.slide > 0;
+    const base = proj(player.x, player.y, z);
+    const u = base.s * K; // píxeles por unidad
+    // Sombra
+    const sh = proj(player.x, 0, z);
+    ctx.fillStyle = 'rgba(0,0,0,.3)';
+    ctx.beginPath(); ctx.ellipse(sh.x, sh.y, 0.55 * u, 0.15 * u, 0, 0, 7); ctx.fill();
+
+    const px = base.x, py = base.y;
+    ctx.lineCap = 'round';
+    if (sliding){
+      // Agachado / deslizándose
+      ctx.fillStyle = '#ff7a00';
+      ctx.beginPath(); ctx.ellipse(px, py - 0.35 * u, 0.5 * u, 0.3 * u, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = '#ffcf9e';
+      ctx.beginPath(); ctx.arc(px, py - 0.75 * u, 0.22 * u, 0, 7); ctx.fill();
+      ctx.fillStyle = '#e03a3a';
+      ctx.beginPath(); ctx.arc(px, py - 0.82 * u, 0.22 * u, Math.PI, 0); ctx.fill();
+      return;
+    }
+    const swing = player.y > 0 ? 0.5 : Math.sin(player.run);
+    ctx.strokeStyle = '#2a3a8c'; ctx.lineWidth = 0.18 * u;
+    // Piernas
+    ctx.beginPath();
+    ctx.moveTo(px - 0.12 * u, py - 0.8 * u); ctx.lineTo(px - 0.12 * u + swing * 0.25 * u, py - 0.05 * u);
+    ctx.moveTo(px + 0.12 * u, py - 0.8 * u); ctx.lineTo(px + 0.12 * u - swing * 0.25 * u, py - 0.05 * u);
+    ctx.stroke();
+    // Cuerpo (sudadera)
+    ctx.fillStyle = '#ff7a00';
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(px - 0.3 * u, py - 1.5 * u, 0.6 * u, 0.75 * u, 0.12 * u) : ctx.rect(px - 0.3 * u, py - 1.5 * u, 0.6 * u, 0.75 * u); ctx.fill();
+    // Brazos
+    ctx.strokeStyle = '#ff7a00'; ctx.lineWidth = 0.14 * u;
+    ctx.beginPath();
+    ctx.moveTo(px - 0.3 * u, py - 1.35 * u); ctx.lineTo(px - 0.45 * u, py - 0.95 * u - swing * 0.15 * u);
+    ctx.moveTo(px + 0.3 * u, py - 1.35 * u); ctx.lineTo(px + 0.45 * u, py - 0.95 * u + swing * 0.15 * u);
+    ctx.stroke();
+    // Mochila
+    ctx.fillStyle = '#3ddc84';
+    ctx.fillRect(px - 0.22 * u, py - 1.42 * u, 0.44 * u, 0.5 * u);
+    // Cabeza y gorra
+    ctx.fillStyle = '#ffcf9e';
+    ctx.beginPath(); ctx.arc(px, py - 1.75 * u, 0.25 * u, 0, 7); ctx.fill();
+    ctx.fillStyle = '#e03a3a';
+    ctx.beginPath(); ctx.arc(px, py - 1.8 * u, 0.26 * u, Math.PI, 0); ctx.fill();
+  }
+
+  function render(){
+    ctx.clearRect(0, 0, W, H);
+    drawScene();
+    // De lejos a cerca
+    const items = [];
+    for (const o of obstacles) items.push({ z: o.z + o.depth / 2, f: () => drawObstacle(o) });
+    for (const c of coins) items.push({ z: c.z, f: () => drawCoin(c) });
+    if (gates) items.push({ z: gates.z, f: drawGates });
+    items.sort((a, b) => b.z - a.z);
+    let playerDrawn = false;
+    for (const it of items){
+      if (!playerDrawn && it.z < 0){ drawPlayer(); playerDrawn = true; }
+      it.f();
+    }
+    if (!playerDrawn) drawPlayer();
+  }
+
+  function loop(now){
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (state === 'play') update(dt);
+    else if (state === 'menu'){ dist += dt * 12; player.run += dt * 4; }
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  reset();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
