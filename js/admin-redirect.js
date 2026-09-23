@@ -1,5 +1,17 @@
 (function(){
-  if (!/(?:^|[?&])ajustes=1(?:&|$)/.test(location.search)) return;
+  // Dos formas de llegar: panel.deivph.com/ajustes (la actual, tras
+  // iniciar sesión en el panel) o el antiguo ?ajustes=1.
+  const isPanelAjustes = /^\/ajustes$/.test(location.pathname);
+  if (!isPanelAjustes && !/(?:^|[?&])ajustes=1(?:&|$)/.test(location.search)) return;
+
+  // En panel.deivph.com/ajustes, si Firebase confirma que NO hay sesión
+  // (nunca se inició, caducó o se acaba de cerrar), se vuelve al
+  // formulario de login en vez de dejar al usuario en la web normal.
+  if (isPanelAjustes && window.__firebaseConfigured){
+    document.addEventListener('admin-auth-changed', (e) => {
+      if (e.detail && !e.detail.loggedIn) location.replace('/');
+    });
+  }
 
   // Quita el parámetro de la URL sin recargar la página, para que un
   // refresco posterior (o compartir el enlace por error) no vuelva a
