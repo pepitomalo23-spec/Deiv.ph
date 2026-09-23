@@ -25,11 +25,27 @@ export default function middleware(request) {
   const host = (url.hostname || '').toLowerCase().replace(/\.$/, '');
 
   if (host === 'panel.deivph.com'){
-    // Solo en la raíz del subdominio se sirve el panel; el resto de
-    // rutas (styles.css, js/*.js...) siguen su camino normal para no
-    // romper los archivos estáticos que carga yo.html.
-    if (url.pathname === '/') {
-      const res = rewrite(new URL('/yo.html', request.url));
+    // Solo "/" y "/ajustes" se reescriben; el resto de rutas
+    // (styles.css, js/*.js, assets/...) siguen su camino normal para no
+    // romper los archivos estáticos que cargan yo.html e index.html.
+    // "/" es el formulario de login (yo.html) y "/ajustes" es la web
+    // completa (index.html) abierta directamente en Ajustes. Ajustes se
+    // sirve TAMBIÉN desde panel.deivph.com, y no desde deivph.com, porque
+    // Firebase guarda la sesión por separado para cada dominio: la sesión
+    // iniciada aquí no existe en deivph.com, así que al mandar al usuario
+    // allí unas veces (si también tenía sesión antigua en deivph.com)
+    // entraba a Ajustes y otras se quedaba en la web normal.
+    // Con barra final ("/ajustes/") las rutas relativas de index.html
+    // (js/..., assets/...) se resolverían bajo /ajustes/ y fallarían:
+    // se redirige a la versión sin barra.
+    if (url.pathname === '/ajustes/') {
+      return Response.redirect(new URL('/ajustes' + url.search, request.url), 308);
+    }
+    const target = url.pathname === '/' ? '/yo.html'
+                 : url.pathname === '/ajustes' ? '/index.html'
+                 : null;
+    if (target) {
+      const res = rewrite(new URL(target, request.url));
       // IMPORTANTE: deivph.com y panel.deivph.com son dos dominios
       // sobre el MISMO deployment de Vercel. La Edge Network de Vercel
       // cachea archivos estáticos por ruta ("/") hasta 31 días, y una
