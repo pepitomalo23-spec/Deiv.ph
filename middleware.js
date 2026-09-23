@@ -19,13 +19,34 @@ export const config = {
 
 export default function middleware(request) {
   const url = new URL(request.url);
-  const host = (url.hostname || '').toLowerCase();
+  // Normalizamos el host: quitamos un posible punto final (FQDN) y
+  // cualquier puerto, para que la comparación no falle por variaciones
+  // que a veces añaden ciertos resolutores DNS o proxies intermedios.
+  const host = (url.hostname || '').toLowerCase().replace(/\.$/, '');
 
   if (host === 'panel.deivph.com'){
     // Solo en la raíz del subdominio se sirve el panel; el resto de
     // rutas (styles.css, js/*.js...) siguen su camino normal para no
     // romper los archivos estáticos que carga yo.html.
-    if (url.pathname === '/') return rewrite(new URL('/yo.html', request.url));
+    if (url.pathname === '/') {
+      const res = rewrite(new URL('/yo.html', request.url));
+      // IMPORTANTE: deivph.com y panel.deivph.com son dos dominios
+      // sobre el MISMO deployment de Vercel. La Edge Network de Vercel
+      // cachea archivos estáticos por ruta ("/") hasta 31 días, y una
+      // respuesta ya cacheada se sirve directamente SIN volver a pasar
+      // por este middleware. Si esa caché llegara a guardar alguna vez
+      // el index.html normal para la ruta "/", panel.deivph.com podría
+      // mostrar la web en vez del panel de forma intermitente, aunque
+      // el código de aquí sea correcto. Para evitarlo del todo, fijamos
+      // explícitamente "no cachear" en la propia respuesta reescrita,
+      // en vez de depender solo de las reglas de vercel.json (que no
+      // siempre se aplican de forma fiable a una respuesta reescrita
+      // por middleware).
+      res.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.headers.set('CDN-Cache-Control', 'no-store');
+      res.headers.set('Vercel-CDN-Cache-Control', 'no-store');
+      return res;
+    }
     return;
   }
 
