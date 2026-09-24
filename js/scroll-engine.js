@@ -1299,6 +1299,11 @@
 
     const toFrame = WAYPOINTS[targetStep];
     const fromStep = stepIndex; // se guarda aparte: stepIndex no cambia hasta que termina el salto
+    // El aviso de "desliza" se ocultaba solo al TERMINAR el salto: durante
+    // todo el trayecto hacia la última parada seguía visible, encima de los
+    // nombres del carrusel de objetivos, que ya iba apareciendo debajo. Si
+    // el destino es la última parada, se apaga ya desde el principio.
+    if (targetStep === WAYPOINTS.length - 1) sceneHint.classList.remove('visible');
     const low = Math.min(fromStep, targetStep);
     const high = Math.max(fromStep, targetStep);
     // el tramo especial (con cambio de lente) es únicamente el que conecta
@@ -1564,6 +1569,9 @@
   // empezado el gesto, el cierre reparte el resto del tiempo calibrado.
   function settleSegment(fromStep, toStep, startP, commit){
     animating = true;
+    // Mismo motivo que en jumpTo: al confirmar el salto hacia la última
+    // parada, el aviso de "desliza" se apaga ya, no al aterrizar.
+    if (commit && toStep === WAYPOINTS.length - 1) sceneHint.classList.remove('visible');
     const isFirstSegment = (Math.min(fromStep, toStep) === 0 && Math.max(fromStep, toStep) === 1);
     // Igual que en jumpTo: la dirección real del salto que se está
     // completando es toStep > fromStep (bajando) o toStep < fromStep
