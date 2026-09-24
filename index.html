@@ -278,12 +278,12 @@
          CSS: un ancestro con transform pasa a ser el contenedor de
          referencia de sus descendientes fixed), y ya no podría anclarse
          a la ventana con normalidad.
-         data-no-scene-drag en todo el bloque (título + fila de botones):
-         sin esto, tocar el título o el hueco entre botones -que no son
-         <button>, así que no quedan excluidos solo por serlo- se
-         interpretaba como un gesto de scroll de la historia y el scroll
-         se quedaba "peleando" entre los dos. -->
-    <div class="as-cat-top" id="asCatTop" data-no-scene-drag>
+         Ya NO lleva data-no-scene-drag: con él, deslizar empezando
+         encima del título o de los botones no hacía nada (media pantalla
+         "muerta"). Un toque corto sigue siendo un clic en el botón; un
+         deslizamiento vertical mueve la historia (ver
+         SCENE_DRAG_EXCLUDE_SELECTOR en scroll-engine.js). -->
+    <div class="as-cat-top" id="asCatTop">
       <p class="as-cat-top-title" id="asCatTopTitle">Ediciones</p>
       <div class="as-cat-buttons" id="asCatButtons"></div>
     </div>
@@ -305,7 +305,7 @@
          "Mis ediciones", ver youtube-videos.js-. La miniatura de fondo
          se saca automáticamente del primer vídeo de la lista, igual que
          esa otra portada. -->
-    <button type="button" class="proyectos-yt-btn" id="proyectosYtBtn" data-no-scene-drag>
+    <button type="button" class="proyectos-yt-btn" id="proyectosYtBtn">
       <span class="proyectos-yt-btn-thumb" id="proyectosYtBtnThumb" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
       </span>
@@ -387,7 +387,7 @@
                ocupa el ancho completo del comparador), no al de la foto
                -que puede ser más estrecha si es vertical-, así se quedan
                siempre fuera de la imagen, nunca encima. -->
-          <button type="button" class="as-ba-nav as-ba-nav--prev" id="asBaPrev" data-no-scene-drag aria-label="Comparación anterior">
+          <button type="button" class="as-ba-nav as-ba-nav--prev" id="asBaPrev" aria-label="Comparación anterior">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
           <!-- Envoltorio del recuadro (as-ba-photo-wrap): se amolda exactamente
@@ -413,11 +413,11 @@
                  anterior) a un overlay a pantalla completa, en vez de abrir
                  una vista aparte -ver setAsBaFullscreen en
                  comparison-pairs.js-. -->
-            <button type="button" class="as-ba-expand" id="asBaExpand" data-no-scene-drag aria-label="Ver a pantalla completa">
+            <button type="button" class="as-ba-expand" id="asBaExpand" aria-label="Ver a pantalla completa">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
             </button>
           </div>
-          <button type="button" class="as-ba-nav as-ba-nav--next" id="asBaNext" data-no-scene-drag aria-label="Siguiente comparación">
+          <button type="button" class="as-ba-nav as-ba-nav--next" id="asBaNext" aria-label="Siguiente comparación">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>

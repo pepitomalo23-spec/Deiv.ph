@@ -1753,6 +1753,7 @@
   }
 
   let touchStartY = null;
+  let touchStartX = 0;
   let touchStartOffset = 0;
   let touchInPostEnd = false; // true si el gesto empezó ya en la última parada: se sigue el dedo en tiempo real
   let touchJumpTriggered = false; // true en cuanto este gesto ya disparó su salto animado (fuera del tramo final)
@@ -1839,37 +1840,30 @@
     dragRafId = requestAnimationFrame(dragStepLoop);
   }
 
-  // FIX (ampliado): antes solo se protegía el tirador "Antes/Después"
-  // (#beforeAfterCompare) o lo que se marcara a mano con
-  // data-no-scene-drag. Pero cualquier otro contenido tocable dentro de la
-  // escena -los botones de categorías, el carrusel de cámaras, o cualquier
-  // botón/enlace/campo que se añada en el futuro- sufría el mismo
-  // problema: tocarlo (o moverlo un poco, aunque fuera sin querer, al
-  // levantar el dedo) se interpretaba como intención de scroll y hacía
-  // avanzar/retroceder la historia en vez de dejar que el elemento
-  // reaccionara con normalidad al toque. Esta lista cubre, de forma
-  // genérica, cualquier elemento interactivo/de contenido tocable: no hace
-  // falta acordarse de añadir data-no-scene-drag a cada botón nuevo, basta
-  // con que sea (o esté dentro de) uno de estos selectores.
+  // Elementos sobre los que un gesto NUNCA mueve la historia, porque
+  // necesitan el dedo/la rueda para sí mismos: los campos de texto y lo
+  // marcado con data-no-scene-drag (la galería y el visor de fotos a
+  // pantalla completa, que hacen scroll propio, y el tirador del
+  // comparador antes/después, que se arrastra).
+  //
+  // ANTES esta lista incluía también cualquier button, a, label,
+  // [role="button"] y el carrusel de objetivos, y además el bloque de
+  // "Ediciones" y el botón de YouTube llevaban data-no-scene-drag: si el
+  // dedo (o el cursor, con la rueda) empezaba encima de cualquiera de
+  // ellos, el gesto se ignoraba por completo. En la 2ª pantalla eso es
+  // media pantalla (título, categorías y botón de YouTube) y en la 1ª los
+  // iconos de correo/Instagram: "hay partes donde no me deja deslizar".
+  // Ya no hace falta excluirlos: un toque corto sobre un botón no llega al
+  // umbral de SCROLL_INTENT_THRESHOLD y sigue siendo un clic normal, y un
+  // gesto que sí lo supera es un deslizamiento (el navegador ya cancela
+  // el clic en ese caso). Además solo cuenta el movimiento VERTICAL (ver
+  // onTouchMove): un arrastre horizontal se deja al elemento.
   const SCENE_DRAG_EXCLUDE_SELECTOR = [
     '[data-no-scene-drag]',
-    'button',
-    'a',
     'input',
     'textarea',
     'select',
-    'label',
-    // '.as-expand-card' queda fuera a propósito (:not): son las tarjetas
-    // de "Proyectos" en la 1ª posición y, aunque llevan role="button" (se
-    // pueden tocar para expandirse), viven encima de la propia escena y
-    // hay que poder seguir deslizando verticalmente sobre ellas para
-    // pasar a la 2ª posición. Un toque corto (sin apenas movimiento)
-    // sigue disparando su "click" con normalidad; solo el arrastre largo
-    // (scroll) se deja pasar a la escena.
-    '[role="button"]:not(.as-expand-card)',
-    '[contenteditable]',
-    '#cameraCarousel',
-    '.camera-carousel'
+    '[contenteditable]'
   ].join(', ');
 
   function onTouchStart(e){
@@ -1884,6 +1878,7 @@
     // nivel de window.
     if (e.target && e.target.closest && e.target.closest(SCENE_DRAG_EXCLUDE_SELECTOR)) return;
     touchStartY = e.touches[0].clientY;
+    touchStartX = e.touches[0].clientX;
     touchInPostEnd = !animating && stepIndex === WAYPOINTS.length - 1;
     touchStartOffset = postEndTarget;
     touchIntentConfirmed = false;
@@ -1906,10 +1901,18 @@
 
     if (!touchIntentConfirmed){
       const rawDy = touchStartY - e.touches[0].clientY;
-      if (Math.abs(rawDy) < SCROLL_INTENT_THRESHOLD){
+      const rawDx = touchStartX - e.touches[0].clientX;
+      if (Math.abs(rawDy) < SCROLL_INTENT_THRESHOLD && Math.abs(rawDx) < SCROLL_INTENT_THRESHOLD){
         // Todavía no hay movimiento suficiente para saber si es un gesto de
         // scroll o solo un toque/roce sobre el contenido: no se bloquea el
         // comportamiento nativo (preventDefault) ni se mueve la escena.
+        return;
+      }
+      if (Math.abs(rawDx) > Math.abs(rawDy)){
+        // Arrastre sobre todo horizontal: no es "deslizar la historia"
+        // (que es vertical). Se abandona este gesto y se deja al elemento
+        // tocado o al navegador.
+        touchStartY = null;
         return;
       }
       touchIntentConfirmed = true;
