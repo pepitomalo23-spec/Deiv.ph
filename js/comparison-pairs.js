@@ -87,6 +87,7 @@
       asBaFrameEl.style.width = '';
       asBaFrameEl.style.height = '';
       if (asBaWrapEl) asBaWrapEl.style.width = '';
+      if (asBaWrapEl && asBaWrapEl.parentElement) asBaWrapEl.parentElement.style.removeProperty('--as-ba-photo-w');
       return;
     }
     const container = asBaFrameEl.closest('.as-ba-gallery') || asBaFrameEl.parentElement;
@@ -128,6 +129,10 @@
     asBaFrameEl.style.width = width + 'px';
     asBaFrameEl.style.height = height + 'px';
     if (asBaWrapEl) asBaWrapEl.style.width = width + 'px';
+    // Ancho real de la foto, para que las flechas de siguiente/anterior
+    // se coloquen pegadas a sus lados (ver .as-ba-stage .as-ba-nav en
+    // styles.css) en vez de en los extremos de todo el comparador.
+    if (asBaWrapEl && asBaWrapEl.parentElement) asBaWrapEl.parentElement.style.setProperty('--as-ba-photo-w', width + 'px');
   }
 
   // Vuelve a encajar la foto vigente si cambia el tamaño de la ventana

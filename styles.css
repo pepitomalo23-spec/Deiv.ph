@@ -479,6 +479,31 @@
     pointer-events:none;
   }
   .scene-hint.visible{ opacity:1; }
+  .scene-hint{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    white-space:nowrap;
+  }
+  /* Texto según el tipo de puntero: con el dedo "desliza"; con ratón o
+     trackpad (hover real + puntero fino) "haz scroll", que es el gesto
+     que de verdad se hace ahí. */
+  .scene-hint-mouse{ display:none; }
+  .scene-hint-arrow{ display:none; }
+  @media (hover:hover) and (pointer:fine){
+    .scene-hint-touch{ display:none; }
+    .scene-hint-mouse{ display:inline; }
+    .scene-hint-arrow{ display:block; animation:sceneHintBob 1.8s ease-in-out infinite; }
+    .scene-hint{ font-size:0.8rem; bottom:30px; }
+  }
+  @keyframes sceneHintBob{
+    0%,100%{ transform:translateY(0); opacity:0.55; }
+    50%{ transform:translateY(4px); opacity:1; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .scene-hint-arrow{ animation:none; }
+  }
 
   /* ---------- Panel de Ajustes "Antes/Después" (subida de fotos): dos
      ranuras ----------
@@ -959,6 +984,26 @@
     transform:translateY(-8px) scale(0.98);
     pointer-events:none;
     transition:opacity .25s ease, transform .25s ease;
+  }
+  /* ---------- Escritorio: correo, Instagram y menú a tamaño "de
+     pantalla grande" ----------
+     Con 38-44px y el círculo casi transparente sobre fondo blanco, en un
+     monitor se veían como dos iconitos sueltos de 18px. En escritorio se
+     agrandan un poco y el círculo gana una sombra suave para que se lea
+     como botón. */
+  @media (min-width:901px){
+    .social-icons{ left:28px; bottom:max(28px, env(safe-area-inset-bottom)); gap:12px; }
+    .social-icon{
+      width:48px;
+      height:48px;
+      background:rgba(255,255,255,0.9);
+      box-shadow:0 4px 14px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .social-icon svg{ width:22px; height:22px; }
+    .social-icon:hover{ background:#fff; transform:translateY(-2px); }
+    .menu-toggle{ top:26px; right:28px; width:52px; height:52px; }
+    .menu-toggle span{ width:22px; }
+    .menu-panel{ top:90px; right:28px; }
   }
   .menu-panel.open{
     opacity:1;
@@ -2203,9 +2248,13 @@
 
   /* Móviles muy estrechos (320-480px): el título sube un poco en la
      pantalla para dejar más aire por debajo antes del carrusel. */
+  /* El tope de tamaño (antes 13.5vw / 3.1rem) hacía que "Mi material"
+     llegase hasta debajo del botón de menú (esquina superior derecha,
+     right:22px + 44px de ancho): se baja un poco para que el título quede
+     siempre dentro del hueco libre entre los dos márgenes laterales. */
   @media (max-width:480px){
     .equipo-header{ top:7.5%; width:94vw; }
-    .equipo-title{ font-size:clamp(2.1rem, 13.5vw, 3.1rem); }
+    .equipo-title{ font-size:clamp(2rem, 11.5vw, 2.7rem); }
     .equipo-title::after{ width:50px; height:4px; margin-top:12px; }
     .equipo-subtitle{ font-size:0.83rem; margin-top:16px; }
   }
@@ -2270,6 +2319,11 @@
      de fila/centrado de los media queries de arriba, pensadas para el
      caso en que el título va centrado sobre la foto. */
   .equipo-header.equipo-header--side{
+    /* Sin el gap de la fila de escritorio (hasta 64px, pensado para
+       separar título y frase EN HORIZONTAL): en columna se sumaba al
+       margin-top de la frase y dejaba un hueco enorme entre la raya
+       naranja y el texto. */
+    gap:0 !important;
     flex-direction:column !important;
     align-items:flex-start !important;
     justify-content:center !important;
@@ -2279,13 +2333,15 @@
   .equipo-header--side .equipo-title{
     text-align:left !important;
     flex:0 0 auto;
-    /* Columna más estrecha que toda la pantalla: el título no necesita
-       crecer tanto como cuando iba centrado sobre la foto entera. */
-    font-size:clamp(1.7rem, 2.6vw, 2.9rem);
+    /* Columna más estrecha que toda la pantalla, pero con presencia de
+       título de sección (antes 2.6vw / 2.9rem se quedaba pequeño frente
+       al resto de la franja libre de la derecha). */
+    font-size:clamp(2.2rem, 3.6vw, 3.9rem);
   }
   .equipo-header--side .equipo-title::after{ margin:16px 0 0; }
   .equipo-header--side .equipo-subtitle{
-    margin-top:clamp(16px, 1.8vw, 26px) !important;
+    margin-top:clamp(18px, 1.8vw, 26px) !important;
+    font-size:clamp(0.95rem, 1.15vw, 1.1rem);
     padding-left:0 !important;
     border-left:none !important;
     text-align:left !important;
@@ -2372,8 +2428,10 @@
     border-radius:2px;
     background:var(--accent);
   }
+  /* Igual que .equipo-title: con 11vw / 2.8rem la "s" final de
+     "ediciones" quedaba debajo del botón de menú en móvil. */
   @media (max-width:480px){
-    .after-story-title{ font-size:clamp(2rem, 11vw, 2.8rem); }
+    .after-story-title{ font-size:clamp(1.9rem, 10vw, 2.45rem); }
     .after-story-title::after{ width:56px; height:4px; margin-top:12px; }
   }
 
@@ -2552,7 +2610,10 @@
     align-items:center;
     justify-content:center;
     width:fit-content;
-    margin:12px auto 0;
+    /* Más separación que antes (12px): las dos "fotos fantasma" giradas
+       de detrás asoman por debajo del recuadro y las etiquetas quedaban
+       montadas encima de su borde oscuro, casi sin leerse. */
+    margin:clamp(26px, 4vh, 38px) auto 0;
   }
   .as-ba-labels{
     display:flex;
@@ -2637,8 +2698,16 @@
     z-index:5;
     left:0;
   }
-  .as-ba-stage .as-ba-nav--prev{ left:0; }
-  .as-ba-stage .as-ba-nav--next{ right:0; left:auto; }
+  /* Pegadas a los lados de la FOTO, no a los extremos del comparador:
+     en escritorio el escenario mide hasta 920px y una foto vertical
+     ocupa menos de la mitad, así que las flechas quedaban flotando lejos,
+     en medio del blanco. --as-ba-photo-w es el ancho real de la foto
+     (lo fija sizeFrameToPhoto en comparison-pairs.js); con max(0px, ...)
+     nunca se salen del escenario, y mientras no hay foto (variable sin
+     definir) el cálculo da negativo y se quedan en el borde, como antes.
+     El hueco de 60px deja sitio a las dos "fotos fantasma" de detrás. */
+  .as-ba-stage .as-ba-nav--prev{ left:max(0px, calc(50% - var(--as-ba-photo-w, 200vw) / 2 - 60px)); }
+  .as-ba-stage .as-ba-nav--next{ right:max(0px, calc(50% - var(--as-ba-photo-w, 200vw) / 2 - 60px)); left:auto; }
   .as-ba-nav{
     flex:none;
     /* Mismo espacio de toque que antes (42px), pero ya SIN el círculo de
@@ -2689,8 +2758,24 @@
        text-shadow/box-shadow, que dibujarían un cuadrado-. */
     filter:drop-shadow(0 1px 3px rgba(0,0,0,0.85)) drop-shadow(0 0 6px rgba(0,0,0,0.35));
   }
+  /* Con ratón: círculo blanco con sombra, como el resto de botones de la
+     web, para que la flecha se lea como botón sobre el fondo blanco. */
+  @media (hover:hover) and (pointer:fine){
+    .as-ba-nav{
+      width:46px;
+      height:46px;
+      border-radius:50%;
+      background:#fff;
+      box-shadow:0 4px 16px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08);
+      color:var(--fg);
+    }
+    .as-ba-nav svg{ filter:none; }
+  }
   .as-ba-nav:hover{ opacity:0.75; }
   .as-ba-nav:active{ opacity:0.55; transform:scale(0.9); }
+  /* Sin esto, el scale de :active sustituía al translateY(-50%) que las
+     centra en vertical y la flecha "saltaba" hacia abajo al pulsarla. */
+  .as-ba-stage .as-ba-nav:active{ transform:translateY(-50%) scale(0.9); }
 
   /* ---------- Botón de pantalla completa ----------
      Círculo pequeño en la esquina del recuadro (con su propio fondo
@@ -3751,7 +3836,6 @@
     text-align:center;
     white-space:normal;
     overflow-wrap:break-word;
-    word-break:break-word;
     /* Letra en negro (--fg) a petición: sin círculo/chip de fondo, solo el
        texto en sí. Como el carrusel aparece sobre el degradado OSCURO del
        último fotograma, un negro puro sin más ahí sería casi invisible;
@@ -3763,6 +3847,20 @@
       0 1px 2px rgba(255,255,255,0.75),
       0 0 6px rgba(255,255,255,0.55);
   }
+  /* Modelo arriba (Fraunces, como antes) y ficha técnica debajo, en
+     letra de palo más pequeña y gris (ver captionHtml en
+     camera-carousel.js). Las palabras con guion/barra no se parten. */
+  .camera-carousel .marquee-caption-model{ display:block; }
+  .camera-carousel .marquee-caption-spec{
+    display:block;
+    margin-top:2px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-weight:500;
+    font-size:0.88em;
+    letter-spacing:0.01em;
+    color:var(--dim);
+  }
+  .camera-carousel .marquee-caption-nowrap{ white-space:nowrap; }
   /* Sombra suave detrás de cada foto para que su borde no se funda con el
      fondo oscurecido justo debajo, sin necesidad de ponerle un recuadro de
      color fijo. */

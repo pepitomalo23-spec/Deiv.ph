@@ -116,6 +116,24 @@
     cameraCarousel.style.width = totalWidth + 'px';
   }
 
+  // Nombre del objetivo en dos partes: el modelo ("Sony FE") y, debajo,
+  // más pequeño, la ficha técnica a partir de la focal ("28-70mm
+  // f/3.5-5.6 OSS"). Antes iba todo seguido en una celda estrecha y el
+  // navegador partía la línea justo en los guiones ("28- / 70mm"). Cada
+  // palabra con guion o barra (28-70mm, f/3.5-5.6) va además en un bloque
+  // que no se puede partir.
+  function captionHtml(name){
+    const keepTogether = txt => escapeHtml(txt).split(' ').map(w =>
+      /[-\/]/.test(w) ? `<span class="marquee-caption-nowrap">${w}</span>` : w
+    ).join(' ');
+    // Se corta justo antes de la focal (50mm, 16-50mm, 70-200mm...); si el
+    // nombre no lleva focal (una cámara, un dron) no se parte.
+    const m = name.match(/^(.*?)\s+(\d+(?:[.,]\d+)?(?:-\d+(?:[.,]\d+)?)?\s?mm\b.*)$/i);
+    if (!m) return keepTogether(name);
+    return `<span class="marquee-caption-model">${keepTogether(m[1])}</span>` +
+      `<span class="marquee-caption-spec">${keepTogether(m[2])}</span>`;
+  }
+
   function buildMarquee(){
     const slides = currentSlides();
     // Se duplica el set completo una vez: la animación mueve la cinta
@@ -126,7 +144,7 @@
     // parón ni salto, aunque solo haya 3 fotos.
     const html = slides.concat(slides).map(s => {
       const caption = s.name && s.name.trim()
-        ? `<div class="marquee-caption">${escapeHtml(s.name.trim())}</div>`
+        ? `<div class="marquee-caption">${captionHtml(s.name.trim())}</div>`
         : '';
       const bgPos = (typeof s.pos === 'number' ? s.pos : 50);
       const fastImg = (typeof optimizeCloudinaryUrl === 'function') ? optimizeCloudinaryUrl(s.img, 700) : s.img;

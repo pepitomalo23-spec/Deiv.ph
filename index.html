@@ -16,22 +16,34 @@
      de color fijo arriba -así combina con cualquier color de fondo que
      vaya tomando la escena (blanco, gris, negro) en cada momento. -->
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Scroll Story">
-<title>Scroll Story</title>
+<meta name="apple-mobile-web-app-title" content="Deiv.ph">
+<title>Deiv.ph · Fotografía y vídeo</title>
+<meta name="description" content="Portfolio de David (Deiv.ph): fotografía, vídeo y edición desde Córdoba. Festivales, viajes, deportes, gastronomía y automóviles.">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="canonical" href="https://deivph.com/">
 <meta property="og:title" content="Deiv.ph — Portfolio">
-<meta property="og:image" content="https://deivph.com/assets/verano.png">
-<meta property="og:image:type" content="image/png">
-<meta property="og:image:width" content="1294">
-<meta property="og:image:height" content="1726">
+<meta property="og:description" content="Fotografía, vídeo y edición desde Córdoba.">
+<meta property="og:site_name" content="Deiv.ph">
+<meta property="og:locale" content="es_ES">
+<!-- Imagen para compartir en formato 1200x630 (el que usan WhatsApp,
+     Instagram, X...): la foto de verano.png entera en el centro, sobre un
+     fondo desenfocado de la misma foto, para que no la recorten. -->
+<meta property="og:image" content="https://deivph.com/assets/og-image.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:url" content="https://deivph.com">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Deiv.ph — Portfolio">
-<meta name="twitter:image" content="https://deivph.com/assets/verano.png">
+<meta name="twitter:description" content="Fotografía, vídeo y edición desde Córdoba.">
+<meta name="twitter:image" content="https://deivph.com/assets/og-image.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&family=Anton&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=16">
+<link rel="stylesheet" href="styles.css?v=17">
 </head>
 <body>
 
@@ -121,7 +133,13 @@
     </div>
   </div>
 
-  <div class="scene-hint" id="sceneHint">desliza</div>
+  <!-- Aviso para seguir bajando: "desliza" en pantallas táctiles y "haz
+       scroll" con ratón/trackpad (el CSS muestra solo uno de los dos
+       según el tipo de puntero, ver .scene-hint en styles.css). -->
+  <div class="scene-hint" id="sceneHint">
+    <span class="scene-hint-touch">desliza</span><span class="scene-hint-mouse">haz scroll</span>
+    <svg class="scene-hint-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M6 13l6 6 6-6"/></svg>
+  </div>
 
   <!-- ---------- Galería a pantalla completa de una categoría de "Proyectos"
        ---------- (Deportes, Fiestas...). Vive aquí, directamente bajo
