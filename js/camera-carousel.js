@@ -109,6 +109,14 @@
     if (!firstItem) return;
     const style = getComputedStyle(firstItem);
     const itemWidth = firstItem.getBoundingClientRect().width;
+    // Con el carrusel oculto (en "Sobre mí", "Vídeos" o Ajustes está en
+    // display:none) el ancho medido es 0 y el contenedor se quedaba en
+    // solo 3 márgenes (72px): al volver a la página principal se veían
+    // dos trocitos de foto en vez de tres fotos. Pasa con cualquier resize
+    // mientras se está en otra sección -girar el móvil, o que Safari
+    // esconda su barra al hacer scroll-. Sin medida real, no se toca nada;
+    // se recalcula al volver (ver __resyncCameraOverlayNow).
+    if (!itemWidth) return;
     const marginLeft = parseFloat(style.marginLeft) || 0;
     const marginRight = parseFloat(style.marginRight) || 0;
     const cellWidth = itemWidth + marginLeft + marginRight;
@@ -361,6 +369,7 @@
     // requestAnimationFrame -que, justo tras restaurar display:'', podría
     // tardar un fotograma entero en pintar la posición/aparición
     // correctas-.
+    sizeCarousel();
     cameraLabelsLoop({ skipSchedule: true });
   };
 

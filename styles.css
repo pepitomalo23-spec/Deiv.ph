@@ -2260,8 +2260,10 @@
   }
   /* Foldables / móviles muy angostos (≤340px): un pelín más compacto
      todavía, para que el título quepa sin apretarse. */
+  /* (Antes 14vw / 2.6rem: aquí el título era MÁS grande que en el resto
+     de móviles y en 320px volvía a meterse debajo del botón de menú.) */
   @media (max-width:340px){
-    .equipo-title{ font-size:clamp(1.8rem, 14vw, 2.6rem); }
+    .equipo-title{ font-size:clamp(1.7rem, 10vw, 2.1rem); }
     .equipo-subtitle{ font-size:0.78rem; }
   }
   /* Tablets/portátiles medianos (siguen en columna, como el móvil, pero
@@ -2431,7 +2433,7 @@
   /* Igual que .equipo-title: con 11vw / 2.8rem la "s" final de
      "ediciones" quedaba debajo del botón de menú en móvil. */
   @media (max-width:480px){
-    .after-story-title{ font-size:clamp(1.9rem, 10vw, 2.45rem); }
+    .after-story-title{ font-size:clamp(1.7rem, 9.2vw, 2.45rem); }
     .after-story-title::after{ width:56px; height:4px; margin-top:12px; }
   }
 
@@ -2988,6 +2990,19 @@
     justify-content:center;
     margin-top:8px;
   }
+  /* En escritorio la subvista medía 720px (como "Sobre mí", pensada para
+     texto) y con tarjetas de hasta 420px solo cabía UNA por fila: una
+     columna estrecha en medio de la pantalla. Aquí la página se ensancha
+     y las tarjetas pasan a una rejilla que reparte el ancho: 1 columna en
+     móvil, 2 en tablet, 3 o 4 en escritorio. */
+  #view-mis-videos .subview-inner{ max-width:1240px; }
+  .youtube-grid--full{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+    column-gap:clamp(16px, 2.2vw, 28px);
+    row-gap:clamp(22px, 3vw, 36px);
+  }
+  .youtube-grid--full .youtube-card{ width:auto; max-width:none; }
   #view-mis-videos h1 .as-word-accent{ color:var(--accent); }
 
   /* ---------- Galería a pantalla completa de una categoría de "Proyectos"
@@ -3385,6 +3400,12 @@
     overflow:hidden;
     text-overflow:ellipsis;
   }
+  /* En móviles pequeños (iPhone SE y similares) la frase se cortaba con
+     puntos suspensivos ("Mis proyectos editados, e..."): ahí se deja
+     bajar a una segunda línea. */
+  @media (max-width:400px){
+    .proyectos-yt-btn-sub{ white-space:normal; line-height:1.3; }
+  }
   .proyectos-yt-btn-arrow{
     flex:none;
     color:var(--accent);
@@ -3522,6 +3543,15 @@
     gap:8px;
     width:100%;
     height:160px;
+  }
+  /* Escritorio: la galería medía 360px, más estrecha que el botón de
+     "Vídeos de YouTube" (hasta 460px) que tiene justo encima, y la
+     columna quedaba desalineada. Se ensancha al mismo ancho que el botón
+     manteniendo la MISMA proporción (360x160 = 9/4), así el encuadre de
+     cada foto (ajustado desde Ajustes) no cambia, solo se ve más grande. */
+  @media (min-width:901px){
+    .proyectos-header .as-expand{ width:min(460px, 40vw); }
+    .proyectos-header .as-expand-grid{ height:auto; aspect-ratio:9/4; }
   }
   .as-expand-card{
     position:relative;
@@ -4888,3 +4918,53 @@
   }
   .youtube-card-sticker--edited{ background:#2f7d4f; }
   .youtube-card-sticker--created{ background:#2f5fa8; }
+
+  /* ---------- Aviso "gira el móvil" ----------
+     Solo en móviles/tablets pequeñas en horizontal (poca altura y
+     pantalla táctil) y solo en la historia principal (body sin
+     data-view todavía, o data-view="resumen", ver goToView). Queda por
+     debajo del comparador a pantalla completa (3000) y de las galerías
+     (4000+), que sí aprovechan la pantalla en horizontal. */
+  .rotate-hint{ display:none; }
+  @media (orientation:landscape) and (max-height:500px) and (pointer:coarse){
+    body:not([data-view]) .rotate-hint,
+    body[data-view="resumen"] .rotate-hint{
+      position:fixed;
+      inset:0;
+      z-index:2500;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      padding:24px;
+      background:var(--bg);
+      color:var(--fg);
+      text-align:center;
+    }
+  }
+  .rotate-hint-icon{
+    color:var(--accent);
+    animation:rotateHintTurn 2.4s ease-in-out infinite;
+  }
+  .rotate-hint-title{
+    margin:6px 0 0;
+    font-family:'Fraunces','Georgia',serif;
+    font-style:italic;
+    font-weight:700;
+    font-size:1.9rem;
+    line-height:1.1;
+  }
+  .rotate-hint-sub{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:0.9rem;
+    color:var(--dim);
+  }
+  @keyframes rotateHintTurn{
+    0%, 20%{ transform:rotate(-90deg); }
+    55%, 100%{ transform:rotate(0deg); }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .rotate-hint-icon{ animation:none; }
+  }

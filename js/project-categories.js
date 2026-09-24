@@ -161,8 +161,11 @@
   // (misma foto, solo más nítida). Mientras tanto se muestra un pequeño
   // spinner (ver .as-photo-viewer.is-loading en styles.css) para que se
   // note que algo está cargando y no parezca que se ha quedado colgado.
-  function openPhotoViewer(fullUrl, thumbUrl){
+  function openPhotoViewer(fullUrl, thumbUrl, altText){
     if (!photoViewerEl || !photoViewerImgEl || !fullUrl) return;
+    // Mismo texto alternativo que la miniatura pulsada (nombre de la
+    // categoría), para lectores de pantalla.
+    photoViewerImgEl.alt = altText || '';
     const fast = (typeof optimizeCloudinaryUrl === 'function') ? optimizeCloudinaryUrl(fullUrl, 1800) : fullUrl;
     photoViewerImgEl.src = thumbUrl || fast;
     photoViewerEl.classList.add('is-open');
@@ -238,7 +241,7 @@
       // mosaico) y la URL original sin recortar (data-full), de la que
       // se pide una versión grande en segundo plano -ver openPhotoViewer
       // más arriba, que hace el cambio de una a otra sin que se note-.
-      openPhotoViewer(img.dataset.full || img.getAttribute('src'), img.getAttribute('src'));
+      openPhotoViewer(img.dataset.full || img.getAttribute('src'), img.getAttribute('src'), img.alt);
     });
   }
   if (photoViewerCloseBtn) photoViewerCloseBtn.addEventListener('click', closePhotoViewer);

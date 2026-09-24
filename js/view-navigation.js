@@ -84,6 +84,9 @@
   function goToView(view){
     if (view === 'ajustes' && !window.isAdminDevice) view = 'resumen';
     window.currentView = view;
+    // Sección actual también en <body>, para el CSS (ver .rotate-hint:
+    // el aviso de "gira el móvil" solo tiene sentido en la historia).
+    document.body.dataset.view = view;
 
     // En Ajustes no debe quedar ninguna forma de volver al sitio público
     // desde dentro (ni el botón que hubo antes, ni el menú general): la
@@ -127,9 +130,10 @@
     // el tamaño correcto y el fotograma esté dibujado: si estuvo oculta y
     // hubo algún resize mientras tanto, el lienzo pudo quedarse a 0x0 (ver
     // onSceneResize) y sin esto se vería en blanco hasta el próximo scroll.
-    if (showingResumen && typeof resizeCanvas === 'function' && typeof render === 'function'){
-      resizeCanvas();
-      render();
+    // resizeCanvas/render viven dentro de scroll-engine.js (no son
+    // globales): se llega a ellos a través de window.__refreshScene.
+    if (showingResumen && typeof window.__refreshScene === 'function'){
+      window.__refreshScene();
     }
     // Igual que resizeCanvas/render arriba: recalcula ya mismo (con
     // display:'' ya aplicado, así que las medidas son correctas) en vez
