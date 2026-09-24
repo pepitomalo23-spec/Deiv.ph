@@ -5365,3 +5365,142 @@
     #view-ajustes .ajustes-actions{ flex-wrap:nowrap; }
     #view-ajustes .ajustes-actions .cuenta-msg{ position:absolute; left:16px; right:16px; bottom:100%; margin-bottom:6px; padding:7px 10px; border-radius:8px; background:var(--adm-surface-2); border:1px solid var(--adm-border); text-align:center; }
   }
+
+  /* ---------- Ajustes: que todo encaje ----------
+     Retoques tras revisar cada editor de cerca. */
+
+  /* Comparaciones antes/después: dos recuadros IGUALES (3/4) en una
+     rejilla de dos columnas que nunca se desborda (antes una foto vertical
+     ensanchaba su columna y la tarjeta se salía por la izquierda en
+     escritorio). La foto se ve entera sobre el fondo del panel, sin las
+     franjas negras de antes, y cada recuadro lleva su etiqueta. */
+  #view-ajustes .pair-editor-item .ba-slots{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin:0;
+  }
+  #view-ajustes .pair-editor-item .ba-slot{ min-width:0; max-width:none; display:flex; flex-direction:column; gap:8px; }
+  #view-ajustes .pair-editor-item .ba-slot-box,
+  #view-ajustes .pair-editor-item .ba-slot-box.has-image{
+    width:100%;
+    max-width:none;
+    height:auto;
+    max-height:none;
+    aspect-ratio:3/4;
+    border:1px solid var(--adm-border);
+    border-radius:10px;
+    background:var(--adm-surface);
+  }
+  #view-ajustes .pair-editor-item .ba-slot-box:not(.has-image){ border-style:dashed; }
+  #view-ajustes .pair-editor-item .ba-slot-box:hover{ border-color:var(--adm-accent); }
+  #view-ajustes .pair-editor-item .ba-slot-box.has-image img{
+    width:100%;
+    height:100%;
+    max-width:none;
+    max-height:none;
+    object-fit:contain;
+  }
+  #view-ajustes .pair-editor-item .ba-slot-box.has-image::before{
+    position:absolute;
+    top:6px;
+    left:6px;
+    z-index:1;
+    padding:3px 7px;
+    border-radius:999px;
+    background:rgba(13,17,23,0.78);
+    color:var(--adm-fg);
+    font-size:0.64rem;
+    font-weight:700;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+  }
+  #view-ajustes .pair-editor-item .ba-slot-box.has-image[data-slot="before"]::before{ content:'Sin editar'; }
+  #view-ajustes .pair-editor-item .ba-slot-box.has-image[data-slot="after"]::before{ content:'Editada'; color:var(--adm-accent); }
+  #view-ajustes .pair-editor-item .disc-editor-range-row{
+    flex-direction:row;
+    align-items:center;
+    gap:8px;
+    margin:0;
+  }
+  #view-ajustes .pair-editor-item .disc-editor-range-row label{ font-size:0.72rem; }
+
+  /* Deslizadores del panel: pista fina y tirador pequeño en cian, del
+     mismo ancho que su recuadro (el naranja grande de la web pública
+     quedaba desproporcionado y parecía salirse). */
+  #view-ajustes input[type="range"]{
+    -webkit-appearance:none;
+    appearance:none;
+    width:100%;
+    min-width:0;
+    height:18px;
+    margin:0;
+    background:transparent;
+    cursor:pointer;
+  }
+  #view-ajustes input[type="range"]::-webkit-slider-runnable-track{
+    height:4px;
+    border-radius:4px;
+    background:linear-gradient(var(--adm-accent), var(--adm-accent)) 0 / var(--range-fill, 50%) 100% no-repeat, rgba(255,255,255,0.14);
+  }
+  #view-ajustes input[type="range"]::-moz-range-track{ height:4px; border-radius:4px; background:rgba(255,255,255,0.14); }
+  #view-ajustes input[type="range"]::-moz-range-progress{ height:4px; border-radius:4px; background:var(--adm-accent); }
+  #view-ajustes input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:14px;
+    height:14px;
+    margin-top:-5px;
+    border-radius:50%;
+    background:var(--adm-accent);
+    border:2px solid var(--adm-bg);
+    box-shadow:0 0 0 1px var(--adm-accent);
+  }
+  #view-ajustes input[type="range"]::-moz-range-thumb{
+    width:12px;
+    height:12px;
+    border-radius:50%;
+    background:var(--adm-accent);
+    border:2px solid var(--adm-bg);
+  }
+
+  /* Tarjetas de Proyectos: en móvil la vista previa ocupa todo el ancho
+     (con la forma de la tarjeta real) y los dos modos de ajuste van como
+     un selector de dos partes, en vez de partirse en líneas sueltas. */
+  #view-ajustes .disc-editor-fit-row{ gap:6px 8px; }
+  #view-ajustes .disc-editor-fit-row span{ font-size:0.74rem; color:var(--adm-dim); }
+  @media (max-width:640px){
+    #view-ajustes .disc-editor-item{ display:grid; grid-template-columns:minmax(0, 1fr); gap:10px; }
+    #view-ajustes .disc-editor-box{ width:100%; height:auto; aspect-ratio:9/4; }
+    #view-ajustes .disc-editor-fields{ min-width:0; }
+    #view-ajustes .disc-editor-fit-row span{ flex:1 0 100%; }
+    #view-ajustes .disc-editor-fit-btn{ flex:1 1 0; text-align:center; padding:7px 8px; }
+    #view-ajustes .disc-editor-item .pair-editor-actions{ margin-left:0; justify-content:flex-end; }
+  }
+
+  /* Carrusel y collage: miniaturas algo más anchas para que el nombre
+     ("Sony E PZ 16-50mm f/3.5-5.6 OSS II") quepa sin cortarse. */
+  #view-ajustes .ajustes-grid{ grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:12px; margin-top:4px; }
+  #view-ajustes .ajustes-thumb-name{ font-style:normal; font-size:0.8rem; padding:7px 9px; }
+  @media (max-width:520px){
+    #view-ajustes .ajustes-grid{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+    #view-ajustes .ajustes-thumb-name{ font-size:0.74rem; }
+  }
+
+  /* Fotos de cada categoría: la rejilla reparte el ancho entero (antes
+     sobraba un hueco a la derecha de cada fila) y la ✕ es más discreta. */
+  #view-ajustes .cat-editor-photos{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(56px, 1fr));
+    gap:6px;
+  }
+  #view-ajustes .cat-editor-thumb,
+  #view-ajustes .cat-editor-add-photo{ width:auto; height:auto; aspect-ratio:1/1; }
+  #view-ajustes .cat-editor-thumb button{ width:16px; height:16px; top:3px; right:3px; }
+  /* Nombre de cada foto del carrusel: dos líneas, sin tirador de tamaño. */
+  #view-ajustes textarea.ajustes-thumb-name{
+    display:block;
+    resize:none;
+    line-height:1.35;
+    min-height:0;
+    overflow:hidden;
+  }
