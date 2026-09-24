@@ -4968,3 +4968,400 @@
   @media (prefers-reduced-motion:reduce){
     .rotate-hint-icon{ animation:none; }
   }
+
+  /* ---------- Legibilidad: tamaño mínimo de letra ----------
+     Lighthouse marcaba que más de la mitad del texto de la web medía
+     menos de 12px (nombres de objetivos ~10.9px y su ficha ~9.6px, frases
+     de las tarjetas de Proyectos, SIN EDITAR/EDITADA, "Transformo
+     ideas"...). Se sube todo a un mínimo de ~12px sin cambiar el diseño.
+     Va al final a propósito, para ganar a las reglas de arriba.
+     Incluye también el tamaño de escritorio de los botones de categoría:
+     su regla de ≥901px estaba ANTES de la regla base y nunca se aplicaba. */
+  .camera-carousel .marquee-caption{ font-size:clamp(0.75rem, 1.6vw, 0.82rem); }
+  .camera-carousel .marquee-caption-spec{ font-size:0.72rem; }
+  .as-expand-card-phrase{ font-size:0.8rem; }
+  .after-story-sub{ font-size:clamp(0.75rem, 1.7vw, 0.85rem); }
+  .camera-name-label{ font-size:clamp(0.75rem, 1.9vw, 0.95rem); }
+  .as-ba-labels .ba-card-label{ font-size:0.75rem; }
+  .scene-hint{ font-size:0.75rem; }
+  .proyectos-yt-btn-sub{ font-size:0.78rem; }
+  .as-cat-btn{ font-size:0.72rem; }
+  @media (min-width:901px){
+    .as-cat-btn{ font-size:0.76rem; padding:10px 18px; }
+    .scene-hint{ font-size:0.8rem; }
+  }
+
+  /* =======================================================================
+     AJUSTES — organización compacta (sustituye la maqueta anterior)
+     -----------------------------------------------------------------------
+     - Cabecera corta: título + estado de la sesión, sin repetir "Ajustes"
+       dos veces ni frase de relleno.
+     - Pestañas en el mismo orden que la web. Escritorio: columna lateral
+       fija con icono, nombre y una línea de ayuda. Móvil: fila deslizable
+       pegada arriba al hacer scroll (siempre se puede cambiar de pestaña).
+     - Cada panel: cabecera con icono, qué es, y "En la web: ..." (dónde
+       aparece), en vez de párrafos largos.
+     - Barra de acciones (.ajustes-actions) pegada abajo: "Añadir",
+       "Restablecer" y "Guardar cambios" siempre visibles aunque la lista
+       sea larga.
+     - Editores más densos: mover/quitar en fila (no en columna), vídeos
+       con miniatura, comparaciones en rejilla.
+     Todo con prefijo #view-ajustes: no toca nada de la web pública.
+     ======================================================================= */
+  #view-ajustes .subview-inner{
+    max-width:1180px;
+    padding:22px 18px 40px;
+  }
+  #view-ajustes .ajustes-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px 16px;
+    margin:0 0 18px;
+  }
+  #view-ajustes .ajustes-top h1{
+    margin:0;
+    font-size:1.45rem;
+  }
+  #view-ajustes .ajustes-top h1::before{ content:none; }
+  #view-ajustes .ajustes-top .cuenta-status{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin:0;
+    padding:6px 12px;
+    border-radius:999px;
+    background:var(--adm-surface);
+    border:1px solid var(--adm-border);
+    font-size:0.78rem;
+    color:var(--adm-dim);
+  }
+  #view-ajustes .ajustes-top .dot-live{ width:7px; height:7px; box-shadow:0 0 0 3px var(--adm-accent-dim); }
+
+  /* ---- Pestañas ---- */
+  #view-ajustes .ajustes-tabs{
+    display:flex;
+    gap:6px;
+    margin:0;
+    padding:6px;
+    overflow-x:auto;
+    border-radius:12px;
+  }
+  #view-ajustes .ajustes-tab{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:9px 12px;
+    font-size:0.82rem;
+    letter-spacing:0;
+    text-transform:none;
+    text-align:left;
+    white-space:nowrap;
+  }
+  #view-ajustes .ajustes-tab-icon{ width:17px; height:17px; flex:none; }
+  #view-ajustes .ajustes-tab-text{ display:flex; flex-direction:column; min-width:0; }
+  #view-ajustes .ajustes-tab-label{ font-weight:700; line-height:1.2; }
+  #view-ajustes .ajustes-tab-sub{ display:none; font-weight:500; font-size:0.72rem; line-height:1.3; opacity:0.75; }
+  #view-ajustes .ajustes-tab.active .ajustes-tab-sub{ opacity:0.8; }
+
+  /* Móvil/tablet: fila deslizable pegada arriba mientras se hace scroll,
+     con un difuminado a la derecha que avisa de que hay más pestañas. */
+  @media (max-width:899px){
+    #view-ajustes .ajustes-tabs{
+      position:sticky;
+      top:0;
+      z-index:5;
+      margin:0 -18px 14px;
+      padding:8px 18px;
+      border-radius:0;
+      border-left:none;
+      border-right:none;
+      background:var(--adm-bg);
+      backdrop-filter:blur(8px);
+      -webkit-backdrop-filter:blur(8px);
+      -webkit-mask-image:linear-gradient(to right, #000 88%, transparent);
+      mask-image:linear-gradient(to right, #000 88%, transparent);
+    }
+    #view-ajustes .ajustes-tab{ padding:8px 12px; }
+  }
+
+  /* Escritorio: columna lateral fija a la izquierda. */
+  @media (min-width:900px){
+    #view-ajustes .ajustes-layout{
+      display:grid;
+      grid-template-columns:232px minmax(0, 1fr);
+      gap:22px;
+      align-items:start;
+    }
+    #view-ajustes .ajustes-tabs{
+      position:sticky;
+      top:18px;
+      flex-direction:column;
+      overflow:visible;
+      padding:8px;
+    }
+    #view-ajustes .ajustes-tab{ width:100%; padding:10px 12px; white-space:normal; }
+    #view-ajustes .ajustes-tab-sub{ display:block; }
+  }
+
+  /* ---- Panel ---- */
+  #view-ajustes .ajustes-section{ padding:20px; border-radius:14px; }
+  #view-ajustes .ajustes-section-head{ gap:12px; margin:0 0 16px; align-items:flex-start; }
+  #view-ajustes .ajustes-section-icon{ width:36px; height:36px; }
+  #view-ajustes .ajustes-section-icon svg{ width:18px; height:18px; }
+  #view-ajustes .ajustes-section-title{ font-size:1.05rem; margin:1px 0 4px; }
+  #view-ajustes .ajustes-section-desc{ font-family:inherit; font-size:0.86rem; line-height:1.5; max-width:70ch; }
+  #view-ajustes .ajustes-section-desc strong{ color:var(--adm-fg); }
+  #view-ajustes .ajustes-where{
+    margin:8px 0 0;
+    display:inline-block;
+    padding:3px 9px;
+    border-radius:6px;
+    background:var(--adm-accent-dim);
+    color:var(--adm-accent);
+    font-size:0.74rem;
+    font-weight:600;
+  }
+
+  /* ---- Barra de acciones pegada abajo ---- */
+  #view-ajustes .ajustes-actions{
+    position:sticky;
+    bottom:0;
+    z-index:4;
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:16px -20px -20px;
+    padding:12px 20px;
+    background:rgba(22,27,37,0.96);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    border-top:1px solid var(--adm-border);
+    border-radius:0 0 14px 14px;
+  }
+  #view-ajustes .ajustes-actions--static{ position:static; background:transparent; backdrop-filter:none; -webkit-backdrop-filter:none; }
+  #view-ajustes .ajustes-actions .cuenta-msg{
+    flex:1 1 140px;
+    margin:0;
+    font-size:0.8rem;
+    order:0;
+  }
+  #view-ajustes .ajustes-actions .cuenta-btn--ghost{ order:-1; }
+  #view-ajustes .cuenta-btn{
+    text-transform:none;
+    letter-spacing:0;
+    font-size:0.82rem;
+    padding:9px 14px;
+    border-radius:9px;
+  }
+  #view-ajustes .cuenta-btn--primary{
+    background:var(--adm-accent);
+    border-color:var(--adm-accent);
+    color:#04231d;
+  }
+  #view-ajustes .cuenta-btn--primary:hover{ filter:brightness(1.08); color:#04231d; }
+  #view-ajustes .cuenta-btn--quiet{ background:transparent; color:var(--adm-dim); }
+  #view-ajustes .cuenta-btn--ghost{
+    background:transparent;
+    border-style:dashed;
+    color:var(--adm-fg);
+  }
+  @media (max-width:520px){
+    #view-ajustes .ajustes-section{ padding:16px; }
+    #view-ajustes .ajustes-actions{ margin:14px -16px -16px; padding:10px 16px; }
+    #view-ajustes .ajustes-actions .cuenta-btn--primary{ flex:1 1 auto; justify-content:center; }
+  }
+
+  /* ---- Subida de fotos (carrusel y collage): barra compacta ---- */
+  #view-ajustes .ajustes-uploader{
+    flex-direction:row;
+    justify-content:flex-start;
+    gap:14px;
+    padding:14px 16px;
+    margin:0 0 14px;
+    text-align:left;
+  }
+  #view-ajustes .ajustes-uploader-text{ display:flex; flex-direction:column; gap:2px; }
+  #view-ajustes .ajustes-uploader-icon{ margin:0; }
+  #view-ajustes .ajustes-empty{ font-size:0.82rem; margin:10px 0 0; }
+
+  /* ---- Textos ---- */
+  #view-ajustes .ajustes-fields{ display:flex; flex-direction:column; gap:14px; }
+  #view-ajustes .ajustes-fieldset{
+    margin:0;
+    padding:14px;
+    border:1px solid var(--adm-border);
+    border-radius:12px;
+    background:var(--adm-surface-2);
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  #view-ajustes .ajustes-fieldset legend{
+    padding:0 6px;
+    font-size:0.74rem;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--adm-accent);
+  }
+  #view-ajustes .ajustes-fieldset--row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; }
+  #view-ajustes .ajustes-field-label{ display:block; font-size:0.8rem; color:var(--adm-dim); margin:4px 0 2px; }
+  #view-ajustes .ajustes-field{
+    width:100%;
+    box-sizing:border-box;
+    padding:10px 12px;
+    border-radius:9px;
+    border:1px solid var(--adm-border);
+    background:var(--adm-surface);
+    color:var(--adm-fg);
+    font:inherit;
+    font-size:0.88rem;
+    line-height:1.45;
+    resize:vertical;
+  }
+  #view-ajustes .ajustes-field:focus{ outline:none; border-color:var(--adm-accent); box-shadow:0 0 0 3px var(--adm-accent-dim); }
+
+  /* ---- Cuenta: tarjetas en rejilla ---- */
+  #view-ajustes .ajustes-cards{ display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:14px; }
+  #view-ajustes .ajustes-card{
+    padding:16px;
+    border:1px solid var(--adm-border);
+    border-radius:12px;
+    background:var(--adm-surface-2);
+  }
+  #view-ajustes .ajustes-card--wide{ grid-column:1 / -1; }
+  #view-ajustes .ajustes-card-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:10px; }
+  #view-ajustes .ajustes-card-title{ margin:0 0 3px; font-weight:700; font-size:0.95rem; color:var(--adm-fg); }
+  #view-ajustes .ajustes-card-desc{ margin:0 0 12px; font-size:0.82rem; color:var(--adm-dim); }
+  #view-ajustes .ajustes-card-head .ajustes-card-desc{ margin:0; }
+  #view-ajustes .ajustes-card .cuenta-form{ margin-top:0; }
+  #view-ajustes .ajustes-card .cuenta-row{ margin:10px 0 0; }
+  #view-ajustes .historial-list{ max-height:340px; overflow-y:auto; margin:0; }
+
+  /* ---- Editores: mover/quitar en fila ---- */
+  #view-ajustes .pair-editor-actions{ flex-direction:row; gap:4px; }
+  #view-ajustes .pair-editor-move,
+  #view-ajustes .cat-editor-remove{ width:30px; height:30px; }
+  #view-ajustes .cat-editor-list{ gap:10px; margin:0; }
+  #view-ajustes .cat-editor-item{ padding:12px; gap:8px; border-radius:12px; }
+  #view-ajustes .cat-editor-name{ padding:8px 10px; }
+  #view-ajustes .cat-editor-link{ padding:8px 10px; font-size:0.8rem; }
+
+  /* Vídeos: miniatura a la izquierda; título, enlace y etiquetas a la
+     derecha; mover/quitar arriba a la derecha. */
+  #view-ajustes #ytEditorList .cat-editor-item{
+    display:grid;
+    grid-template-columns:112px minmax(0, 1fr);
+    grid-template-areas:"thumb head" "thumb link" "thumb tags";
+    column-gap:12px;
+    row-gap:6px;
+    align-items:center;
+  }
+  #view-ajustes #ytEditorList .yt-editor-thumb{
+    grid-area:thumb;
+    align-self:stretch;
+    min-height:63px;
+    border-radius:8px;
+    background:var(--adm-surface) center/cover no-repeat;
+    border:1px solid var(--adm-border);
+  }
+  #view-ajustes #ytEditorList .cat-editor-item-head{ grid-area:head; }
+  #view-ajustes #ytEditorList .cat-editor-link{ grid-area:link; }
+  #view-ajustes #ytEditorList .yt-tag-row{ grid-area:tags; }
+  #view-ajustes .yt-tag-toggle{ padding:4px 10px; font-size:0.74rem; }
+  @media (max-width:520px){
+    #view-ajustes #ytEditorList .cat-editor-item{
+      grid-template-columns:84px minmax(0, 1fr);
+      grid-template-areas:"thumb tags" "head head" "link link";
+    }
+    #view-ajustes #ytEditorList .yt-editor-thumb{ min-height:47px; }
+  }
+
+  /* Categorías: miniaturas algo más pequeñas para que quepan más por fila. */
+  #view-ajustes .cat-editor-photos{ gap:6px; }
+  #view-ajustes .cat-editor-thumb,
+  #view-ajustes .cat-editor-add-photo{ width:52px; height:52px; }
+
+  /* Comparaciones: rejilla de tarjetas (2-3 por fila en escritorio). */
+  #view-ajustes #pairEditorList{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+    gap:10px;
+  }
+  #view-ajustes .pair-editor-item{
+    flex-direction:column;
+    align-items:stretch;
+    gap:8px;
+    padding:12px;
+    border:1px solid var(--adm-border);
+    border-radius:12px;
+    background:var(--adm-surface-2);
+  }
+  #view-ajustes .pair-editor-item .ba-slots{ justify-content:center; gap:10px; }
+  #view-ajustes .pair-editor-item .ba-slot{ max-width:none; flex:1 1 0; }
+  #view-ajustes .pair-editor-item .pair-editor-actions{ justify-content:flex-end; }
+
+  /* Tarjetas de Proyectos: cada fila en su propia tarjeta. */
+  #view-ajustes .disc-editor-list{ margin:0; gap:10px; }
+  #view-ajustes .disc-editor-item{
+    padding:12px;
+    border:1px solid var(--adm-border);
+    border-radius:12px;
+    background:var(--adm-surface-2);
+    align-items:flex-start;
+  }
+  #view-ajustes .disc-editor-item .pair-editor-actions{ margin-left:auto; }
+
+  /* Una sola tipografía en todo el panel (la de sistema): los <p>,
+     <label> y campos heredaban la serif de la web pública en algunos
+     sitios (etiqueta "En la web", títulos de las tarjetas de Cuenta,
+     frases que escribe el JS...). */
+  #view-ajustes p,
+  #view-ajustes label,
+  #view-ajustes legend,
+  #view-ajustes input,
+  #view-ajustes textarea,
+  #view-ajustes button{ font-family:inherit; }
+  /* "Restablecer" empuja a la derecha el grupo Restablecer + Guardar; el
+     aviso de "Guardado" queda justo a su izquierda. */
+  #view-ajustes .ajustes-actions .cuenta-btn--quiet{ margin-left:auto; }
+  #view-ajustes .ajustes-actions .cuenta-msg{ flex:0 1 auto; text-align:right; }
+  #view-ajustes textarea.ajustes-field{ min-height:5.2em; }
+  @media (max-width:520px){
+    /* En móvil el icono de la cabecera ya está en la pestaña activa: se
+       quita aquí para que la descripción use todo el ancho. */
+    #view-ajustes .ajustes-section-icon{ display:none; }
+    #view-ajustes .ajustes-top h1{ font-size:1.3rem; }
+    #view-ajustes textarea.ajustes-field{ min-height:7.5em; }
+  }
+  /* Editor de tarjetas de Proyectos: mismo acento cian que el resto del
+     panel (antes mezclaba el naranja de la web pública). */
+  #view-ajustes .disc-editor-fit-btn.active{ background:var(--adm-accent); border-color:var(--adm-accent); color:#04231d; }
+  #view-ajustes .disc-editor-replace-link{ color:var(--adm-accent); }
+  /* La barra pegada abajo se quedaba 80px por encima del borde: el
+     sticky respeta el padding-bottom del contenedor que hace scroll
+     (.subview). En Ajustes ese hueco ya lo da .subview-inner. */
+  #view-ajustes.subview{ padding-bottom:0; }
+  @media (max-width:520px){
+    /* Una sola fila: "Añadir" y "Restablecer" solo con su icono (el texto
+       sigue ahí para lectores de pantalla, con tamaño 0) y "Guardar
+       cambios" ocupando el resto. */
+    #view-ajustes .ajustes-actions:not(.ajustes-actions--static) .cuenta-btn--ghost,
+    #view-ajustes .ajustes-actions:not(.ajustes-actions--static) .cuenta-btn--quiet{
+      font-size:0;
+      gap:0;
+      width:42px;
+      height:40px;
+      padding:0;
+      justify-content:center;
+      flex:none;
+    }
+    #view-ajustes .ajustes-actions:not(.ajustes-actions--static) .cuenta-btn--ghost .cuenta-btn-icon,
+    #view-ajustes .ajustes-actions:not(.ajustes-actions--static) .cuenta-btn--quiet .cuenta-btn-icon{ width:18px; height:18px; }
+    #view-ajustes .ajustes-actions .cuenta-btn--primary{ height:40px; }
+    #view-ajustes .ajustes-actions{ flex-wrap:nowrap; }
+    #view-ajustes .ajustes-actions .cuenta-msg{ position:absolute; left:16px; right:16px; bottom:100%; margin-bottom:6px; padding:7px 10px; border-radius:8px; background:var(--adm-surface-2); border:1px solid var(--adm-border); text-align:center; }
+  }

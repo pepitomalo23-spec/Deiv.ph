@@ -23,6 +23,23 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <link rel="canonical" href="https://deivph.com/">
+<!-- Datos estructurados (schema.org) para que Google entienda que es la
+     web de un fotógrafo y editor de vídeo de Córdoba, con su Instagram. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "David",
+  "alternateName": "Deiv.ph",
+  "url": "https://deivph.com/",
+  "image": "https://deivph.com/assets/og-image.jpg",
+  "jobTitle": "Fotógrafo y editor de vídeo",
+  "description": "Fotografía, vídeo y edición desde Córdoba: festivales, viajes, deportes, gastronomía y automóviles.",
+  "email": "mailto:Deivv.ph@gmail.com",
+  "address": { "@type": "PostalAddress", "addressLocality": "Córdoba", "addressCountry": "ES" },
+  "sameAs": ["https://instagram.com/deiv.ph"]
+}
+</script>
 <meta property="og:title" content="Deiv.ph — Portfolio">
 <meta property="og:description" content="Fotografía, vídeo y edición desde Córdoba.">
 <meta property="og:site_name" content="Deiv.ph">
@@ -43,7 +60,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&family=Anton&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=18">
+<link rel="stylesheet" href="styles.css?v=19">
 </head>
 <body>
 
@@ -65,20 +82,24 @@
      cualquier dispositivo, no solo desde uno. -->
 <!-- Utilidades compartidas (escapeHtml, escapeAttr, flashMsg) usadas por varios
      módulos de abajo: siempre debe cargarse antes que ellos. -->
-<script src="js/utils.js"></script>
+<!-- Todos los <script> llevan "defer": se descargan en paralelo sin
+     frenar el pintado de la página (antes los tres de Firebase, aquí
+     arriba, retrasaban ~1 s la aparición de la intro) y se ejecutan en
+     este mismo orden en cuanto el HTML está completo. -->
+<script defer src="js/utils.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" crossorigin="anonymous"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" crossorigin="anonymous"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" crossorigin="anonymous"></script>
-<script src="js/firebase-config.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" crossorigin="anonymous"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" crossorigin="anonymous"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" crossorigin="anonymous"></script>
+<script defer src="js/firebase-config.js"></script>
 
-<script src="js/cloud-db.js"></script>
+<script defer src="js/cloud-db.js"></script>
 
 <!-- ---------- Vuelta desde panel.deivph.com ----------
      Tras iniciar sesión en panel.deivph.com, redirige aquí con
      ?ajustes=1 en la URL; este script espera a que Firebase confirme la
      sesión y abre Ajustes automáticamente (ver js/admin-redirect.js). -->
-<script src="js/admin-redirect.js"></script>
+<script defer src="js/admin-redirect.js"></script>
 
   <!-- Aviso "gira el móvil": la historia con scroll (fotogramas,
        Proyectos, cámaras) está diseñada para verse en vertical; en un
@@ -458,370 +479,315 @@
     </div>
   </section>
 
-  <!-- ---------- Sección: Ajustes ---------- -->
+  <!-- ---------- Sección: Ajustes ----------
+       Panel del administrador. Las pestañas siguen el MISMO orden en que
+       cada cosa aparece en la web (Ediciones → Proyectos → Vídeos → Mi
+       material → Antes y después → Sobre mí), más Textos y Cuenta al
+       final. En escritorio van en una columna lateral fija; en móvil, en
+       una fila deslizable que se queda pegada arriba al hacer scroll. Los
+       botones de "Guardar cambios" de cada panel van en una barra pegada
+       abajo (.ajustes-actions), siempre a mano aunque la lista sea larga.
+       Todos los id son los de siempre: el JS de cada editor no cambia. -->
   <section class="subview" id="view-ajustes">
     <div class="subview-inner">
-      <p class="subview-eyebrow">Ajustes</p>
-      <h1>Ajustes</h1>
-      <p class="lead">Todo lo que se puede personalizar en la web, agrupado por bloques.</p>
+      <header class="ajustes-top">
+        <h1>Ajustes</h1>
+        <div class="cuenta-status"><span class="dot-live"></span><span>Sesión de administrador activa.</span></div>
+      </header>
 
-      <!-- Menú horizontal: una pestaña por bloque de ajustes -->
-      <div class="ajustes-tabs" id="ajustesTabs" role="tablist">
-        <button class="ajustes-tab active" type="button" role="tab" aria-selected="true" data-tab="carrusel">Carrusel</button>
-        <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="collage">Collage "Sobre mí"</button>
-        <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="textos">Textos</button>
-        <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="misediciones">Mis ediciones</button>
-        <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="youtube">YouTube</button>
-        <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="proyectos">Proyectos</button>
-        <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="cuenta">Cuenta</button>
-      </div>
+      <div class="ajustes-layout">
+        <nav class="ajustes-tabs" id="ajustesTabs" role="tablist" aria-label="Secciones de ajustes">
+          <button class="ajustes-tab active" type="button" role="tab" aria-selected="true" data-tab="proyectos"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="7" height="5" rx="1.3"/><rect x="14" y="6" width="7" height="5" rx="1.3"/><rect x="3" y="15" width="7" height="5" rx="1.3"/><rect x="14" y="15" width="7" height="5" rx="1.3"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Ediciones</span><span class="ajustes-tab-sub">Categorías y sus fotos</span></span></button>
+          <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="galeria"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="4" height="14" rx="1.3"/><rect x="9" y="5" width="12" height="14" rx="1.6"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Proyectos</span><span class="ajustes-tab-sub">Tarjetas que se abren</span></span></button>
+          <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="youtube"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3.5"/><path d="M10.5 9.5v5l4.5-2.5-4.5-2.5Z" fill="currentColor" stroke="none"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Vídeos</span><span class="ajustes-tab-sub">Enlaces de YouTube</span></span></button>
+          <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="carrusel"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.6-2.2a1 1 0 0 1 .8-.4h5.2a1 1 0 0 1 .8.4L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.3" r="3.3"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Mi material</span><span class="ajustes-tab-sub">Carrusel de objetivos</span></span></button>
+          <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="misediciones"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M12 4v16"/><path d="M7 10l-2 2 2 2M17 10l2 2-2 2"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Antes y después</span><span class="ajustes-tab-sub">Comparador de fotos</span></span></button>
+          <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="collage"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Sobre mí</span><span class="ajustes-tab-sub">Collage de fotos</span></span></button>
+          <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="textos"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Textos y contacto</span><span class="ajustes-tab-sub">Frases, correo, Instagram</span></span></button>
+          <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="cuenta"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M4.5 20c1.2-3.6 4.2-5.6 7.5-5.6s6.3 2 7.5 5.6"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Cuenta</span><span class="ajustes-tab-sub">Contraseña y copias</span></span></button>
+        </nav>
 
-      <div class="ajustes-panels">
+        <div class="ajustes-panels">
 
-        <!-- Panel: carrusel de cámaras (imágenes) -->
-        <div class="ajustes-panel ajustes-section active" data-panel="carrusel">
+        <!-- Ediciones: botones de categoría (Festivales, Viajes...) y la
+             galería de fotos de cada uno -->
+        <div class="ajustes-panel ajustes-section active" data-panel="proyectos">
           <div class="ajustes-section-head">
-            <span class="ajustes-section-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 8h3l1.6-2.2a1 1 0 0 1 .8-.4h5.2a1 1 0 0 1 .8.4L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/>
-                <circle cx="12" cy="13.3" r="3.3"/>
-              </svg>
-            </span>
+            <span class="ajustes-section-icon" aria-hidden="true"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="7" height="5" rx="1.3"/><rect x="14" y="6" width="7" height="5" rx="1.3"/><rect x="3" y="15" width="7" height="5" rx="1.3"/><rect x="14" y="15" width="7" height="5" rx="1.3"/></svg></span>
             <div>
-              <p class="ajustes-section-title">Carrusel de cámaras</p>
-              <p class="ajustes-section-desc">Elige qué fotos se muestran en el carrusel del último fotograma.</p>
+              <p class="ajustes-section-title">Categorías de «Ediciones»</p>
+              <p class="ajustes-section-desc">Cada categoría es un botón que abre su galería a pantalla completa. Toca <strong>+</strong> para subir fotos. El enlace de Drive es opcional: añade el botón «Ver más imágenes».</p>
+              <p class="ajustes-where">En la web: los botones bajo el título «Ediciones» (2ª pantalla).</p>
             </div>
           </div>
-
-          <div class="ajustes-note">
-            <p>La idea final es que estas imágenes salgan solas del último fotograma de la historia (el que tiene el elemento para añadir), en cuanto esa pieza esté lista.</p>
-            <p>Mientras tanto, puedes subir aquí las fotos que quieras y se usarán en el carrusel; si no subes ninguna, se muestran unas de ejemplo. Si a alguna se le corta la cara, arrastra la foto hacia arriba o abajo para ajustar qué parte se ve.</p>
-          </div>
-
-          <label class="ajustes-uploader" id="ajustesUploader" for="ajustesFileInput">
-            <span class="ajustes-uploader-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 16V4M12 4l-4.5 4.5M12 4l4.5 4.5"/>
-                <path d="M4 16v2.5A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V16"/>
-              </svg>
-            </span>
-            <span class="ajustes-uploader-label">Toca para añadir imágenes</span>
-            <span class="ajustes-uploader-sub">Cualquier formato · sin límite de imágenes</span>
-            <input type="file" id="ajustesFileInput" multiple>
-          </label>
-
-          <div class="ajustes-grid" id="ajustesGrid"></div>
-          <p class="ajustes-empty" id="ajustesEmpty">Ahora mismo se están mostrando unas imágenes de ejemplo en el carrusel.</p>
-
-          <div class="ajustes-section-footer">
-            <button class="ajustes-clear" id="ajustesClear" type="button"><svg class="ajustes-clear-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M15.0924 1.25H8.90788C7.33861 1.24998 6.08032 1.24996 5.10577 1.38767C4.09802 1.53007 3.25979 1.83575 2.64218 2.55292C2.02457 3.27008 1.84661 4.14438 1.85528 5.1621C1.86366 6.1463 2.05033 7.39066 2.28314 8.94256L3.49937 17.0508C3.67587 18.2275 3.81878 19.1804 4.02849 19.9262C4.24683 20.7027 4.56045 21.3453 5.13662 21.8415C5.71279 22.3377 6.39485 22.5525 7.19513 22.6533C7.96377 22.75 8.92732 22.75 10.1173 22.75H13.883C15.073 22.75 16.0365 22.75 16.8052 22.6533C17.6054 22.5525 18.2875 22.3377 18.8637 21.8415C19.4398 21.3453 19.7535 20.7027 19.9718 19.9262C20.1815 19.1805 20.3244 18.2276 20.5009 17.0509L21.7172 8.94253C21.95 7.39065 22.1366 6.14629 22.145 5.1621C22.1537 4.14438 21.9757 3.27008 21.3581 2.55292C20.7405 1.83575 19.9023 1.53007 18.8945 1.38767C17.92 1.24996 16.6617 1.24998 15.0924 1.25ZM3.77879 3.53175C4.05882 3.20658 4.47927 2.9911 5.31565 2.87292C6.17295 2.75177 7.32479 2.75 8.96727 2.75H15.033C16.6755 2.75 17.8273 2.75177 18.6846 2.87292C19.521 2.9911 19.9415 3.20658 20.2215 3.53175C20.5015 3.85692 20.6523 4.30468 20.6451 5.14933C20.6448 5.18248 20.6443 5.21604 20.6435 5.25H20.5005C20.5003 5.25 20.5007 5.25 20.5005 5.25H7.00045C7.00025 5.25 7.00065 5.25 7.00045 5.25H3.35678C3.35603 5.21603 3.35551 5.18248 3.35522 5.14933C3.34803 4.30468 3.49876 3.85692 3.77879 3.53175ZM5.18949 6.75H3.48546C3.53687 7.15852 3.60161 7.61096 3.67631 8.1155L3.75015 8.18934L5.18949 6.75ZM4.05013 10.6106L4.6686 14.7338L6.37599 12.9365L4.05013 10.6106ZM5.15659 17.9593C5.17275 18.0594 5.18872 18.1563 5.20463 18.25H5.39887L5.15659 17.9593ZM6.99527 19.75C6.99879 19.75 7.00232 19.75 7.00584 19.75H13.9972C13.9991 19.75 14.0009 19.75 14.0027 19.75H18.4577C18.299 20.2287 18.1176 20.5044 17.8848 20.7049C17.6171 20.9355 17.261 21.0841 16.6178 21.165C15.9538 21.2486 15.0849 21.25 13.833 21.25H10.1673C8.91538 21.25 8.04651 21.2486 7.38247 21.165C6.73934 21.0841 6.38321 20.9355 6.11546 20.7049C5.88266 20.5044 5.70127 20.2287 5.54256 19.75H6.99527ZM15.7131 18.25H18.1895L16.9018 16.9623L15.7131 18.25ZM19.0007 16.9399C19.0087 16.8869 19.0168 16.8332 19.0249 16.7788L19.404 14.2515L17.92 15.8592L19.0007 16.9399ZM19.856 11.2381L20.2249 8.77879C20.3197 8.14673 20.4033 7.5881 20.4704 7.09045L18.16 9.40079L19.856 11.2381ZM18.6895 6.75H15.7131L17.1418 8.2977L18.6895 6.75ZM12.2532 6.75H8.81081L10.5761 8.51531L12.2532 6.75ZM11.6895 18.25H9.31081L10.5002 17.0607L11.6895 18.25ZM7.40946 11.8486L4.81081 9.25L7.00015 7.06066L9.54266 9.60317L7.40946 11.8486ZM8.47047 12.9097L10.6037 10.6642L12.6895 12.75L10.5002 14.9393L8.47047 12.9097ZM11.5608 16L13.7502 13.8107L15.8403 15.9008L13.7385 18.1777L11.5608 16ZM14.8108 12.75L16.8585 14.7977L18.9795 12.5L17.0985 10.4623L14.8108 12.75ZM13.7502 11.6893L16.0803 9.35921L13.9923 7.09721L11.6371 9.57632L13.7502 11.6893ZM7.437 13.9975L9.43949 16L7.27782 18.1617L5.50363 16.0326L7.437 13.9975Z" fill="currentColor"/></svg>Quitar mis imágenes y volver a las de ejemplo</button>
-          </div>
-        </div>
-
-        <!-- Panel: collage de fotos de "Sobre mí" -->
-        <div class="ajustes-panel ajustes-section" data-panel="collage">
-          <div class="ajustes-section-head">
-            <span class="ajustes-section-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="8" height="8" rx="1.5"/>
-                <rect x="13" y="3" width="8" height="8" rx="1.5"/>
-                <rect x="3" y="13" width="8" height="8" rx="1.5"/>
-                <rect x="13" y="13" width="8" height="8" rx="1.5"/>
-              </svg>
-            </span>
-            <div>
-              <p class="ajustes-section-title">Collage de "Sobre mí"</p>
-              <p class="ajustes-section-desc">Elige las fotos que forman el collage animado de bienvenida en la sección "Sobre mí".</p>
-            </div>
-          </div>
-
-          <div class="ajustes-note">
-            <p>Estas fotos son tuyas: se guardan en la nube (no solo en este navegador) y se muestran en un collage con una pequeña animación al entrar en "Sobre mí".</p>
-            <p>Si no subes ninguna, se muestra una tarjeta invitándote a añadirlas. Si a alguna se le corta la cara, arrastra la foto hacia arriba o abajo para ajustar qué parte se ve.</p>
-          </div>
-
-          <label class="ajustes-uploader" id="ajustesCollageUploader" for="ajustesCollageFileInput">
-            <span class="ajustes-uploader-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 16V4M12 4l-4.5 4.5M12 4l4.5 4.5"/>
-                <path d="M4 16v2.5A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V16"/>
-              </svg>
-            </span>
-            <span class="ajustes-uploader-label">Toca para añadir fotos</span>
-            <span class="ajustes-uploader-sub">Cualquier formato · máximo 6 fotos</span>
-            <input type="file" id="ajustesCollageFileInput" multiple>
-          </label>
-
-          <div class="ajustes-grid" id="ajustesCollageGrid"></div>
-          <p class="ajustes-empty" id="ajustesCollageEmpty">Ahora mismo se muestra una tarjeta de invitación en "Sobre mí".</p>
-
-          <div class="ajustes-section-footer">
-            <button class="ajustes-clear" id="ajustesCollageClear" type="button"><svg class="ajustes-clear-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M15.0924 1.25H8.90788C7.33861 1.24998 6.08032 1.24996 5.10577 1.38767C4.09802 1.53007 3.25979 1.83575 2.64218 2.55292C2.02457 3.27008 1.84661 4.14438 1.85528 5.1621C1.86366 6.1463 2.05033 7.39066 2.28314 8.94256L3.49937 17.0508C3.67587 18.2275 3.81878 19.1804 4.02849 19.9262C4.24683 20.7027 4.56045 21.3453 5.13662 21.8415C5.71279 22.3377 6.39485 22.5525 7.19513 22.6533C7.96377 22.75 8.92732 22.75 10.1173 22.75H13.883C15.073 22.75 16.0365 22.75 16.8052 22.6533C17.6054 22.5525 18.2875 22.3377 18.8637 21.8415C19.4398 21.3453 19.7535 20.7027 19.9718 19.9262C20.1815 19.1805 20.3244 18.2276 20.5009 17.0509L21.7172 8.94253C21.95 7.39065 22.1366 6.14629 22.145 5.1621C22.1537 4.14438 21.9757 3.27008 21.3581 2.55292C20.7405 1.83575 19.9023 1.53007 18.8945 1.38767C17.92 1.24996 16.6617 1.24998 15.0924 1.25ZM3.77879 3.53175C4.05882 3.20658 4.47927 2.9911 5.31565 2.87292C6.17295 2.75177 7.32479 2.75 8.96727 2.75H15.033C16.6755 2.75 17.8273 2.75177 18.6846 2.87292C19.521 2.9911 19.9415 3.20658 20.2215 3.53175C20.5015 3.85692 20.6523 4.30468 20.6451 5.14933C20.6448 5.18248 20.6443 5.21604 20.6435 5.25H20.5005C20.5003 5.25 20.5007 5.25 20.5005 5.25H7.00045C7.00025 5.25 7.00065 5.25 7.00045 5.25H3.35678C3.35603 5.21603 3.35551 5.18248 3.35522 5.14933C3.34803 4.30468 3.49876 3.85692 3.77879 3.53175ZM5.18949 6.75H3.48546C3.53687 7.15852 3.60161 7.61096 3.67631 8.1155L3.75015 8.18934L5.18949 6.75ZM4.05013 10.6106L4.6686 14.7338L6.37599 12.9365L4.05013 10.6106ZM5.15659 17.9593C5.17275 18.0594 5.18872 18.1563 5.20463 18.25H5.39887L5.15659 17.9593ZM6.99527 19.75C6.99879 19.75 7.00232 19.75 7.00584 19.75H13.9972C13.9991 19.75 14.0009 19.75 14.0027 19.75H18.4577C18.299 20.2287 18.1176 20.5044 17.8848 20.7049C17.6171 20.9355 17.261 21.0841 16.6178 21.165C15.9538 21.2486 15.0849 21.25 13.833 21.25H10.1673C8.91538 21.25 8.04651 21.2486 7.38247 21.165C6.73934 21.0841 6.38321 20.9355 6.11546 20.7049C5.88266 20.5044 5.70127 20.2287 5.54256 19.75H6.99527ZM15.7131 18.25H18.1895L16.9018 16.9623L15.7131 18.25ZM19.0007 16.9399C19.0087 16.8869 19.0168 16.8332 19.0249 16.7788L19.404 14.2515L17.92 15.8592L19.0007 16.9399ZM19.856 11.2381L20.2249 8.77879C20.3197 8.14673 20.4033 7.5881 20.4704 7.09045L18.16 9.40079L19.856 11.2381ZM18.6895 6.75H15.7131L17.1418 8.2977L18.6895 6.75ZM12.2532 6.75H8.81081L10.5761 8.51531L12.2532 6.75ZM11.6895 18.25H9.31081L10.5002 17.0607L11.6895 18.25ZM7.40946 11.8486L4.81081 9.25L7.00015 7.06066L9.54266 9.60317L7.40946 11.8486ZM8.47047 12.9097L10.6037 10.6642L12.6895 12.75L10.5002 14.9393L8.47047 12.9097ZM11.5608 16L13.7502 13.8107L15.8403 15.9008L13.7385 18.1777L11.5608 16ZM14.8108 12.75L16.8585 14.7977L18.9795 12.5L17.0985 10.4623L14.8108 12.75ZM13.7502 11.6893L16.0803 9.35921L13.9923 7.09721L11.6371 9.57632L13.7502 11.6893ZM7.437 13.9975L9.43949 16L7.27782 18.1617L5.50363 16.0326L7.437 13.9975Z" fill="currentColor"/></svg>Quitar mis fotos del collage</button>
-          </div>
-        </div>
-
-        <!-- Panel: textos editables de la web -->
-        <div class="ajustes-panel ajustes-section" data-panel="textos">
-          <div class="ajustes-section-head">
-            <span class="ajustes-section-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 6h16M4 12h16M4 18h10"/>
-              </svg>
-            </span>
-            <div>
-              <p class="ajustes-section-title">Textos de la web</p>
-              <p class="ajustes-section-desc">Edita las frases de presentación sin tocar código. Cada cambio queda guardado en tu historial.</p>
-            </div>
-          </div>
-
-          <div class="ajustes-note">
-            <p>Estos textos se guardan en la nube y sustituyen a los de ejemplo para todos los visitantes. Puedes volver a los originales en cualquier momento con "Restablecer".</p>
-          </div>
-
-          <div class="cuenta-form">
-            <label class="ajustes-section-desc" for="textoCaption" style="display:block;margin-bottom:6px;">Frase corta bajo el título (pantalla de inicio)</label>
-            <textarea id="textoCaption" rows="3" style="width:100%;box-sizing:border-box;padding:11px 13px;border-radius:10px;border:1px solid rgba(0,0,0,0.14);font-family:inherit;font-size:0.9rem;margin-bottom:16px;"></textarea>
-
-            <label class="ajustes-section-desc" for="textoAbout1" style="display:block;margin-bottom:6px;">"Sobre mí" — párrafo 1</label>
-            <textarea id="textoAbout1" rows="3" style="width:100%;box-sizing:border-box;padding:11px 13px;border-radius:10px;border:1px solid rgba(0,0,0,0.14);font-family:inherit;font-size:0.9rem;margin-bottom:16px;"></textarea>
-
-            <label class="ajustes-section-desc" for="textoAbout2" style="display:block;margin-bottom:6px;">"Sobre mí" — párrafo 2</label>
-            <textarea id="textoAbout2" rows="3" style="width:100%;box-sizing:border-box;padding:11px 13px;border-radius:10px;border:1px solid rgba(0,0,0,0.14);font-family:inherit;font-size:0.9rem;margin-bottom:16px;"></textarea>
-
-            <label class="ajustes-section-desc" for="textoAbout3" style="display:block;margin-bottom:6px;">"Sobre mí" — párrafo 3</label>
-            <textarea id="textoAbout3" rows="3" style="width:100%;box-sizing:border-box;padding:11px 13px;border-radius:10px;border:1px solid rgba(0,0,0,0.14);font-family:inherit;font-size:0.9rem;margin-bottom:16px;"></textarea>
-
-            <label class="ajustes-section-desc" for="textoEmail" style="display:block;margin-bottom:6px;">Correo de contacto (botón de sobre, abajo a la izquierda)</label>
-            <input type="email" id="textoEmail" placeholder="tu-correo@ejemplo.com" style="width:100%;box-sizing:border-box;padding:11px 13px;border-radius:10px;border:1px solid rgba(0,0,0,0.14);font-family:inherit;font-size:0.9rem;margin-bottom:16px;">
-
-            <label class="ajustes-section-desc" for="textoInstagram" style="display:block;margin-bottom:6px;">Usuario o enlace de Instagram</label>
-            <input type="text" id="textoInstagram" placeholder="tu_usuario o https://instagram.com/tu_usuario" style="width:100%;box-sizing:border-box;padding:11px 13px;border-radius:10px;border:1px solid rgba(0,0,0,0.14);font-family:inherit;font-size:0.9rem;margin-bottom:6px;">
-
-            <p class="cuenta-msg" id="textosMsg">Guardado.</p>
-
-            <div class="cuenta-row" style="margin-top:14px;">
-              <button type="button" class="cuenta-btn" id="textosGuardar">Guardar cambios</button>
-              <button type="button" class="cuenta-btn" id="textosReset">Restablecer originales</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Panel: bloque "Mis ediciones" de la 4ª posición (parejas del
-             comparador con flechas + galería que se expande) -->
-        <div class="ajustes-panel ajustes-section" data-panel="misediciones">
-          <div class="ajustes-section-head">
-            <span class="ajustes-section-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="7" height="7" rx="1.3"/><rect x="14" y="3" width="7" height="7" rx="1.3"/><rect x="3" y="14" width="7" height="7" rx="1.3"/><rect x="14" y="14" width="7" height="7" rx="1.3"/>
-              </svg>
-            </span>
-            <div>
-              <p class="ajustes-section-title">Comparaciones antes/después</p>
-              <p class="ajustes-section-desc">Las parejas de fotos del comparador con flechas que aparece justo encima de "Descubre mi trabajo". Añade tantas parejas como quieras: las flechas pasan de una a otra.</p>
-            </div>
-          </div>
-
-          <div class="pair-editor-list" id="pairEditorList"></div>
-          <input type="file" id="pairEditorFileInput" accept="image/*" style="display:none;">
-          <p class="cat-editor-empty" id="pairEditorEmpty" style="display:none;">No hay ninguna comparación. Añade la primera.</p>
-
-          <div class="ajustes-section-footer">
-            <button class="ajustes-clear" id="pairAddBtn" type="button"><svg class="ajustes-clear-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12.75 9C12.75 8.58579 12.4142 8.25 12 8.25C11.5858 8.25 11.25 8.58579 11.25 9L11.25 11.25H9C8.58579 11.25 8.25 11.5858 8.25 12C8.25 12.4142 8.58579 12.75 9 12.75H11.25V15C11.25 15.4142 11.5858 15.75 12 15.75C12.4142 15.75 12.75 15.4142 12.75 15L12.75 12.75H15C15.4142 12.75 15.75 12.4142 15.75 12C15.75 11.5858 15.4142 11.25 15 11.25H12.75V9Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12Z" fill="currentColor"/></svg>Añadir comparación</button>
-          </div>
-
-          <p class="cuenta-msg" id="pairMsg"></p>
-
-          <div class="cuenta-row" style="margin-top:14px;">
-            <button type="button" class="cuenta-btn" id="pairGuardarBtn">Guardar cambios</button>
-            <button type="button" class="cuenta-btn" id="pairResetBtn">Restablecer originales</button>
-          </div>
-
-          <div class="ajustes-note" style="margin-top:32px;">
-            <p><strong>Galería que se expande.</strong> La fila de fotos estrechas que aparece justo debajo de "Descubre mi trabajo": al pasar el ratón (o al tocarla en el móvil) se abre y muestra el nombre y la frase. Añade tantas como quieras. El recuadro de vista previa de cada foto se ve exactamente igual que la tarjeta real: si al expandirse se corta por el sitio que no toca (por ejemplo, corta cabezas), coge la foto con el dedo o el ratón DIRECTAMENTE en ese recuadro y arrástrala libremente hasta donde quieras que quede. Un toque corto sin arrastrar cambia la foto.</p>
-          </div>
-
-          <div class="disc-editor-list" id="expEditorList"></div>
-          <input type="file" id="expEditorFileInput" accept="image/*" style="display:none;">
-          <p class="cat-editor-empty" id="expEditorEmpty" style="display:none;">No hay ninguna foto. Añade la primera.</p>
-
-          <div class="ajustes-section-footer">
-            <button class="ajustes-clear" id="expAddBtn" type="button"><svg class="ajustes-clear-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12.75 9C12.75 8.58579 12.4142 8.25 12 8.25C11.5858 8.25 11.25 8.58579 11.25 9L11.25 11.25H9C8.58579 11.25 8.25 11.5858 8.25 12C8.25 12.4142 8.58579 12.75 9 12.75H11.25V15C11.25 15.4142 11.5858 15.75 12 15.75C12.4142 15.75 12.75 15.4142 12.75 15L12.75 12.75H15C15.4142 12.75 15.75 12.4142 15.75 12C15.75 11.5858 15.4142 11.25 15 11.25H12.75V9Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12Z" fill="currentColor"/></svg>Añadir foto</button>
-          </div>
-
-          <p class="cuenta-msg" id="expMsg"></p>
-
-          <div class="cuenta-row" style="margin-top:14px;">
-            <button type="button" class="cuenta-btn" id="expGuardarBtn">Guardar cambios</button>
-            <button type="button" class="cuenta-btn" id="expResetBtn">Restablecer originales</button>
-          </div>
-        </div>
-
-        <!-- Panel: "Proyectos en YouTube" (título + enlace de cada
-             vídeo). La miniatura se saca sola del enlace, no hay que
-             subir ninguna foto (ver getYoutubeThumb en
-             youtube-videos.js). -->
-        <div class="ajustes-panel ajustes-section" data-panel="youtube">
-          <div class="ajustes-section-head">
-            <span class="ajustes-section-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="5" width="20" height="14" rx="3.5"/><path d="M10.5 9.5v5l4.5-2.5-4.5-2.5Z" fill="currentColor" stroke="none"/>
-              </svg>
-            </span>
-            <div>
-              <p class="ajustes-section-title">Proyectos en YouTube</p>
-              <p class="ajustes-section-desc">Aparece justo debajo de "Mis ediciones". Pon el título del vídeo y su enlace de YouTube: la miniatura se coge sola del propio vídeo, no hace falta subir ninguna foto. Al tocar la tarjeta se abre el vídeo real en YouTube.</p>
-            </div>
-          </div>
-
-          <div class="cat-editor-list" id="ytEditorList"></div>
-          <p class="cat-editor-empty" id="ytEditorEmpty" style="display:none;">No hay ningún vídeo. Añade el primero.</p>
-
-          <div class="ajustes-section-footer">
-            <button class="ajustes-clear" id="ytAddBtn" type="button"><svg class="ajustes-clear-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12.75 9C12.75 8.58579 12.4142 8.25 12 8.25C11.5858 8.25 11.25 8.58579 11.25 9L11.25 11.25H9C8.58579 11.25 8.25 11.5858 8.25 12C8.25 12.4142 8.58579 12.75 9 12.75H11.25V15C11.25 15.4142 11.5858 15.75 12 15.75C12.4142 15.75 12.75 15.4142 12.75 15L12.75 12.75H15C15.4142 12.75 15.75 12.4142 15.75 12C15.75 11.5858 15.4142 11.25 15 11.25H12.75V9Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12Z" fill="currentColor"/></svg>Añadir vídeo</button>
-          </div>
-
-          <p class="cuenta-msg" id="ytMsg"></p>
-
-          <div class="cuenta-row" style="margin-top:14px;">
-            <button type="button" class="cuenta-btn" id="ytGuardarBtn">Guardar cambios</button>
-            <button type="button" class="cuenta-btn" id="ytResetBtn">Restablecer originales</button>
-          </div>
-        </div>
-
-        <!-- Panel: botones de categorías de "Proyectos" (Deportes,
-             Fiestas...) -->
-        <div class="ajustes-panel ajustes-section" data-panel="proyectos">
-          <div class="ajustes-section-head">
-            <span class="ajustes-section-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="6" width="7" height="5" rx="1.3"/><rect x="14" y="6" width="7" height="5" rx="1.3"/><rect x="3" y="15" width="7" height="5" rx="1.3"/><rect x="14" y="15" width="7" height="5" rx="1.3"/>
-              </svg>
-            </span>
-            <div>
-              <p class="ajustes-section-title">Categorías de "Proyectos"</p>
-              <p class="ajustes-section-desc">Botones (Deportes, Fiestas...) que aparecen arriba a la izquierda de "Proyectos". Cada categoría tiene su propia galería de fotos, que se abre a pantalla completa al tocar su botón.</p>
-            </div>
-          </div>
-
           <div class="cat-editor-list" id="catEditorList"></div>
           <input type="file" id="catEditorFileInput" accept="image/*" multiple style="display:none;">
           <p class="cat-editor-empty" id="catEditorEmpty" style="display:none;">No hay ninguna categoría. Añade la primera.</p>
-
-          <div class="ajustes-section-footer">
-            <button class="ajustes-clear" id="catAddBtn" type="button"><svg class="ajustes-clear-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12.75 9C12.75 8.58579 12.4142 8.25 12 8.25C11.5858 8.25 11.25 8.58579 11.25 9L11.25 11.25H9C8.58579 11.25 8.25 11.5858 8.25 12C8.25 12.4142 8.58579 12.75 9 12.75H11.25V15C11.25 15.4142 11.5858 15.75 12 15.75C12.4142 15.75 12.75 15.4142 12.75 15L12.75 12.75H15C15.4142 12.75 15.75 12.4142 15.75 12C15.75 11.5858 15.4142 11.25 15 11.25H12.75V9Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12Z" fill="currentColor"/></svg>Añadir categoría</button>
-          </div>
-
-          <p class="cuenta-msg" id="catMsg"></p>
-
-          <div class="cuenta-row" style="margin-top:14px;">
-            <button type="button" class="cuenta-btn" id="catGuardarBtn">Guardar cambios</button>
-            <button type="button" class="cuenta-btn" id="catResetBtn">Restablecer originales</button>
+          <div class="ajustes-actions">
+            <button type="button" class="cuenta-btn cuenta-btn--ghost" id="catAddBtn"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12.75 9C12.75 8.58579 12.4142 8.25 12 8.25C11.5858 8.25 11.25 8.58579 11.25 9L11.25 11.25H9C8.58579 11.25 8.25 11.5858 8.25 12C8.25 12.4142 8.58579 12.75 9 12.75H11.25V15C11.25 15.4142 11.5858 15.75 12 15.75C12.4142 15.75 12.75 15.4142 12.75 15L12.75 12.75H15C15.4142 12.75 15.75 12.4142 15.75 12C15.75 11.5858 15.4142 11.25 15 11.25H12.75V9Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12Z" fill="currentColor"/></svg>Añadir categoría</button>
+            <p class="cuenta-msg" id="catMsg"></p>
+            <button type="button" class="cuenta-btn cuenta-btn--quiet" id="catResetBtn" title="Volver a los originales"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>Restablecer</button>
+            <button type="button" class="cuenta-btn cuenta-btn--primary" id="catGuardarBtn"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Guardar cambios</button>
           </div>
         </div>
 
-        <!-- Panel: cuenta, historial de cambios y copia de seguridad -->
+        <!-- Proyectos: tarjetas que se abren al tocarlas -->
+        <div class="ajustes-panel ajustes-section" data-panel="galeria">
+          <div class="ajustes-section-head">
+            <span class="ajustes-section-icon" aria-hidden="true"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="4" height="14" rx="1.3"/><rect x="9" y="5" width="12" height="14" rx="1.6"/></svg></span>
+            <div>
+              <p class="ajustes-section-title">Tarjetas de «Proyectos»</p>
+              <p class="ajustes-section-desc">Al tocar una tarjeta se abre y muestra su nombre y su frase. Toca la foto para ajustar el encuadre (se ve igual que en la web); «Cambiar foto» la sustituye.</p>
+              <p class="ajustes-where">En la web: la fila de tarjetas bajo «Proyectos» (2ª pantalla).</p>
+            </div>
+          </div>
+          <div class="disc-editor-list" id="expEditorList"></div>
+          <input type="file" id="expEditorFileInput" accept="image/*" style="display:none;">
+          <p class="cat-editor-empty" id="expEditorEmpty" style="display:none;">No hay ninguna tarjeta. Añade la primera.</p>
+          <div class="ajustes-actions">
+            <button type="button" class="cuenta-btn cuenta-btn--ghost" id="expAddBtn"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12.75 9C12.75 8.58579 12.4142 8.25 12 8.25C11.5858 8.25 11.25 8.58579 11.25 9L11.25 11.25H9C8.58579 11.25 8.25 11.5858 8.25 12C8.25 12.4142 8.58579 12.75 9 12.75H11.25V15C11.25 15.4142 11.5858 15.75 12 15.75C12.4142 15.75 12.75 15.4142 12.75 15L12.75 12.75H15C15.4142 12.75 15.75 12.4142 15.75 12C15.75 11.5858 15.4142 11.25 15 11.25H12.75V9Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12Z" fill="currentColor"/></svg>Añadir tarjeta</button>
+            <p class="cuenta-msg" id="expMsg"></p>
+            <button type="button" class="cuenta-btn cuenta-btn--quiet" id="expResetBtn" title="Volver a los originales"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>Restablecer</button>
+            <button type="button" class="cuenta-btn cuenta-btn--primary" id="expGuardarBtn"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Guardar cambios</button>
+          </div>
+        </div>
+
+        <!-- Vídeos de YouTube -->
+        <div class="ajustes-panel ajustes-section" data-panel="youtube">
+          <div class="ajustes-section-head">
+            <span class="ajustes-section-icon" aria-hidden="true"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3.5"/><path d="M10.5 9.5v5l4.5-2.5-4.5-2.5Z" fill="currentColor" stroke="none"/></svg></span>
+            <div>
+              <p class="ajustes-section-title">Vídeos de YouTube</p>
+              <p class="ajustes-section-desc">Título y enlace de cada vídeo: la miniatura sale sola del enlace. Marca «Editado» y/o «Creado» según tu papel en el vídeo.</p>
+              <p class="ajustes-where">En la web: la página «Todos mis vídeos» (botón «Vídeos de YouTube»).</p>
+            </div>
+          </div>
+          <div class="cat-editor-list" id="ytEditorList"></div>
+          <p class="cat-editor-empty" id="ytEditorEmpty" style="display:none;">No hay ningún vídeo. Añade el primero.</p>
+          <div class="ajustes-actions">
+            <button type="button" class="cuenta-btn cuenta-btn--ghost" id="ytAddBtn"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12.75 9C12.75 8.58579 12.4142 8.25 12 8.25C11.5858 8.25 11.25 8.58579 11.25 9L11.25 11.25H9C8.58579 11.25 8.25 11.5858 8.25 12C8.25 12.4142 8.58579 12.75 9 12.75H11.25V15C11.25 15.4142 11.5858 15.75 12 15.75C12.4142 15.75 12.75 15.4142 12.75 15L12.75 12.75H15C15.4142 12.75 15.75 12.4142 15.75 12C15.75 11.5858 15.4142 11.25 15 11.25H12.75V9Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12Z" fill="currentColor"/></svg>Añadir vídeo</button>
+            <p class="cuenta-msg" id="ytMsg"></p>
+            <button type="button" class="cuenta-btn cuenta-btn--quiet" id="ytResetBtn" title="Volver a los originales"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>Restablecer</button>
+            <button type="button" class="cuenta-btn cuenta-btn--primary" id="ytGuardarBtn"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Guardar cambios</button>
+          </div>
+        </div>
+
+        <!-- Mi material: carrusel de objetivos -->
+        <div class="ajustes-panel ajustes-section" data-panel="carrusel">
+          <div class="ajustes-section-head">
+            <span class="ajustes-section-icon" aria-hidden="true"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.6-2.2a1 1 0 0 1 .8-.4h5.2a1 1 0 0 1 .8.4L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.3" r="3.3"/></svg></span>
+            <div>
+              <p class="ajustes-section-title">Carrusel de «Mi material»</p>
+              <p class="ajustes-section-desc">Las fotos se guardan al subirlas. El nombre que escribas sale debajo de cada foto (por ejemplo «Sony FE 50mm f/1.8»). Arrastra una foto arriba o abajo para elegir qué parte se ve.</p>
+              <p class="ajustes-where">En la web: el carrusel bajo las dos cámaras (3ª pantalla).</p>
+            </div>
+          </div>
+          <label class="ajustes-uploader" id="ajustesUploader" for="ajustesFileInput">
+            <span class="ajustes-uploader-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M12 4l-4.5 4.5M12 4l4.5 4.5"/><path d="M4 16v2.5A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V16"/></svg></span>
+            <span class="ajustes-uploader-text">
+              <span class="ajustes-uploader-label">Añadir imágenes</span>
+              <span class="ajustes-uploader-sub">Cualquier formato · sin límite</span>
+            </span>
+            <input type="file" id="ajustesFileInput" multiple>
+          </label>
+          <div class="ajustes-grid" id="ajustesGrid"></div>
+          <p class="ajustes-empty" id="ajustesEmpty">Ahora mismo se muestran unas imágenes de ejemplo en el carrusel.</p>
+          <div class="ajustes-actions ajustes-actions--static">
+            <button class="cuenta-btn cuenta-btn--quiet" id="ajustesClear" type="button"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M15.0924 1.25H8.90788C7.33861 1.24998 6.08032 1.24996 5.10577 1.38767C4.09802 1.53007 3.25979 1.83575 2.64218 2.55292C2.02457 3.27008 1.84661 4.14438 1.85528 5.1621C1.86366 6.1463 2.05033 7.39066 2.28314 8.94256L3.49937 17.0508C3.67587 18.2275 3.81878 19.1804 4.02849 19.9262C4.24683 20.7027 4.56045 21.3453 5.13662 21.8415C5.71279 22.3377 6.39485 22.5525 7.19513 22.6533C7.96377 22.75 8.92732 22.75 10.1173 22.75H13.883C15.073 22.75 16.0365 22.75 16.8052 22.6533C17.6054 22.5525 18.2875 22.3377 18.8637 21.8415C19.4398 21.3453 19.7535 20.7027 19.9718 19.9262C20.1815 19.1805 20.3244 18.2276 20.5009 17.0509L21.7172 8.94253C21.95 7.39065 22.1366 6.14629 22.145 5.1621C22.1537 4.14438 21.9757 3.27008 21.3581 2.55292C20.7405 1.83575 19.9023 1.53007 18.8945 1.38767C17.92 1.24996 16.6617 1.24998 15.0924 1.25ZM3.77879 3.53175C4.05882 3.20658 4.47927 2.9911 5.31565 2.87292C6.17295 2.75177 7.32479 2.75 8.96727 2.75H15.033C16.6755 2.75 17.8273 2.75177 18.6846 2.87292C19.521 2.9911 19.9415 3.20658 20.2215 3.53175C20.5015 3.85692 20.6523 4.30468 20.6451 5.14933C20.6448 5.18248 20.6443 5.21604 20.6435 5.25H20.5005C20.5003 5.25 20.5007 5.25 20.5005 5.25H7.00045C7.00025 5.25 7.00065 5.25 7.00045 5.25H3.35678C3.35603 5.21603 3.35551 5.18248 3.35522 5.14933C3.34803 4.30468 3.49876 3.85692 3.77879 3.53175ZM5.18949 6.75H3.48546C3.53687 7.15852 3.60161 7.61096 3.67631 8.1155L3.75015 8.18934L5.18949 6.75ZM4.05013 10.6106L4.6686 14.7338L6.37599 12.9365L4.05013 10.6106ZM5.15659 17.9593C5.17275 18.0594 5.18872 18.1563 5.20463 18.25H5.39887L5.15659 17.9593ZM6.99527 19.75C6.99879 19.75 7.00232 19.75 7.00584 19.75H13.9972C13.9991 19.75 14.0009 19.75 14.0027 19.75H18.4577C18.299 20.2287 18.1176 20.5044 17.8848 20.7049C17.6171 20.9355 17.261 21.0841 16.6178 21.165C15.9538 21.2486 15.0849 21.25 13.833 21.25H10.1673C8.91538 21.25 8.04651 21.2486 7.38247 21.165C6.73934 21.0841 6.38321 20.9355 6.11546 20.7049C5.88266 20.5044 5.70127 20.2287 5.54256 19.75H6.99527ZM15.7131 18.25H18.1895L16.9018 16.9623L15.7131 18.25ZM19.0007 16.9399C19.0087 16.8869 19.0168 16.8332 19.0249 16.7788L19.404 14.2515L17.92 15.8592L19.0007 16.9399ZM19.856 11.2381L20.2249 8.77879C20.3197 8.14673 20.4033 7.5881 20.4704 7.09045L18.16 9.40079L19.856 11.2381ZM18.6895 6.75H15.7131L17.1418 8.2977L18.6895 6.75ZM12.2532 6.75H8.81081L10.5761 8.51531L12.2532 6.75ZM11.6895 18.25H9.31081L10.5002 17.0607L11.6895 18.25ZM7.40946 11.8486L4.81081 9.25L7.00015 7.06066L9.54266 9.60317L7.40946 11.8486ZM8.47047 12.9097L10.6037 10.6642L12.6895 12.75L10.5002 14.9393L8.47047 12.9097ZM11.5608 16L13.7502 13.8107L15.8403 15.9008L13.7385 18.1777L11.5608 16ZM14.8108 12.75L16.8585 14.7977L18.9795 12.5L17.0985 10.4623L14.8108 12.75ZM13.7502 11.6893L16.0803 9.35921L13.9923 7.09721L11.6371 9.57632L13.7502 11.6893ZM7.437 13.9975L9.43949 16L7.27782 18.1617L5.50363 16.0326L7.437 13.9975Z" fill="currentColor"/></svg>Quitar mis imágenes y volver a las de ejemplo</button>
+          </div>
+        </div>
+
+        <!-- Antes y después: parejas del comparador -->
+        <div class="ajustes-panel ajustes-section" data-panel="misediciones">
+          <div class="ajustes-section-head">
+            <span class="ajustes-section-icon" aria-hidden="true"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M12 4v16"/><path d="M7 10l-2 2 2 2M17 10l2 2-2 2"/></svg></span>
+            <div>
+              <p class="ajustes-section-title">Comparaciones antes / después</p>
+              <p class="ajustes-section-desc">Cada pareja es una foto sin editar y su versión editada; las flechas pasan de una a otra. Toca un recuadro para cambiar la foto y usa «Encuadre» para moverla.</p>
+              <p class="ajustes-where">En la web: el comparador de «Mis ediciones» (última pantalla).</p>
+            </div>
+          </div>
+          <div class="pair-editor-list" id="pairEditorList"></div>
+          <input type="file" id="pairEditorFileInput" accept="image/*" style="display:none;">
+          <p class="cat-editor-empty" id="pairEditorEmpty" style="display:none;">No hay ninguna comparación. Añade la primera.</p>
+          <div class="ajustes-actions">
+            <button type="button" class="cuenta-btn cuenta-btn--ghost" id="pairAddBtn"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12.75 9C12.75 8.58579 12.4142 8.25 12 8.25C11.5858 8.25 11.25 8.58579 11.25 9L11.25 11.25H9C8.58579 11.25 8.25 11.5858 8.25 12C8.25 12.4142 8.58579 12.75 9 12.75H11.25V15C11.25 15.4142 11.5858 15.75 12 15.75C12.4142 15.75 12.75 15.4142 12.75 15L12.75 12.75H15C15.4142 12.75 15.75 12.4142 15.75 12C15.75 11.5858 15.4142 11.25 15 11.25H12.75V9Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12Z" fill="currentColor"/></svg>Añadir comparación</button>
+            <p class="cuenta-msg" id="pairMsg"></p>
+            <button type="button" class="cuenta-btn cuenta-btn--quiet" id="pairResetBtn" title="Volver a los originales"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>Restablecer</button>
+            <button type="button" class="cuenta-btn cuenta-btn--primary" id="pairGuardarBtn"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Guardar cambios</button>
+          </div>
+        </div>
+
+        <!-- Sobre mí: collage de fotos -->
+        <div class="ajustes-panel ajustes-section" data-panel="collage">
+          <div class="ajustes-section-head">
+            <span class="ajustes-section-icon" aria-hidden="true"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></span>
+            <div>
+              <p class="ajustes-section-title">Collage de «Sobre mí»</p>
+              <p class="ajustes-section-desc">Hasta 6 fotos para el collage animado. Se guardan al subirlas. Arrastra una foto arriba o abajo para elegir qué parte se ve.</p>
+              <p class="ajustes-where">En la web: la sección «Sobre mí» del menú.</p>
+            </div>
+          </div>
+          <label class="ajustes-uploader" id="ajustesCollageUploader" for="ajustesCollageFileInput">
+            <span class="ajustes-uploader-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M12 4l-4.5 4.5M12 4l4.5 4.5"/><path d="M4 16v2.5A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V16"/></svg></span>
+            <span class="ajustes-uploader-text">
+              <span class="ajustes-uploader-label">Añadir fotos</span>
+              <span class="ajustes-uploader-sub">Cualquier formato · máximo 6 fotos</span>
+            </span>
+            <input type="file" id="ajustesCollageFileInput" multiple>
+          </label>
+          <div class="ajustes-grid" id="ajustesCollageGrid"></div>
+          <p class="ajustes-empty" id="ajustesCollageEmpty">Ahora mismo se muestra una tarjeta de invitación en «Sobre mí».</p>
+          <div class="ajustes-actions ajustes-actions--static">
+            <button class="cuenta-btn cuenta-btn--quiet" id="ajustesCollageClear" type="button"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M15.0924 1.25H8.90788C7.33861 1.24998 6.08032 1.24996 5.10577 1.38767C4.09802 1.53007 3.25979 1.83575 2.64218 2.55292C2.02457 3.27008 1.84661 4.14438 1.85528 5.1621C1.86366 6.1463 2.05033 7.39066 2.28314 8.94256L3.49937 17.0508C3.67587 18.2275 3.81878 19.1804 4.02849 19.9262C4.24683 20.7027 4.56045 21.3453 5.13662 21.8415C5.71279 22.3377 6.39485 22.5525 7.19513 22.6533C7.96377 22.75 8.92732 22.75 10.1173 22.75H13.883C15.073 22.75 16.0365 22.75 16.8052 22.6533C17.6054 22.5525 18.2875 22.3377 18.8637 21.8415C19.4398 21.3453 19.7535 20.7027 19.9718 19.9262C20.1815 19.1805 20.3244 18.2276 20.5009 17.0509L21.7172 8.94253C21.95 7.39065 22.1366 6.14629 22.145 5.1621C22.1537 4.14438 21.9757 3.27008 21.3581 2.55292C20.7405 1.83575 19.9023 1.53007 18.8945 1.38767C17.92 1.24996 16.6617 1.24998 15.0924 1.25ZM3.77879 3.53175C4.05882 3.20658 4.47927 2.9911 5.31565 2.87292C6.17295 2.75177 7.32479 2.75 8.96727 2.75H15.033C16.6755 2.75 17.8273 2.75177 18.6846 2.87292C19.521 2.9911 19.9415 3.20658 20.2215 3.53175C20.5015 3.85692 20.6523 4.30468 20.6451 5.14933C20.6448 5.18248 20.6443 5.21604 20.6435 5.25H20.5005C20.5003 5.25 20.5007 5.25 20.5005 5.25H7.00045C7.00025 5.25 7.00065 5.25 7.00045 5.25H3.35678C3.35603 5.21603 3.35551 5.18248 3.35522 5.14933C3.34803 4.30468 3.49876 3.85692 3.77879 3.53175ZM5.18949 6.75H3.48546C3.53687 7.15852 3.60161 7.61096 3.67631 8.1155L3.75015 8.18934L5.18949 6.75ZM4.05013 10.6106L4.6686 14.7338L6.37599 12.9365L4.05013 10.6106ZM5.15659 17.9593C5.17275 18.0594 5.18872 18.1563 5.20463 18.25H5.39887L5.15659 17.9593ZM6.99527 19.75C6.99879 19.75 7.00232 19.75 7.00584 19.75H13.9972C13.9991 19.75 14.0009 19.75 14.0027 19.75H18.4577C18.299 20.2287 18.1176 20.5044 17.8848 20.7049C17.6171 20.9355 17.261 21.0841 16.6178 21.165C15.9538 21.2486 15.0849 21.25 13.833 21.25H10.1673C8.91538 21.25 8.04651 21.2486 7.38247 21.165C6.73934 21.0841 6.38321 20.9355 6.11546 20.7049C5.88266 20.5044 5.70127 20.2287 5.54256 19.75H6.99527ZM15.7131 18.25H18.1895L16.9018 16.9623L15.7131 18.25ZM19.0007 16.9399C19.0087 16.8869 19.0168 16.8332 19.0249 16.7788L19.404 14.2515L17.92 15.8592L19.0007 16.9399ZM19.856 11.2381L20.2249 8.77879C20.3197 8.14673 20.4033 7.5881 20.4704 7.09045L18.16 9.40079L19.856 11.2381ZM18.6895 6.75H15.7131L17.1418 8.2977L18.6895 6.75ZM12.2532 6.75H8.81081L10.5761 8.51531L12.2532 6.75ZM11.6895 18.25H9.31081L10.5002 17.0607L11.6895 18.25ZM7.40946 11.8486L4.81081 9.25L7.00015 7.06066L9.54266 9.60317L7.40946 11.8486ZM8.47047 12.9097L10.6037 10.6642L12.6895 12.75L10.5002 14.9393L8.47047 12.9097ZM11.5608 16L13.7502 13.8107L15.8403 15.9008L13.7385 18.1777L11.5608 16ZM14.8108 12.75L16.8585 14.7977L18.9795 12.5L17.0985 10.4623L14.8108 12.75ZM13.7502 11.6893L16.0803 9.35921L13.9923 7.09721L11.6371 9.57632L13.7502 11.6893ZM7.437 13.9975L9.43949 16L7.27782 18.1617L5.50363 16.0326L7.437 13.9975Z" fill="currentColor"/></svg>Quitar mis fotos del collage</button>
+          </div>
+        </div>
+
+        <!-- Textos y contacto -->
+        <div class="ajustes-panel ajustes-section" data-panel="textos">
+          <div class="ajustes-section-head">
+            <span class="ajustes-section-icon" aria-hidden="true"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
+            <div>
+              <p class="ajustes-section-title">Textos y contacto</p>
+              <p class="ajustes-section-desc">Se guardan en la nube y los ve todo el mundo. «Restablecer» vuelve a los textos originales.</p>
+              <p class="ajustes-where">En la web: la portada, «Sobre mí» y los botones de correo e Instagram.</p>
+            </div>
+          </div>
+          <div class="ajustes-fields">
+            <fieldset class="ajustes-fieldset">
+              <legend>Portada</legend>
+              <label class="ajustes-field-label" for="textoCaption">Frase corta bajo el título</label>
+              <textarea class="ajustes-field" id="textoCaption" rows="2"></textarea>
+            </fieldset>
+            <fieldset class="ajustes-fieldset">
+              <legend>Sobre mí</legend>
+              <label class="ajustes-field-label" for="textoAbout1">Párrafo 1</label>
+              <textarea class="ajustes-field" id="textoAbout1" rows="3"></textarea>
+              <label class="ajustes-field-label" for="textoAbout2">Párrafo 2</label>
+              <textarea class="ajustes-field" id="textoAbout2" rows="3"></textarea>
+              <label class="ajustes-field-label" for="textoAbout3">Párrafo 3</label>
+              <textarea class="ajustes-field" id="textoAbout3" rows="3"></textarea>
+            </fieldset>
+            <fieldset class="ajustes-fieldset ajustes-fieldset--row">
+              <legend>Contacto</legend>
+              <div>
+                <label class="ajustes-field-label" for="textoEmail">Correo (botón del sobre)</label>
+                <input class="ajustes-field" type="email" id="textoEmail" placeholder="tu-correo@ejemplo.com">
+              </div>
+              <div>
+                <label class="ajustes-field-label" for="textoInstagram">Instagram (usuario o enlace)</label>
+                <input class="ajustes-field" type="text" id="textoInstagram" placeholder="tu_usuario">
+              </div>
+            </fieldset>
+          </div>
+          <div class="ajustes-actions">
+            <p class="cuenta-msg" id="textosMsg">Guardado.</p>
+            <button type="button" class="cuenta-btn cuenta-btn--quiet" id="textosReset" title="Volver a los originales"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>Restablecer</button>
+            <button type="button" class="cuenta-btn cuenta-btn--primary" id="textosGuardar"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Guardar cambios</button>
+          </div>
+        </div>
+
+        <!-- Cuenta: contraseña, copia de seguridad, historial y sesión -->
         <div class="ajustes-panel ajustes-section" data-panel="cuenta">
           <div class="ajustes-section-head">
-            <span class="ajustes-section-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="8" r="3.4"/>
-                <path d="M4.5 20c1.2-3.6 4.2-5.6 7.5-5.6s6.3 2 7.5 5.6"/>
-              </svg>
-            </span>
+            <span class="ajustes-section-icon" aria-hidden="true"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M4.5 20c1.2-3.6 4.2-5.6 7.5-5.6s6.3 2 7.5 5.6"/></svg></span>
             <div>
-              <p class="ajustes-section-title">Cuenta e historial</p>
-              <p class="ajustes-section-desc">Tu acceso de administrador, el registro de cambios y la copia de seguridad de todo lo guardado.</p>
+              <p class="ajustes-section-title">Cuenta</p>
+              <p class="ajustes-section-desc">Tu contraseña, la copia de seguridad de todo lo guardado y el registro de cambios.</p>
+              <p class="ajustes-where">En la web: solo aquí; nada de esto se ve en la web pública.</p>
+            </div>
+          </div>
+          <div class="ajustes-cards">
+            <div class="ajustes-card">
+              <p class="ajustes-card-title">Contraseña</p>
+              <p class="ajustes-card-desc">Se pide la actual por seguridad.</p>
+              <div class="cuenta-form">
+                <div class="cuenta-pass-field">
+                  <input type="password" id="cuentaPassActual" placeholder="Contraseña actual" autocomplete="current-password">
+                  <button type="button" class="cuenta-pass-toggle" data-target="cuentaPassActual" aria-label="Mostrar contraseña" aria-pressed="false"></button>
+                </div>
+                <div class="cuenta-pass-field">
+                  <input type="password" id="cuentaPassNueva" placeholder="Nueva contraseña" autocomplete="new-password">
+                  <button type="button" class="cuenta-pass-toggle" data-target="cuentaPassNueva" aria-label="Mostrar contraseña" aria-pressed="false"></button>
+                </div>
+                <div class="cuenta-pass-field">
+                  <input type="password" id="cuentaPassNueva2" placeholder="Repite la nueva contraseña" autocomplete="new-password">
+                  <button type="button" class="cuenta-pass-toggle" data-target="cuentaPassNueva2" aria-label="Mostrar contraseña" aria-pressed="false"></button>
+                </div>
+                <div class="cuenta-row">
+                  <button type="button" class="cuenta-btn cuenta-btn--primary" id="cuentaCambiarPass"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 10V8C6 4.69 7 2 12 2C17 2 18 4.69 18 8V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 18.5C13.3807 18.5 14.5 17.3807 14.5 16C14.5 14.6193 13.3807 13.5 12 13.5C10.6193 13.5 9.5 14.6193 9.5 16C9.5 17.3807 10.6193 18.5 12 18.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 22H7C3 22 2 21 2 17V15C2 11 3 10 7 10H17C21 10 22 11 22 15V17C22 21 21 22 17 22Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Actualizar contraseña</button>
+                </div>
+                <p class="cuenta-msg" id="cuentaPassMsg"></p>
+              </div>
+            </div>
+
+            <div class="ajustes-card">
+              <p class="ajustes-card-title">Copia de seguridad</p>
+              <p class="ajustes-card-desc">Todo está ya en la nube, pero descarga una copia de vez en cuando por si acaso.</p>
+              <div class="cuenta-row">
+                <button type="button" class="cuenta-btn" id="cuentaExportar"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C12.4142 1.25 12.75 1.58579 12.75 2V12.9726L14.4306 11.0119C14.7001 10.6974 15.1736 10.661 15.4881 10.9306C15.8026 11.2001 15.839 11.6736 15.5694 11.9881L12.5694 15.4881C12.427 15.6543 12.2189 15.75 12 15.75C11.7811 15.75 11.573 15.6543 11.4306 15.4881L8.43056 11.9881C8.16099 11.6736 8.19741 11.2001 8.51191 10.9306C8.8264 10.661 9.29988 10.6974 9.56944 11.0119L11.25 12.9726V2C11.25 1.58579 11.5858 1.25 12 1.25ZM6.99583 8.25196C7.41003 8.24966 7.74768 8.58357 7.74999 8.99778C7.7523 9.41199 7.41838 9.74964 7.00418 9.75194C5.91068 9.75803 5.1356 9.78643 4.54735 9.89448C3.98054 9.99859 3.65246 10.1658 3.40901 10.4092C3.13225 10.686 2.9518 11.0746 2.85315 11.8083C2.75159 12.5637 2.75 13.5648 2.75 15.0002V16.0002C2.75 17.4356 2.75159 18.4367 2.85315 19.1921C2.9518 19.9259 3.13225 20.3144 3.40901 20.5912C3.68577 20.868 4.07435 21.0484 4.80812 21.1471C5.56347 21.2486 6.56458 21.2502 8 21.2502H16C17.4354 21.2502 18.4365 21.2486 19.1919 21.1471C19.9257 21.0484 20.3142 20.868 20.591 20.5912C20.8678 20.3144 21.0482 19.9259 21.1469 19.1921C21.2484 18.4367 21.25 17.4356 21.25 16.0002V15.0002C21.25 13.5648 21.2484 12.5637 21.1469 11.8083C21.0482 11.0746 20.8678 10.686 20.591 10.4092C20.3475 10.1658 20.0195 9.99859 19.4527 9.89448C18.8644 9.78643 18.0893 9.75803 16.9958 9.75194C16.5816 9.74964 16.2477 9.41199 16.25 8.99778C16.2523 8.58357 16.59 8.24966 17.0042 8.25196C18.0857 8.25799 18.9871 8.28387 19.7236 8.41916C20.4816 8.55839 21.1267 8.82364 21.6517 9.34857C22.2536 9.95048 22.5125 10.7084 22.6335 11.6085C22.75 12.4754 22.75 13.5778 22.75 14.9453V16.0551C22.75 17.4227 22.75 18.525 22.6335 19.392C22.5125 20.2921 22.2536 21.0499 21.6517 21.6519C21.0497 22.2538 20.2919 22.5127 19.3918 22.6337C18.5248 22.7503 17.4225 22.7502 16.0549 22.7502H7.94513C6.57754 22.7502 5.47522 22.7503 4.60825 22.6337C3.70814 22.5127 2.95027 22.2538 2.34835 21.6519C1.74643 21.0499 1.48754 20.2921 1.36652 19.392C1.24996 18.525 1.24998 17.4227 1.25 16.0551V14.9453C1.24998 13.5778 1.24996 12.4754 1.36652 11.6085C1.48754 10.7084 1.74643 9.95048 2.34835 9.34857C2.87328 8.82363 3.51835 8.55839 4.27635 8.41916C5.01291 8.28387 5.9143 8.25798 6.99583 8.25196Z" fill="currentColor"/></svg>Descargar copia</button>
+                <label class="cuenta-btn" for="cuentaImportarInput" style="cursor:pointer;"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C12.2189 1.25 12.427 1.34567 12.5694 1.51191L15.5694 5.01191C15.839 5.3264 15.8026 5.79988 15.4881 6.06944C15.1736 6.33901 14.7001 6.30259 14.4306 5.98809L12.75 4.02744L12.75 15C12.75 15.4142 12.4142 15.75 12 15.75C11.5858 15.75 11.25 15.4142 11.25 15L11.25 4.02744L9.56944 5.98809C9.29988 6.30259 8.8264 6.33901 8.51191 6.06944C8.19741 5.79988 8.16099 5.3264 8.43056 5.01191L11.4306 1.51191C11.573 1.34567 11.7811 1.25 12 1.25ZM6.99583 8.25196C7.41003 8.24966 7.74768 8.58357 7.74999 8.99778C7.7523 9.41198 7.41838 9.74963 7.00418 9.75194C5.91068 9.75803 5.1356 9.78642 4.54735 9.89448C3.98054 9.99859 3.65246 10.1658 3.40901 10.4092C3.13225 10.686 2.9518 11.0746 2.85315 11.8083C2.75159 12.5637 2.75 13.5648 2.75 15.0002V16.0002C2.75 17.4356 2.75159 18.4367 2.85315 19.1921C2.9518 19.9259 3.13225 20.3144 3.40901 20.5912C3.68577 20.868 4.07434 21.0484 4.80812 21.1471C5.56347 21.2486 6.56458 21.2502 8 21.2502H16C17.4354 21.2502 18.4365 21.2486 19.1919 21.1471C19.9257 21.0484 20.3142 20.868 20.591 20.5912C20.8678 20.3144 21.0482 19.9259 21.1469 19.1921C21.2484 18.4367 21.25 17.4356 21.25 16.0002V15.0002C21.25 13.5648 21.2484 12.5637 21.1469 11.8083C21.0482 11.0746 20.8678 10.686 20.591 10.4092C20.3475 10.1658 20.0195 9.99859 19.4527 9.89448C18.8644 9.78642 18.0893 9.75803 16.9958 9.75194C16.5816 9.74963 16.2477 9.41198 16.25 8.99778C16.2523 8.58357 16.59 8.24966 17.0042 8.25196C18.0857 8.25798 18.9871 8.28387 19.7236 8.41916C20.4816 8.55839 21.1267 8.82363 21.6517 9.34856C22.2536 9.95048 22.5125 10.7084 22.6335 11.6085C22.75 12.4754 22.75 13.5778 22.75 14.9453V16.0551C22.75 17.4227 22.75 18.525 22.6335 19.392C22.5125 20.2921 22.2536 21.0499 21.6517 21.6519C21.0497 22.2538 20.2919 22.5127 19.3918 22.6337C18.5248 22.7503 17.4225 22.7502 16.0549 22.7502H7.94513C6.57754 22.7502 5.47522 22.7503 4.60825 22.6337C3.70814 22.5127 2.95027 22.2538 2.34835 21.6519C1.74643 21.0499 1.48754 20.2921 1.36652 19.392C1.24996 18.525 1.24998 17.4227 1.25 16.0551V14.9453C1.24998 13.5777 1.24996 12.4754 1.36652 11.6085C1.48754 10.7084 1.74643 9.95048 2.34835 9.34856C2.87328 8.82363 3.51835 8.55839 4.27635 8.41916C5.01291 8.28386 5.9143 8.25798 6.99583 8.25196Z" fill="currentColor"/></svg>Restaurar desde archivo</label>
+                <input type="file" id="cuentaImportarInput" accept="application/json" style="display:none;">
+              </div>
+              <p class="cuenta-msg" id="cuentaBackupMsg"></p>
+            </div>
+
+            <div class="ajustes-card ajustes-card--wide">
+              <div class="ajustes-card-head">
+                <div>
+                  <p class="ajustes-card-title">Historial de cambios</p>
+                  <p class="ajustes-card-desc">Cada foto, texto y acceso, con fecha y hora.</p>
+                </div>
+                <button type="button" class="cuenta-btn cuenta-btn--danger" id="historialVaciar"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M15.0924 1.25H8.90788C7.33861 1.24998 6.08032 1.24996 5.10577 1.38767C4.09802 1.53007 3.25979 1.83575 2.64218 2.55292C2.02457 3.27008 1.84661 4.14438 1.85528 5.1621C1.86366 6.1463 2.05033 7.39066 2.28314 8.94256L3.49937 17.0508C3.67587 18.2275 3.81878 19.1804 4.02849 19.9262C4.24683 20.7027 4.56045 21.3453 5.13662 21.8415C5.71279 22.3377 6.39485 22.5525 7.19513 22.6533C7.96377 22.75 8.92732 22.75 10.1173 22.75H13.883C15.073 22.75 16.0365 22.75 16.8052 22.6533C17.6054 22.5525 18.2875 22.3377 18.8637 21.8415C19.4398 21.3453 19.7535 20.7027 19.9718 19.9262C20.1815 19.1805 20.3244 18.2276 20.5009 17.0509L21.7172 8.94253C21.95 7.39065 22.1366 6.14629 22.145 5.1621C22.1537 4.14438 21.9757 3.27008 21.3581 2.55292C20.7405 1.83575 19.9023 1.53007 18.8945 1.38767C17.92 1.24996 16.6617 1.24998 15.0924 1.25ZM3.77879 3.53175C4.05882 3.20658 4.47927 2.9911 5.31565 2.87292C6.17295 2.75177 7.32479 2.75 8.96727 2.75H15.033C16.6755 2.75 17.8273 2.75177 18.6846 2.87292C19.521 2.9911 19.9415 3.20658 20.2215 3.53175C20.5015 3.85692 20.6523 4.30468 20.6451 5.14933C20.6448 5.18248 20.6443 5.21604 20.6435 5.25H20.5005C20.5003 5.25 20.5007 5.25 20.5005 5.25H7.00045C7.00025 5.25 7.00065 5.25 7.00045 5.25H3.35678C3.35603 5.21603 3.35551 5.18248 3.35522 5.14933C3.34803 4.30468 3.49876 3.85692 3.77879 3.53175ZM5.18949 6.75H3.48546C3.53687 7.15852 3.60161 7.61096 3.67631 8.1155L3.75015 8.18934L5.18949 6.75ZM4.05013 10.6106L4.6686 14.7338L6.37599 12.9365L4.05013 10.6106ZM5.15659 17.9593C5.17275 18.0594 5.18872 18.1563 5.20463 18.25H5.39887L5.15659 17.9593ZM6.99527 19.75C6.99879 19.75 7.00232 19.75 7.00584 19.75H13.9972C13.9991 19.75 14.0009 19.75 14.0027 19.75H18.4577C18.299 20.2287 18.1176 20.5044 17.8848 20.7049C17.6171 20.9355 17.261 21.0841 16.6178 21.165C15.9538 21.2486 15.0849 21.25 13.833 21.25H10.1673C8.91538 21.25 8.04651 21.2486 7.38247 21.165C6.73934 21.0841 6.38321 20.9355 6.11546 20.7049C5.88266 20.5044 5.70127 20.2287 5.54256 19.75H6.99527ZM15.7131 18.25H18.1895L16.9018 16.9623L15.7131 18.25ZM19.0007 16.9399C19.0087 16.8869 19.0168 16.8332 19.0249 16.7788L19.404 14.2515L17.92 15.8592L19.0007 16.9399ZM19.856 11.2381L20.2249 8.77879C20.3197 8.14673 20.4033 7.5881 20.4704 7.09045L18.16 9.40079L19.856 11.2381ZM18.6895 6.75H15.7131L17.1418 8.2977L18.6895 6.75ZM12.2532 6.75H8.81081L10.5761 8.51531L12.2532 6.75ZM11.6895 18.25H9.31081L10.5002 17.0607L11.6895 18.25ZM7.40946 11.8486L4.81081 9.25L7.00015 7.06066L9.54266 9.60317L7.40946 11.8486ZM8.47047 12.9097L10.6037 10.6642L12.6895 12.75L10.5002 14.9393L8.47047 12.9097ZM11.5608 16L13.7502 13.8107L15.8403 15.9008L13.7385 18.1777L11.5608 16ZM14.8108 12.75L16.8585 14.7977L18.9795 12.5L17.0985 10.4623L14.8108 12.75ZM13.7502 11.6893L16.0803 9.35921L13.9923 7.09721L11.6371 9.57632L13.7502 11.6893ZM7.437 13.9975L9.43949 16L7.27782 18.1617L5.50363 16.0326L7.437 13.9975Z" fill="currentColor"/></svg>Vaciar</button>
+              </div>
+              <ul class="historial-list" id="historialList"></ul>
             </div>
           </div>
 
-          <div class="cuenta-status">
-            <span class="dot-live"></span>
-            <span>Sesión de administrador activa en este navegador.</span>
-          </div>
-
-          <div class="ajustes-note">
-            <p><strong>Contraseña.</strong> Cámbiala cuando quieras; se pide la actual por seguridad.</p>
-          </div>
-          <div class="cuenta-form">
-            <div class="cuenta-pass-field">
-              <input type="password" id="cuentaPassActual" placeholder="Contraseña actual" autocomplete="current-password">
-              <button type="button" class="cuenta-pass-toggle" data-target="cuentaPassActual" aria-label="Mostrar contraseña" aria-pressed="false"></button>
-            </div>
-            <div class="cuenta-pass-field">
-              <input type="password" id="cuentaPassNueva" placeholder="Nueva contraseña" autocomplete="new-password">
-              <button type="button" class="cuenta-pass-toggle" data-target="cuentaPassNueva" aria-label="Mostrar contraseña" aria-pressed="false"></button>
-            </div>
-            <div class="cuenta-pass-field">
-              <input type="password" id="cuentaPassNueva2" placeholder="Repite la nueva contraseña" autocomplete="new-password">
-              <button type="button" class="cuenta-pass-toggle" data-target="cuentaPassNueva2" aria-label="Mostrar contraseña" aria-pressed="false"></button>
-            </div>
-            <div class="cuenta-row">
-              <button type="button" class="cuenta-btn" id="cuentaCambiarPass"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 10V8C6 4.69 7 2 12 2C17 2 18 4.69 18 8V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 18.5C13.3807 18.5 14.5 17.3807 14.5 16C14.5 14.6193 13.3807 13.5 12 13.5C10.6193 13.5 9.5 14.6193 9.5 16C9.5 17.3807 10.6193 18.5 12 18.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 22H7C3 22 2 21 2 17V15C2 11 3 10 7 10H17C21 10 22 11 22 15V17C22 21 21 22 17 22Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Actualizar contraseña</button>
-            </div>
-            <p class="cuenta-msg" id="cuentaPassMsg"></p>
-          </div>
-
-          <div class="ajustes-note" style="margin-top:26px;">
-            <p><strong>Copia de seguridad.</strong> Tus fotos, textos e historial ya se guardan en la nube y se ven igual entres desde donde entres. Aun así, descarga una copia de vez en cuando por si acaso, y restáurala cuando quieras.</p>
-          </div>
-          <div class="cuenta-row">
-            <button type="button" class="cuenta-btn" id="cuentaExportar"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C12.4142 1.25 12.75 1.58579 12.75 2V12.9726L14.4306 11.0119C14.7001 10.6974 15.1736 10.661 15.4881 10.9306C15.8026 11.2001 15.839 11.6736 15.5694 11.9881L12.5694 15.4881C12.427 15.6543 12.2189 15.75 12 15.75C11.7811 15.75 11.573 15.6543 11.4306 15.4881L8.43056 11.9881C8.16099 11.6736 8.19741 11.2001 8.51191 10.9306C8.8264 10.661 9.29988 10.6974 9.56944 11.0119L11.25 12.9726V2C11.25 1.58579 11.5858 1.25 12 1.25ZM6.99583 8.25196C7.41003 8.24966 7.74768 8.58357 7.74999 8.99778C7.7523 9.41199 7.41838 9.74964 7.00418 9.75194C5.91068 9.75803 5.1356 9.78643 4.54735 9.89448C3.98054 9.99859 3.65246 10.1658 3.40901 10.4092C3.13225 10.686 2.9518 11.0746 2.85315 11.8083C2.75159 12.5637 2.75 13.5648 2.75 15.0002V16.0002C2.75 17.4356 2.75159 18.4367 2.85315 19.1921C2.9518 19.9259 3.13225 20.3144 3.40901 20.5912C3.68577 20.868 4.07435 21.0484 4.80812 21.1471C5.56347 21.2486 6.56458 21.2502 8 21.2502H16C17.4354 21.2502 18.4365 21.2486 19.1919 21.1471C19.9257 21.0484 20.3142 20.868 20.591 20.5912C20.8678 20.3144 21.0482 19.9259 21.1469 19.1921C21.2484 18.4367 21.25 17.4356 21.25 16.0002V15.0002C21.25 13.5648 21.2484 12.5637 21.1469 11.8083C21.0482 11.0746 20.8678 10.686 20.591 10.4092C20.3475 10.1658 20.0195 9.99859 19.4527 9.89448C18.8644 9.78643 18.0893 9.75803 16.9958 9.75194C16.5816 9.74964 16.2477 9.41199 16.25 8.99778C16.2523 8.58357 16.59 8.24966 17.0042 8.25196C18.0857 8.25799 18.9871 8.28387 19.7236 8.41916C20.4816 8.55839 21.1267 8.82364 21.6517 9.34857C22.2536 9.95048 22.5125 10.7084 22.6335 11.6085C22.75 12.4754 22.75 13.5778 22.75 14.9453V16.0551C22.75 17.4227 22.75 18.525 22.6335 19.392C22.5125 20.2921 22.2536 21.0499 21.6517 21.6519C21.0497 22.2538 20.2919 22.5127 19.3918 22.6337C18.5248 22.7503 17.4225 22.7502 16.0549 22.7502H7.94513C6.57754 22.7502 5.47522 22.7503 4.60825 22.6337C3.70814 22.5127 2.95027 22.2538 2.34835 21.6519C1.74643 21.0499 1.48754 20.2921 1.36652 19.392C1.24996 18.525 1.24998 17.4227 1.25 16.0551V14.9453C1.24998 13.5778 1.24996 12.4754 1.36652 11.6085C1.48754 10.7084 1.74643 9.95048 2.34835 9.34857C2.87328 8.82363 3.51835 8.55839 4.27635 8.41916C5.01291 8.28387 5.9143 8.25798 6.99583 8.25196Z" fill="currentColor"/></svg>Descargar copia de seguridad</button>
-            <label class="cuenta-btn" for="cuentaImportarInput" style="cursor:pointer;"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C12.2189 1.25 12.427 1.34567 12.5694 1.51191L15.5694 5.01191C15.839 5.3264 15.8026 5.79988 15.4881 6.06944C15.1736 6.33901 14.7001 6.30259 14.4306 5.98809L12.75 4.02744L12.75 15C12.75 15.4142 12.4142 15.75 12 15.75C11.5858 15.75 11.25 15.4142 11.25 15L11.25 4.02744L9.56944 5.98809C9.29988 6.30259 8.8264 6.33901 8.51191 6.06944C8.19741 5.79988 8.16099 5.3264 8.43056 5.01191L11.4306 1.51191C11.573 1.34567 11.7811 1.25 12 1.25ZM6.99583 8.25196C7.41003 8.24966 7.74768 8.58357 7.74999 8.99778C7.7523 9.41198 7.41838 9.74963 7.00418 9.75194C5.91068 9.75803 5.1356 9.78642 4.54735 9.89448C3.98054 9.99859 3.65246 10.1658 3.40901 10.4092C3.13225 10.686 2.9518 11.0746 2.85315 11.8083C2.75159 12.5637 2.75 13.5648 2.75 15.0002V16.0002C2.75 17.4356 2.75159 18.4367 2.85315 19.1921C2.9518 19.9259 3.13225 20.3144 3.40901 20.5912C3.68577 20.868 4.07434 21.0484 4.80812 21.1471C5.56347 21.2486 6.56458 21.2502 8 21.2502H16C17.4354 21.2502 18.4365 21.2486 19.1919 21.1471C19.9257 21.0484 20.3142 20.868 20.591 20.5912C20.8678 20.3144 21.0482 19.9259 21.1469 19.1921C21.2484 18.4367 21.25 17.4356 21.25 16.0002V15.0002C21.25 13.5648 21.2484 12.5637 21.1469 11.8083C21.0482 11.0746 20.8678 10.686 20.591 10.4092C20.3475 10.1658 20.0195 9.99859 19.4527 9.89448C18.8644 9.78642 18.0893 9.75803 16.9958 9.75194C16.5816 9.74963 16.2477 9.41198 16.25 8.99778C16.2523 8.58357 16.59 8.24966 17.0042 8.25196C18.0857 8.25798 18.9871 8.28387 19.7236 8.41916C20.4816 8.55839 21.1267 8.82363 21.6517 9.34856C22.2536 9.95048 22.5125 10.7084 22.6335 11.6085C22.75 12.4754 22.75 13.5778 22.75 14.9453V16.0551C22.75 17.4227 22.75 18.525 22.6335 19.392C22.5125 20.2921 22.2536 21.0499 21.6517 21.6519C21.0497 22.2538 20.2919 22.5127 19.3918 22.6337C18.5248 22.7503 17.4225 22.7502 16.0549 22.7502H7.94513C6.57754 22.7502 5.47522 22.7503 4.60825 22.6337C3.70814 22.5127 2.95027 22.2538 2.34835 21.6519C1.74643 21.0499 1.48754 20.2921 1.36652 19.392C1.24996 18.525 1.24998 17.4227 1.25 16.0551V14.9453C1.24998 13.5777 1.24996 12.4754 1.36652 11.6085C1.48754 10.7084 1.74643 9.95048 2.34835 9.34856C2.87328 8.82363 3.51835 8.55839 4.27635 8.41916C5.01291 8.28386 5.9143 8.25798 6.99583 8.25196Z" fill="currentColor"/></svg>Restaurar desde archivo</label>
-            <input type="file" id="cuentaImportarInput" accept="application/json" style="display:none;">
-          </div>
-          <p class="cuenta-msg" id="cuentaBackupMsg"></p>
-
-          <div class="ajustes-note" style="margin-top:26px;">
-            <p><strong>Historial de cambios.</strong> Cada foto añadida o quitada, cada texto editado y cada acceso quedan aquí, con fecha y hora, para que tengas todo registrado.</p>
-          </div>
-          <ul class="historial-list" id="historialList"></ul>
-          <div class="cuenta-row" style="margin-top:14px;">
-            <button type="button" class="cuenta-btn cuenta-btn--danger" id="historialVaciar"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M15.0924 1.25H8.90788C7.33861 1.24998 6.08032 1.24996 5.10577 1.38767C4.09802 1.53007 3.25979 1.83575 2.64218 2.55292C2.02457 3.27008 1.84661 4.14438 1.85528 5.1621C1.86366 6.1463 2.05033 7.39066 2.28314 8.94256L3.49937 17.0508C3.67587 18.2275 3.81878 19.1804 4.02849 19.9262C4.24683 20.7027 4.56045 21.3453 5.13662 21.8415C5.71279 22.3377 6.39485 22.5525 7.19513 22.6533C7.96377 22.75 8.92732 22.75 10.1173 22.75H13.883C15.073 22.75 16.0365 22.75 16.8052 22.6533C17.6054 22.5525 18.2875 22.3377 18.8637 21.8415C19.4398 21.3453 19.7535 20.7027 19.9718 19.9262C20.1815 19.1805 20.3244 18.2276 20.5009 17.0509L21.7172 8.94253C21.95 7.39065 22.1366 6.14629 22.145 5.1621C22.1537 4.14438 21.9757 3.27008 21.3581 2.55292C20.7405 1.83575 19.9023 1.53007 18.8945 1.38767C17.92 1.24996 16.6617 1.24998 15.0924 1.25ZM3.77879 3.53175C4.05882 3.20658 4.47927 2.9911 5.31565 2.87292C6.17295 2.75177 7.32479 2.75 8.96727 2.75H15.033C16.6755 2.75 17.8273 2.75177 18.6846 2.87292C19.521 2.9911 19.9415 3.20658 20.2215 3.53175C20.5015 3.85692 20.6523 4.30468 20.6451 5.14933C20.6448 5.18248 20.6443 5.21604 20.6435 5.25H20.5005C20.5003 5.25 20.5007 5.25 20.5005 5.25H7.00045C7.00025 5.25 7.00065 5.25 7.00045 5.25H3.35678C3.35603 5.21603 3.35551 5.18248 3.35522 5.14933C3.34803 4.30468 3.49876 3.85692 3.77879 3.53175ZM5.18949 6.75H3.48546C3.53687 7.15852 3.60161 7.61096 3.67631 8.1155L3.75015 8.18934L5.18949 6.75ZM4.05013 10.6106L4.6686 14.7338L6.37599 12.9365L4.05013 10.6106ZM5.15659 17.9593C5.17275 18.0594 5.18872 18.1563 5.20463 18.25H5.39887L5.15659 17.9593ZM6.99527 19.75C6.99879 19.75 7.00232 19.75 7.00584 19.75H13.9972C13.9991 19.75 14.0009 19.75 14.0027 19.75H18.4577C18.299 20.2287 18.1176 20.5044 17.8848 20.7049C17.6171 20.9355 17.261 21.0841 16.6178 21.165C15.9538 21.2486 15.0849 21.25 13.833 21.25H10.1673C8.91538 21.25 8.04651 21.2486 7.38247 21.165C6.73934 21.0841 6.38321 20.9355 6.11546 20.7049C5.88266 20.5044 5.70127 20.2287 5.54256 19.75H6.99527ZM15.7131 18.25H18.1895L16.9018 16.9623L15.7131 18.25ZM19.0007 16.9399C19.0087 16.8869 19.0168 16.8332 19.0249 16.7788L19.404 14.2515L17.92 15.8592L19.0007 16.9399ZM19.856 11.2381L20.2249 8.77879C20.3197 8.14673 20.4033 7.5881 20.4704 7.09045L18.16 9.40079L19.856 11.2381ZM18.6895 6.75H15.7131L17.1418 8.2977L18.6895 6.75ZM12.2532 6.75H8.81081L10.5761 8.51531L12.2532 6.75ZM11.6895 18.25H9.31081L10.5002 17.0607L11.6895 18.25ZM7.40946 11.8486L4.81081 9.25L7.00015 7.06066L9.54266 9.60317L7.40946 11.8486ZM8.47047 12.9097L10.6037 10.6642L12.6895 12.75L10.5002 14.9393L8.47047 12.9097ZM11.5608 16L13.7502 13.8107L15.8403 15.9008L13.7385 18.1777L11.5608 16ZM14.8108 12.75L16.8585 14.7977L18.9795 12.5L17.0985 10.4623L14.8108 12.75ZM13.7502 11.6893L16.0803 9.35921L13.9923 7.09721L11.6371 9.57632L13.7502 11.6893ZM7.437 13.9975L9.43949 16L7.27782 18.1617L5.50363 16.0326L7.437 13.9975Z" fill="currentColor"/></svg>Vaciar historial</button>
-          </div>
-
-          <div class="ajustes-section-footer">
-            <button class="ajustes-clear" id="cuentaCerrarSesion" type="button"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M17.4399 14.62L19.9999 12.06L17.4399 9.5" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.76001 12.0601H19.93" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.76 20C7.34001 20 3.76001 17 3.76001 12C3.76001 7 7.34001 4 11.76 4" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/></svg>Cerrar sesión en este navegador</button>
+          <div class="ajustes-actions ajustes-actions--static">
+            <button class="cuenta-btn cuenta-btn--quiet" id="cuentaCerrarSesion" type="button"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M17.4399 14.62L19.9999 12.06L17.4399 9.5" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.76001 12.0601H19.93" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M11.76 20C7.34001 20 3.76001 17 3.76001 12C3.76001 7 7.34001 4 11.76 4" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/></svg>Cerrar sesión en este navegador</button>
           </div>
         </div>
 
+        </div>
       </div>
     </div>
   </section>
   <div class="scene-title" id="sceneTitle"><img src="assets/scene-title-v2.png" alt="this is deiv.ph">
   </div>
 
-<script src="js/scroll-frames-data.js"></script>
+<script defer src="js/scroll-frames-data.js"></script>
 
-<script src="js/scroll-engine.js"></script>
+<script defer src="js/scroll-engine.js"></script>
 
-<script src="js/view-navigation.js?v=2"></script>
+<script defer src="js/view-navigation.js?v=2"></script>
 
 <!-- ---------- Menú horizontal de pestañas dentro de Ajustes ---------- -->
-<script src="js/settings-tabs.js"></script>
+<script defer src="js/settings-tabs.js"></script>
 
 <!-- Utilidad compartida: arrastrar una miniatura de Ajustes hacia arriba
      o abajo para reencuadrarla (mueve el object-position vertical de la
      foto), y así poder corregir fotos donde el recorte automático se
      come una cara u otra parte importante. La usan tanto el panel del
      carrusel como el del collage de "Sobre mí". -->
-<script src="js/thumb-reposition.js"></script>
+<script defer src="js/thumb-reposition.js"></script>
 
 <!-- Carrusel automático de cámaras (cinta continua en CSS) -->
-<script src="js/camera-carousel.js"></script>
+<script defer src="js/camera-carousel.js"></script>
 
 <!-- ---------- Collage animado de "Sobre mí" ---------- -->
-<script src="js/about-collage.js"></script>
+<script defer src="js/about-collage.js"></script>
 
 
 <!-- ---------- Motor genérico del comparador Antes/Después ----------
      Función compartida (crearComparador) que monta el arrastre del tirador
      de cualquier tarjeta de comparación "sin editar / editada": la usan
      las tarjetas .ba-card de la galería "Mis ediciones" (#asBaGallery). -->
-<script src="js/before-after-card.js"></script>
+<script defer src="js/before-after-card.js"></script>
 
 
 <!-- ---------- Textos editables ("Sobre mí" y frase de la pantalla de inicio) ---------- -->
-<script src="js/editable-texts.js"></script>
+<script defer src="js/editable-texts.js"></script>
 
 <!-- ---------- "Mis ediciones": categorías con foto + parejas antes/después
      (Ajustes → Mis ediciones). Antes el panel existía en el HTML pero no
@@ -830,19 +796,19 @@
      igual que el resto de fotos de la web) y el guardado en la nube, tanto
      para las tarjetas de "Descubre mi trabajo" como para las parejas del
      comparador con flechas que aparece justo encima. ---------- -->
-<script src="js/comparison-pairs.js"></script>
+<script defer src="js/comparison-pairs.js"></script>
 
 <!-- ---------- Categorías de "Proyectos" (Deportes, Fiestas...) ----------
      Botones editables desde Ajustes → Proyectos: cada uno abre, a
      pantalla completa, la galería de fotos de esa categoría. ---------- -->
-<script src="js/project-categories.js"></script>
-<script src="js/youtube-videos.js"></script>
+<script defer src="js/project-categories.js"></script>
+<script defer src="js/youtube-videos.js"></script>
 
 
 <!-- ---------- Panel "Cuenta": historial, contraseña y copia de seguridad ---------- -->
-<script src="js/account-panel.js"></script>
+<script defer src="js/account-panel.js"></script>
 
 
-<script src="js/zoom-lock.js"></script>
+<script defer src="js/zoom-lock.js"></script>
 </body>
 </html>

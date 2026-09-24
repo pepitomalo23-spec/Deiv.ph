@@ -130,11 +130,19 @@
 
   let ytDraft = [];
 
+  function ytThumbStyle(url){
+    const thumb = getYoutubeThumb(url);
+    return thumb ? ' style="background-image:url(\'' + escapeAttr(thumb) + '\')"' : '';
+  }
+
   function renderYtEditor(){
     if (!ytListEl) return;
     const last = ytDraft.length - 1;
     ytListEl.innerHTML = ytDraft.map((v, i) => (
       '<div class="cat-editor-item" data-index="' + i + '">' +
+        // Miniatura del propio vídeo (la misma que se ve en la web), para
+        // reconocer cada fila de un vistazo sin leer títulos ni enlaces.
+        '<span class="yt-editor-thumb"' + ytThumbStyle(v.url) + ' aria-hidden="true"></span>' +
         '<div class="cat-editor-item-head">' +
           '<input type="text" class="cat-editor-name" value="' + escapeAttr(v.title) + '" placeholder="Título del vídeo">' +
           '<div class="pair-editor-actions">' +
@@ -168,6 +176,10 @@
         ytDraft[i].title = e.target.value;
       } else if (e.target.classList.contains('cat-editor-link')){
         ytDraft[i].url = e.target.value;
+        // La miniatura se actualiza al momento al pegar un enlace nuevo.
+        const thumbEl = row.querySelector('.yt-editor-thumb');
+        const thumb = getYoutubeThumb(e.target.value);
+        if (thumbEl) thumbEl.style.backgroundImage = thumb ? 'url(\'' + thumb + '\')' : '';
       }
     });
 
