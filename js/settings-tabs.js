@@ -24,4 +24,20 @@
   });
 
   window.setAjustesTab = activateTab;
+
+  // Deslizadores de Ajustes (p. ej. "Encuadre"): la parte ya recorrida de
+  // la pista se pinta en cian vía --range-fill (ver input[type="range"]
+  // en styles.css). Se actualiza al moverlos y cuando los editores vuelven
+  // a pintar sus filas.
+  const view = document.getElementById('view-ajustes');
+  if (view){
+    const paint = r => {
+      const min = Number(r.min) || 0, max = Number(r.max) || 100;
+      r.style.setProperty('--range-fill', ((Number(r.value) - min) / (max - min || 1) * 100) + '%');
+    };
+    const paintAll = () => view.querySelectorAll('input[type="range"]').forEach(paint);
+    view.addEventListener('input', e => { if (e.target.matches('input[type="range"]')) paint(e.target); });
+    new MutationObserver(paintAll).observe(view, { childList:true, subtree:true });
+    paintAll();
+  }
 })();

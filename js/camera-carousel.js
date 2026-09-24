@@ -461,7 +461,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
           </button>
         </div>
-        <input type="text" class="ajustes-thumb-name" data-index="${i}" placeholder="Nombre (opcional)" value="${escapeAttr(item.name)}">
+        <textarea class="ajustes-thumb-name" data-index="${i}" rows="2" placeholder="Nombre (opcional)">${escapeHtml(item.name || '')}</textarea>
       </div>
     `).join('');
 
@@ -586,13 +586,22 @@
   // actualiza el dato en el momento (sin redibujar la rejilla, para no
   // robarte el foco) y solo se guarda de verdad en la nube cuando pasa
   // un ratito sin que sigas escribiendo.
+  // El nombre va en un <textarea> de dos líneas (en un <input> los nombres
+  // largos, como "Sony E PZ 16-50mm f/3.5-5.6 OSS II", se cortaban), pero
+  // sigue siendo UNA sola línea de texto: Intro no añade saltos, cierra.
+  ajustesGrid.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.matches('.ajustes-thumb-name')){
+      e.preventDefault();
+      e.target.blur();
+    }
+  });
   ajustesGrid.addEventListener('input', (e) => {
-    const input = e.target.closest('input.ajustes-thumb-name');
+    const input = e.target.closest('.ajustes-thumb-name');
     if (!input) return;
     const idx = parseInt(input.dataset.index, 10);
     const userImages = loadUserImages();
     if (!userImages[idx]) return;
-    userImages[idx].name = input.value;
+    userImages[idx].name = input.value.replace(/\s*\n\s*/g, ' ');
     cloudCarouselImages = userImages;
     buildMarquee();
     clearTimeout(nameSaveTimer);
