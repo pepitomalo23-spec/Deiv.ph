@@ -35,10 +35,24 @@ window.CloudDB = (function(){
       contentListeners.forEach(cb => cb(cache, loaded));
     }, err => console.error('Firestore (contenido):', err.message));
 
-    historyCol().orderBy('t', 'desc').limit(300).onSnapshot(snap => {
-      historyCache = snap.docs.map(d => Object.assign({ id:d.id }, d.data()));
-      historyListeners.forEach(cb => cb(historyCache));
-    }, err => console.error('Firestore (historial):', err.message));
+    // El historial solo lo puede leer el administrador (reglas de
+    // Firestore): antes se pedía en CADA visita pública y cada visitante
+    // se llevaba un "Missing or insufficient permissions" en la consola.
+    // Ahora solo se escucha mientras hay sesión iniciada.
+    let stopHistory = null;
+    window.fb.auth.onAuthStateChanged(user => {
+      if (user && !stopHistory){
+        stopHistory = historyCol().orderBy('t', 'desc').limit(300).onSnapshot(snap => {
+          historyCache = snap.docs.map(d => Object.assign({ id:d.id }, d.data()));
+          historyListeners.forEach(cb => cb(historyCache));
+        }, err => console.error('Firestore (historial):', err.message));
+      } else if (!user && stopHistory){
+        stopHistory();
+        stopHistory = null;
+        historyCache = [];
+        historyListeners.forEach(cb => cb(historyCache));
+      }
+    });
   }
   if (window.__firebaseConfigured) startListeners();
   else { loaded = true; resolveReady(); } // sin Firebase configurado no habrá snapshot nunca: no hay "cargando" que esperar
@@ -60,14 +74,38 @@ window.CloudDB = (function(){
     await batch.commit();
   }
 
-  // Sube el archivo a Cloudinary usando un "upload preset" sin firmar
-  // (unsigned), pensado justo para subir directamente desde el navegador
-  // sin exponer ninguna clave secreta. Devuelve la URL pública (https)
-  // de la imagen ya subida, que es lo que se guarda en Firestore.
-  function uploadImage(file, folder){
-    if (!window.__cloudinaryConfigured){
-      return Promise.reject(new Error('Cloudinary no está configurado todavía (falta pegar cloudinaryConfig).'));
+  // Pide a /api/cloudinary-sign (función de Vercel) una firma para subir
+  // a Cloudinary. Solo la concede con la sesión de administrador; devuelve
+  // null si no hay sesión o si la función aún no está configurada en
+  // Vercel (503), y entonces se sube como siempre con el preset sin firmar.
+  async function getUploadSignature(folder){
+    try{
+      const user = currentUser();
+      if (!user) return null;
+      const idToken = await user.getIdToken();
+      const res = await fetch('/api/cloudinary-sign', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + idToken },
+        body: JSON.stringify({ folder })
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data && data.signature ? data : null;
+    }catch(e){
+      return null;
     }
+  }
+
+  // Sube el archivo a Cloudinary. Si la función de firma está configurada
+  // (ver api/cloudinary-sign.js), la subida va FIRMADA: solo el
+  // administrador puede subir. Si no, usa el "upload preset" sin firmar de
+  // siempre. Devuelve la URL pública (https) de la imagen ya subida, que
+  // es lo que se guarda en Firestore.
+  async function uploadImage(file, folder){
+    if (!window.__cloudinaryConfigured){
+      throw new Error('Cloudinary no está configurado todavía (falta pegar cloudinaryConfig).');
+    }
+    const signed = await getUploadSignature(folder);
     // Usamos el endpoint "auto" (en vez de "image") para que Cloudinary acepte
     // cualquier formato que llegue desde la cámara o la galería del móvil
     // (incluidos HEIC/HEIF de iPhone/iPad, RAW, etc.) sin rechazarlo por el
@@ -75,8 +113,15 @@ window.CloudDB = (function(){
     const url = `https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/auto/upload`;
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', cloudinaryConfig.uploadPreset);
-    formData.append('folder', folder);
+    if (signed){
+      formData.append('api_key', signed.apiKey);
+      formData.append('timestamp', signed.timestamp);
+      formData.append('signature', signed.signature);
+      formData.append('folder', signed.folder);
+    } else {
+      formData.append('upload_preset', cloudinaryConfig.uploadPreset);
+      formData.append('folder', folder);
+    }
     // IMPORTANTE: fetch() no tiene ningún límite de tiempo por defecto. Si
     // Cloudinary (o la red del dispositivo, un bloqueador de contenido de
     // Safari, etc.) nunca llega a contestar, la petición se queda esperando
@@ -218,11 +263,19 @@ window.CloudDB = (function(){
   }
 
   // ---- Autenticación (cuenta única de administrador) ----
-  function login(email, pass){ return window.fb.auth.signInWithEmailAndPassword(email, pass); }
-  function logout(){ return window.fb.auth.signOut(); }
-  function resetPassword(email){ return window.fb.auth.sendPasswordResetEmail(email); }
-  function onAuthChange(cb){ window.fb.auth.onAuthStateChanged(cb); }
-  function currentUser(){ return window.fb.auth.currentUser; }
+  // Si Firebase no llega a cargar (bloqueador de anuncios, red que corta
+  // gstatic.com...) window.fb no existe: la web pública sigue funcionando
+  // con lo que hay en el HTML, pero estas funciones lanzaban un TypeError
+  // sin controlar. Ahora devuelven "sin sesión" o un error claro.
+  const noFirebase = () => Promise.reject(new Error('No se pudo conectar con Firebase.'));
+  function login(email, pass){ return window.fb ? window.fb.auth.signInWithEmailAndPassword(email, pass) : noFirebase(); }
+  function logout(){ return window.fb ? window.fb.auth.signOut() : Promise.resolve(); }
+  function resetPassword(email){ return window.fb ? window.fb.auth.sendPasswordResetEmail(email) : noFirebase(); }
+  function onAuthChange(cb){
+    if (!window.fb){ cb(null); return; }
+    window.fb.auth.onAuthStateChanged(cb);
+  }
+  function currentUser(){ return window.fb ? window.fb.auth.currentUser : null; }
   async function changePassword(currentPass, newPass){
     const user = currentUser();
     if (!user) throw new Error('No hay sesión activa');
