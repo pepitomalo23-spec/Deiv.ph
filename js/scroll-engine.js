@@ -2109,6 +2109,11 @@
     if (typeof window.__resyncScrollToStep === 'function') window.__resyncScrollToStep();
   }
   window.addEventListener('resize', () => { onSceneResize(); fitBodyCaption(); recomputeProgressSpan(); });
+  // Lo mismo que un resize, a demanda: goToView (view-navigation.js) lo
+  // llama al volver a "resumen", porque los resizes que ocurran mientras
+  // se está en otra sección se ignoran (ver onSceneResize) y resizeCanvas/
+  // render no son accesibles desde fuera de este archivo.
+  window.__refreshScene = () => { onSceneResize(); fitBodyCaption(); recomputeProgressSpan(); };
   wideLayoutQuery.addEventListener('change', () => { render(); fitBodyCaption(); });
   // En iOS/Android, mostrar u ocultar la barra de direcciones dispara un
   // resize del "visual viewport" que a veces no llega por 'resize' normal;
