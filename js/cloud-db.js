@@ -35,10 +35,24 @@ window.CloudDB = (function(){
       contentListeners.forEach(cb => cb(cache, loaded));
     }, err => console.error('Firestore (contenido):', err.message));
 
-    historyCol().orderBy('t', 'desc').limit(300).onSnapshot(snap => {
-      historyCache = snap.docs.map(d => Object.assign({ id:d.id }, d.data()));
-      historyListeners.forEach(cb => cb(historyCache));
-    }, err => console.error('Firestore (historial):', err.message));
+    // El historial solo lo puede leer el administrador (reglas de
+    // Firestore): antes se pedía en CADA visita pública y cada visitante
+    // se llevaba un "Missing or insufficient permissions" en la consola.
+    // Ahora solo se escucha mientras hay sesión iniciada.
+    let stopHistory = null;
+    window.fb.auth.onAuthStateChanged(user => {
+      if (user && !stopHistory){
+        stopHistory = historyCol().orderBy('t', 'desc').limit(300).onSnapshot(snap => {
+          historyCache = snap.docs.map(d => Object.assign({ id:d.id }, d.data()));
+          historyListeners.forEach(cb => cb(historyCache));
+        }, err => console.error('Firestore (historial):', err.message));
+      } else if (!user && stopHistory){
+        stopHistory();
+        stopHistory = null;
+        historyCache = [];
+        historyListeners.forEach(cb => cb(historyCache));
+      }
+    });
   }
   if (window.__firebaseConfigured) startListeners();
   else { loaded = true; resolveReady(); } // sin Firebase configurado no habrá snapshot nunca: no hay "cargando" que esperar
@@ -218,11 +232,19 @@ window.CloudDB = (function(){
   }
 
   // ---- Autenticación (cuenta única de administrador) ----
-  function login(email, pass){ return window.fb.auth.signInWithEmailAndPassword(email, pass); }
-  function logout(){ return window.fb.auth.signOut(); }
-  function resetPassword(email){ return window.fb.auth.sendPasswordResetEmail(email); }
-  function onAuthChange(cb){ window.fb.auth.onAuthStateChanged(cb); }
-  function currentUser(){ return window.fb.auth.currentUser; }
+  // Si Firebase no llega a cargar (bloqueador de anuncios, red que corta
+  // gstatic.com...) window.fb no existe: la web pública sigue funcionando
+  // con lo que hay en el HTML, pero estas funciones lanzaban un TypeError
+  // sin controlar. Ahora devuelven "sin sesión" o un error claro.
+  const noFirebase = () => Promise.reject(new Error('No se pudo conectar con Firebase.'));
+  function login(email, pass){ return window.fb ? window.fb.auth.signInWithEmailAndPassword(email, pass) : noFirebase(); }
+  function logout(){ return window.fb ? window.fb.auth.signOut() : Promise.resolve(); }
+  function resetPassword(email){ return window.fb ? window.fb.auth.sendPasswordResetEmail(email) : noFirebase(); }
+  function onAuthChange(cb){
+    if (!window.fb){ cb(null); return; }
+    window.fb.auth.onAuthStateChanged(cb);
+  }
+  function currentUser(){ return window.fb ? window.fb.auth.currentUser : null; }
   async function changePassword(currentPass, newPass){
     const user = currentUser();
     if (!user) throw new Error('No hay sesión activa');
