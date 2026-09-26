@@ -68,7 +68,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&family=Anton&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=21">
+<link rel="stylesheet" href="styles.css?v=22">
 </head>
 <body>
 
@@ -308,15 +308,17 @@
          "Ediciones" fijo arriba y "Proyectos" fijo abajo en pantallas
          pequeñas.
          Van en una fila de dos columnas (.proyectos-media-row), cada
-         botón en su mitad: si uno se oculta porque no tiene nada
-         guardado, el otro se queda en su mitad (no se estira a todo el
-         ancho).
+         botón en su mitad: si el de YouTube se oculta porque no tiene
+         ningún vídeo guardado, el de Reels se queda en su mitad (no se
+         estira a todo el ancho).
          - "YouTube" lleva a la cuadrícula completa de "Proyectos en
            YouTube" (#view-mis-videos, ver youtube-videos.js). Su
            miniatura se saca automáticamente del primer vídeo de la lista.
          - "Reels" lleva a la cuadrícula de vídeos verticales
            (#view-mis-reels, ver reels.js). Su miniatura es la portada
-           del primer reel de la lista. -->
+           del primer reel de la lista. Se ve siempre, aunque todavía no
+           haya ningún reel: su página avisa de que llegarán pronto y
+           enlaza al Instagram. -->
     <div class="proyectos-media-row" id="proyectosMediaRow">
       <button type="button" class="proyectos-yt-btn" id="proyectosYtBtn">
         <span class="proyectos-yt-btn-thumb" id="proyectosYtBtnThumb" aria-hidden="true">

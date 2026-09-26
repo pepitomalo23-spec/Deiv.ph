@@ -4,6 +4,10 @@
 // "Ediciones" y "Proyectos", que lleva a la página #view-mis-reels con
 // la cuadrícula completa. Cada tarjeta es vertical (9:16) y al tocarla
 // abre el reel real en una pestaña nueva.
+// A diferencia del de YouTube, este botón se ve SIEMPRE, aunque todavía
+// no haya ningún reel guardado: así el apartado existe desde el primer
+// día, y su página, mientras esté vacía, invita a ver los reels en
+// Instagram (ver renderEmpty).
 //
 // La diferencia con YouTube es la portada: Instagram y TikTok no dejan
 // sacar la miniatura a partir del enlace, así que cada reel lleva su
@@ -59,20 +63,42 @@
 
   // ================= Vista pública =================
   let currentReels = [];
-  // Igual que en youtube-videos.js: no se oculta el botón mientras la
-  // nube todavía no ha respondido.
+  // Igual que en youtube-videos.js: distingue "la nube todavía no ha
+  // respondido" de "ya respondió y no hay ningún reel", para no enseñar
+  // el aviso de página vacía mientras se está cargando.
   let cloudLoaded = false;
 
   const gridEl = document.getElementById('reelsGridFull');
   const reelsBtn = document.getElementById('proyectosReelsBtn');
   const reelsBtnThumb = document.getElementById('proyectosReelsBtnThumb');
 
+  // Página sin ningún reel todavía: un aviso y un botón al perfil de
+  // Instagram, en vez de una página en blanco. El enlace se toma del
+  // icono de Instagram de la portada (#socialInstagramLink), que
+  // editable-texts.js ya mantiene al día con el de Ajustes → Textos y
+  // contacto (su suscripción a la nube se registra antes que esta, así
+  // que cuando se pinta esto ya tiene el valor bueno).
+  function renderEmpty(){
+    if (!gridEl) return;
+    const igLink = document.getElementById('socialInstagramLink');
+    const igHref = safeHref(igLink ? igLink.getAttribute('href') : '');
+    gridEl.innerHTML = (
+      '<div class="reels-empty">' +
+        '<span class="reels-empty-icon">' + REEL_ICON + '</span>' +
+        '<p class="reels-empty-text">Muy pronto habrá reels aquí.</p>' +
+        (igHref !== '#' ? '<a class="reels-empty-btn" href="' + escapeAttr(igHref) + '" target="_blank" rel="noopener">Ver mis reels en Instagram</a>' : '') +
+      '</div>'
+    );
+  }
+
   function renderPublic(){
-    if (reelsBtn) reelsBtn.style.display = (!cloudLoaded || currentReels.length) ? '' : 'none';
+    // El botón se queda siempre visible (ver comentario de arriba).
+    if (reelsBtn) reelsBtn.style.display = '';
     syncProyectosMediaRow();
     if (!cloudLoaded || !currentReels.length){
       if (reelsBtnThumb) reelsBtnThumb.style.backgroundImage = '';
-      if (gridEl) gridEl.innerHTML = '';
+      if (cloudLoaded) renderEmpty();
+      else if (gridEl) gridEl.innerHTML = '';
       return;
     }
 

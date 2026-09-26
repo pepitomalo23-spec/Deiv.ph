@@ -3103,6 +3103,35 @@
     overflow:hidden;
   }
   .reel-card:hover .youtube-card-hint{ opacity:1; color:var(--accent); }
+  /* Página todavía sin reels: aviso centrado + botón al Instagram (ver
+     renderEmpty en reels.js). Ocupa toda la fila de la cuadrícula. */
+  .reels-empty{
+    grid-column:1 / -1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+    padding:clamp(28px, 6vw, 56px) 16px;
+    border-radius:16px;
+    background:rgba(0,0,0,0.035);
+    text-align:center;
+  }
+  .reels-empty-icon{ color:var(--dim); opacity:0.7; }
+  .reels-empty-icon svg{ width:40px; height:40px; }
+  .subview .reels-empty .reels-empty-text{ margin:0; color:var(--dim); }
+  .reels-empty-btn{
+    display:inline-flex;
+    align-items:center;
+    padding:11px 20px;
+    border-radius:999px;
+    background:#111111;
+    color:#fff;
+    font-size:0.85rem;
+    font-weight:600;
+    text-decoration:none;
+    transition:transform .18s ease, background-color .18s ease;
+  }
+  .reels-empty-btn:hover{ background:var(--accent); transform:translateY(-1px); }
 
   /* ---------- Galería a pantalla completa de una categoría de "Proyectos"
      ----------
@@ -3433,8 +3462,9 @@
      proyectos-yt-btn-thumb más abajo y su JS en youtube-videos.js y
      reels.js), título+subtítulo en el centro y una flecha a la derecha.
      Mismo lenguaje neumórfico que .as-cat-btn (sombra doble suave).
-     Si uno de los dos no tiene nada guardado se oculta y el otro se
-     queda en su columna, sin estirarse a todo el ancho. */
+     Si YouTube no tiene ningún vídeo guardado se oculta y el de Reels
+     (que se ve siempre) se queda en su columna, sin estirarse a todo el
+     ancho. */
   .proyectos-media-row{
     display:grid;
     grid-template-columns:repeat(2, minmax(0, 1fr));
