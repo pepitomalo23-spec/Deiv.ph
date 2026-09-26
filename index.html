@@ -68,7 +68,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&family=Anton&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=22">
+<link rel="stylesheet" href="styles.css?v=23">
 </head>
 <body>
 
@@ -509,17 +509,40 @@
        Se abre al pulsar el botón "Reels" (#proyectosReelsBtn, al lado del
        de YouTube). Igual que "Mis vídeos": vista secundaria (.subview)
        controlada por goToView en view-navigation.js, sin entrada propia
-       en el menú. Cada tarjeta es vertical (9:16) y lleva al reel real
-       (Instagram, TikTok o YouTube Shorts) en una pestaña nueva; se
-       editan desde Ajustes → Reels (ver reels.js). -->
+       en el menú. Cada tarjeta es vertical (9:16) y, al tocarla, el reel
+       (Instagram, TikTok o YouTube Shorts) se ve aquí mismo, en el
+       reproductor de #reelViewer; se editan desde Ajustes → Reels (ver
+       reels.js). -->
   <section class="subview" id="view-mis-reels">
     <div class="subview-inner">
       <p class="subview-eyebrow">Vídeos cortos</p>
       <h1>Mis <span class="as-word-accent">reels</span></h1>
-      <p class="lead">Cada portada lleva directa al reel.</p>
+      <p class="lead">Toca una portada para ver el reel aquí mismo.</p>
       <div class="reels-grid" id="reelsGridFull"></div>
     </div>
   </section>
+
+  <!-- ---------- Reproductor de reels (encima de la página) ----------
+       Se abre al tocar una tarjeta de "Mis reels": carga dentro el vídeo
+       (Instagram: un <video> con el vídeo del reel, o el reproductor
+       oficial de Instagram si ese falla; TikTok y YouTube: su
+       reproductor oficial), con el título y un enlace para verlo en la
+       red. Se cierra con la X, tocando fuera o con Escape; al cerrar se
+       quita el vídeo, que es lo que lo para del todo (ver
+       openViewer/closeViewer en reels.js). -->
+  <div class="reel-viewer" id="reelViewer" hidden>
+    <div class="reel-viewer-backdrop" data-reel-close></div>
+    <div class="reel-viewer-panel" role="dialog" aria-modal="true" aria-labelledby="reelViewerTitle">
+      <button type="button" class="reel-viewer-close" data-reel-close aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <div class="reel-viewer-frame" id="reelViewerFrame"></div>
+      <div class="reel-viewer-info">
+        <p class="reel-viewer-title" id="reelViewerTitle"></p>
+        <a class="reel-viewer-link" id="reelViewerLink" href="#" target="_blank" rel="noopener">Ver en Instagram</a>
+      </div>
+    </div>
+  </div>
 
   <!-- ---------- Sección: Ajustes ----------
        Panel del administrador. Las pestañas siguen el MISMO orden en que
@@ -621,7 +644,7 @@
             <span class="ajustes-section-icon" aria-hidden="true"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 9.5v5l4-2.5-4-2.5Z" fill="currentColor" stroke="none"/></svg></span>
             <div>
               <p class="ajustes-section-title">Reels</p>
-              <p class="ajustes-section-desc">Título y enlace de cada reel (Instagram, TikTok o YouTube Shorts). Toca el recuadro vertical para subir su portada: Instagram y TikTok no dejan sacarla sola del enlace (en YouTube Shorts sí, si no subes ninguna). Marca «Editado» y/o «Creado» según tu papel.</p>
+              <p class="ajustes-section-desc">Pega el enlace de cada reel (Instagram, TikTok o YouTube Shorts) y ponle un título. La portada que ya tiene en Instagram o TikTok se pone sola; si prefieres otra, pulsa «Subir otra». En la web el reel se ve ahí mismo, sin salir de la página. Marca «Editado» y/o «Creado» según tu papel.</p>
               <p class="ajustes-where">En la web: la página «Mis reels» (botón «Reels», al lado de «YouTube»).</p>
             </div>
           </div>

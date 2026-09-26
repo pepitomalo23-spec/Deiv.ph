@@ -3133,6 +3133,131 @@
   }
   .reels-empty-btn:hover{ background:var(--accent); transform:translateY(-1px); }
 
+  /* ---------- Reproductor de reels (#reelViewer) ----------
+     Capa a pantalla completa, encima de todo (por encima también de los
+     visores de fotos, 4000-4100), con el reproductor en el centro.
+     Vídeo de Instagram (<video>), TikTok y YouTube: recuadro 9:16 tan
+     alto como quepa. Respaldo de Instagram (iframe oficial): blanco, de
+     ancho fijo y con la altura que marca el propio Instagram (ver el
+     mensaje "MEASURE" en reels.js); si no cabe, el panel se desplaza. */
+  .reel-viewer{
+    position:fixed;
+    inset:0;
+    z-index:4200;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  }
+  .reel-viewer[hidden]{ display:none; }
+  .reel-viewer-backdrop{
+    position:absolute;
+    inset:0;
+    background:rgba(8,8,10,0.88);
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+  }
+  .reel-viewer-panel{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+    max-height:100%;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    padding-top:52px;
+    animation:reelViewerIn .22s ease;
+  }
+  @keyframes reelViewerIn{
+    from{ opacity:0; transform:translateY(10px) scale(0.98); }
+    to{ opacity:1; transform:none; }
+  }
+  .reel-viewer-close{
+    position:absolute;
+    top:0;
+    right:0;
+    width:44px;
+    height:44px;
+    border:none;
+    border-radius:50%;
+    background:rgba(255,255,255,0.14);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:background-color .18s ease;
+  }
+  .reel-viewer-close:hover{ background:rgba(255,255,255,0.26); }
+  .reel-viewer-frame iframe{
+    display:block;
+    border:0;
+    border-radius:14px;
+    background:#000;
+  }
+  /* Ancho pensado para que el vídeo 9:16 + la cabecera y el pie de
+     Instagram (~200px) quepan en la pantalla sin desplazarse; nunca más
+     estrecho de 300px (Instagram no se ve bien por debajo) ni más ancho
+     de 400px. */
+  .reel-viewer-frame--instagram iframe{
+    width:min(400px, calc(100vw - 32px), max(300px, calc((100vh - 280px) * 0.5625)));
+    height:640px;
+    background:#fff;
+  }
+  .reel-viewer-frame--tiktok iframe,
+  .reel-viewer-frame--youtube iframe,
+  .reel-viewer-frame--video video{
+    --rv-h:min(calc(100vh - 170px), calc((100vw - 32px) * 16 / 9), 820px);
+    display:block;
+    height:var(--rv-h);
+    width:calc(var(--rv-h) * 9 / 16);
+  }
+  /* Vídeo de Instagram en un <video> propio: si el reel no es vertical,
+     se ve entero (con franjas negras) en vez de recortado. */
+  .reel-viewer-frame--video video{
+    border-radius:14px;
+    background:#000;
+    object-fit:contain;
+  }
+  @supports (height:100dvh){
+    .reel-viewer-frame--instagram iframe{
+      width:min(400px, calc(100vw - 32px), max(300px, calc((100dvh - 280px) * 0.5625)));
+    }
+    .reel-viewer-frame--tiktok iframe,
+    .reel-viewer-frame--youtube iframe,
+    .reel-viewer-frame--video video{
+      --rv-h:min(calc(100dvh - 170px), calc((100vw - 32px) * 16 / 9), 820px);
+    }
+  }
+  .reel-viewer-info{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    max-width:400px;
+    text-align:center;
+  }
+  .reel-viewer .reel-viewer-title{
+    margin:0;
+    font-family:'Fraunces','Georgia',serif;
+    font-weight:600;
+    font-size:1rem;
+    line-height:1.35;
+    color:#fff;
+  }
+  .reel-viewer-title:empty{ display:none; }
+  .reel-viewer-link{
+    font-size:0.78rem;
+    font-weight:600;
+    letter-spacing:0.02em;
+    text-transform:uppercase;
+    color:rgba(255,255,255,0.7);
+    text-decoration:none;
+  }
+  .reel-viewer-link:hover{ color:#fff; }
+  body.reel-viewer-open{ overflow:hidden; }
+
   /* ---------- Galería a pantalla completa de una categoría de "Proyectos"
      ----------
      El elemento ya vive de fábrica fuera de cualquier ancestro con
@@ -5429,7 +5554,7 @@
   #view-ajustes #reelsEditorList .cat-editor-item{
     display:grid;
     grid-template-columns:76px minmax(0, 1fr);
-    grid-template-areas:"cover head" "cover link" "cover tags";
+    grid-template-areas:"cover head" "cover link" "cover opts" "cover tags";
     column-gap:12px;
     row-gap:6px;
     align-items:center;
@@ -5480,6 +5605,39 @@
     font-weight:600;
     text-align:center;
   }
+  /* Opciones de portada: "La de Instagram" / "Subir otra" (la que está
+     puesta, marcada) y "Quitar". */
+  #view-ajustes #reelsEditorList .reel-editor-cover-opts{ grid-area:opts; }
+  .reel-editor-cover-opts{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:6px;
+  }
+  .reel-editor-cover-label{
+    font-size:0.74rem;
+    font-weight:600;
+    color:var(--adm-dim);
+    margin-right:2px;
+  }
+  .reel-cover-opt{
+    padding:4px 10px;
+    border-radius:999px;
+    border:1px solid var(--adm-border);
+    background:transparent;
+    color:var(--adm-dim);
+    font-family:inherit;
+    font-size:0.74rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:border-color .15s ease, color .15s ease, background-color .15s ease;
+  }
+  .reel-cover-opt:hover{ border-color:var(--adm-accent); color:var(--adm-accent); }
+  .reel-cover-opt.is-active{
+    border-color:var(--adm-accent);
+    background:var(--adm-accent);
+    color:#0d1117;
+  }
   .reel-editor-cover-remove{
     padding:4px 10px;
     border:none;
@@ -5494,7 +5652,7 @@
   @media (max-width:520px){
     #view-ajustes #reelsEditorList .cat-editor-item{
       grid-template-columns:64px minmax(0, 1fr);
-      grid-template-areas:"cover tags" "head head" "link link";
+      grid-template-areas:"cover tags" "head head" "link link" "opts opts";
     }
     .reel-editor-cover{ width:64px; }
   }
