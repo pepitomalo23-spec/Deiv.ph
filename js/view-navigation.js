@@ -21,6 +21,10 @@
   // -se entra solo desde ese botón-, pero se sale igual que de
   // "Sobre mí": con el mismo menú de siempre.
   const viewMisVideos = document.getElementById('view-mis-videos');
+  // "Mis reels": cuadrícula de vídeos verticales, a la que lleva el botón
+  // "Reels" (al lado del de YouTube, ver reels.js). Igual que "Mis
+  // vídeos": sin entrada en el menú, se sale con el menú de siempre.
+  const viewMisReels = document.getElementById('view-mis-reels');
   const sceneWrap = document.getElementById('sceneWrap');
   const sceneTitle = document.getElementById('sceneTitle');
   const sceneHint = document.getElementById('sceneHint');
@@ -122,6 +126,7 @@
     viewSobreMi.classList.toggle('active', view === 'sobre-mi');
     viewAjustes.classList.toggle('active', view === 'ajustes');
     if (viewMisVideos) viewMisVideos.classList.toggle('active', view === 'mis-videos');
+    if (viewMisReels) viewMisReels.classList.toggle('active', view === 'mis-reels');
 
     if (!showingResumen) window.scrollTo(0, 0);
     if (!showingResumen && typeof window.__resetWhiteEnd === 'function') window.__resetWhiteEnd();
