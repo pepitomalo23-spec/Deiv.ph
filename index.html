@@ -68,7 +68,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&family=Anton&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20">
+<link rel="stylesheet" href="styles.css?v=21">
 </head>
 <body>
 
@@ -296,33 +296,49 @@
       <div class="as-cat-buttons" id="asCatButtons"></div>
     </div>
 
-    <!-- ---------- Botón "Vídeos de YouTube" ----------
-         Vive aquí a propósito, entre "Ediciones" (as-cat-top, arriba) y
-         "Proyectos" (proyectos-body, abajo): en escritorio queda
-         apilado entre ambos bloques dentro de la misma columna de
+    <!-- ---------- Botones "YouTube" y "Reels" (uno al lado del otro) ----------
+         Viven aquí a propósito, entre "Ediciones" (as-cat-top, arriba) y
+         "Proyectos" (proyectos-body, abajo): en escritorio quedan
+         apilados entre ambos bloques dentro de la misma columna de
          #proyectosHeader (ver @media min-width:901px en styles.css). En
-         móvil, al no ser ni fixed ni display:contents, cae dentro del
+         móvil, al no ser ni fixed ni display:contents, caen dentro del
          flujo normal de #proyectosHeader (que en móvil es el bloque
          fijo abajo-izquierda) justo antes del título "Proyectos" -lo
          más parecido a "entre medias" que permite tener a la vez
          "Ediciones" fijo arriba y "Proyectos" fijo abajo en pantallas
          pequeñas.
-         Lleva a la página con la cuadrícula completa de "Proyectos en
-         YouTube" (#view-mis-videos, más abajo en este archivo) -mismo
-         destino que el botón "Ver todos los vídeos" de la portada en
-         "Mis ediciones", ver youtube-videos.js-. La miniatura de fondo
-         se saca automáticamente del primer vídeo de la lista, igual que
-         esa otra portada. -->
-    <button type="button" class="proyectos-yt-btn" id="proyectosYtBtn">
-      <span class="proyectos-yt-btn-thumb" id="proyectosYtBtnThumb" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-      </span>
-      <span class="proyectos-yt-btn-text">
-        <span class="proyectos-yt-btn-title">Vídeos de YouTube</span>
-        <span class="proyectos-yt-btn-sub">Mis proyectos editados, en orden</span>
-      </span>
-      <svg class="proyectos-yt-btn-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </button>
+         Van en una fila de dos columnas (.proyectos-media-row), cada
+         botón en su mitad: si uno se oculta porque no tiene nada
+         guardado, el otro se queda en su mitad (no se estira a todo el
+         ancho).
+         - "YouTube" lleva a la cuadrícula completa de "Proyectos en
+           YouTube" (#view-mis-videos, ver youtube-videos.js). Su
+           miniatura se saca automáticamente del primer vídeo de la lista.
+         - "Reels" lleva a la cuadrícula de vídeos verticales
+           (#view-mis-reels, ver reels.js). Su miniatura es la portada
+           del primer reel de la lista. -->
+    <div class="proyectos-media-row" id="proyectosMediaRow">
+      <button type="button" class="proyectos-yt-btn" id="proyectosYtBtn">
+        <span class="proyectos-yt-btn-thumb" id="proyectosYtBtnThumb" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        </span>
+        <span class="proyectos-yt-btn-text">
+          <span class="proyectos-yt-btn-title">YouTube</span>
+          <span class="proyectos-yt-btn-sub">Vídeos largos</span>
+        </span>
+        <svg class="proyectos-yt-btn-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <button type="button" class="proyectos-yt-btn" id="proyectosReelsBtn">
+        <span class="proyectos-yt-btn-thumb" id="proyectosReelsBtnThumb" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 9.5v5l4-2.5-4-2.5Z" fill="currentColor" stroke="none"/></svg>
+        </span>
+        <span class="proyectos-yt-btn-text">
+          <span class="proyectos-yt-btn-title">Reels</span>
+          <span class="proyectos-yt-btn-sub">Vídeos cortos</span>
+        </span>
+        <svg class="proyectos-yt-btn-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
 
     <!-- Título "Proyectos" + galería: agrupados en su propio contenedor
          (.proyectos-body) para poder moverlos/centrarlos como bloque
@@ -470,7 +486,7 @@
 
   <!-- ---------- Sección: Mis vídeos (cuadrícula completa de "Proyectos en
        YouTube") ----------
-       Se abre al pulsar el botón "Vídeos de YouTube" (#proyectosYtBtn,
+       Se abre al pulsar el botón "YouTube" (#proyectosYtBtn,
        entre "Ediciones" y "Proyectos", ver comentario junto a ese bloque
        más arriba y el manejador del botón en youtube-videos.js). Misma
        vista secundaria de pantalla completa que "Sobre mí"/"Ajustes"
@@ -487,10 +503,26 @@
     </div>
   </section>
 
+  <!-- ---------- Sección: Mis reels (vídeos verticales) ----------
+       Se abre al pulsar el botón "Reels" (#proyectosReelsBtn, al lado del
+       de YouTube). Igual que "Mis vídeos": vista secundaria (.subview)
+       controlada por goToView en view-navigation.js, sin entrada propia
+       en el menú. Cada tarjeta es vertical (9:16) y lleva al reel real
+       (Instagram, TikTok o YouTube Shorts) en una pestaña nueva; se
+       editan desde Ajustes → Reels (ver reels.js). -->
+  <section class="subview" id="view-mis-reels">
+    <div class="subview-inner">
+      <p class="subview-eyebrow">Vídeos cortos</p>
+      <h1>Mis <span class="as-word-accent">reels</span></h1>
+      <p class="lead">Cada portada lleva directa al reel.</p>
+      <div class="reels-grid" id="reelsGridFull"></div>
+    </div>
+  </section>
+
   <!-- ---------- Sección: Ajustes ----------
        Panel del administrador. Las pestañas siguen el MISMO orden en que
-       cada cosa aparece en la web (Ediciones → Proyectos → Vídeos → Mi
-       material → Antes y después → Sobre mí), más Textos y Cuenta al
+       cada cosa aparece en la web (Ediciones → Proyectos → Vídeos → Reels →
+       Mi material → Antes y después → Sobre mí), más Textos y Cuenta al
        final. En escritorio van en una columna lateral fija; en móvil, en
        una fila deslizable que se queda pegada arriba al hacer scroll. Los
        botones de "Guardar cambios" de cada panel van en una barra pegada
@@ -508,6 +540,7 @@
           <button class="ajustes-tab active" type="button" role="tab" aria-selected="true" data-tab="proyectos"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="7" height="5" rx="1.3"/><rect x="14" y="6" width="7" height="5" rx="1.3"/><rect x="3" y="15" width="7" height="5" rx="1.3"/><rect x="14" y="15" width="7" height="5" rx="1.3"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Ediciones</span><span class="ajustes-tab-sub">Categorías y sus fotos</span></span></button>
           <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="galeria"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="4" height="14" rx="1.3"/><rect x="9" y="5" width="12" height="14" rx="1.6"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Proyectos</span><span class="ajustes-tab-sub">Tarjetas que se abren</span></span></button>
           <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="youtube"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3.5"/><path d="M10.5 9.5v5l4.5-2.5-4.5-2.5Z" fill="currentColor" stroke="none"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Vídeos</span><span class="ajustes-tab-sub">Enlaces de YouTube</span></span></button>
+          <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="reels"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 9.5v5l4-2.5-4-2.5Z" fill="currentColor" stroke="none"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Reels</span><span class="ajustes-tab-sub">Vídeos verticales</span></span></button>
           <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="carrusel"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.6-2.2a1 1 0 0 1 .8-.4h5.2a1 1 0 0 1 .8.4L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.3" r="3.3"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Mi material</span><span class="ajustes-tab-sub">Carrusel de objetivos</span></span></button>
           <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="misediciones"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M12 4v16"/><path d="M7 10l-2 2 2 2M17 10l2 2-2 2"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Antes y después</span><span class="ajustes-tab-sub">Comparador de fotos</span></span></button>
           <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="collage"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Sobre mí</span><span class="ajustes-tab-sub">Collage de fotos</span></span></button>
@@ -567,7 +600,7 @@
             <div>
               <p class="ajustes-section-title">Vídeos de YouTube</p>
               <p class="ajustes-section-desc">Título y enlace de cada vídeo: la miniatura sale sola del enlace. Marca «Editado» y/o «Creado» según tu papel en el vídeo.</p>
-              <p class="ajustes-where">En la web: la página «Todos mis vídeos» (botón «Vídeos de YouTube»).</p>
+              <p class="ajustes-where">En la web: la página «Todos mis vídeos» (botón «YouTube»).</p>
             </div>
           </div>
           <div class="cat-editor-list" id="ytEditorList"></div>
@@ -577,6 +610,27 @@
             <p class="cuenta-msg" id="ytMsg"></p>
             <button type="button" class="cuenta-btn cuenta-btn--quiet" id="ytResetBtn" title="Volver a los originales"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>Restablecer</button>
             <button type="button" class="cuenta-btn cuenta-btn--primary" id="ytGuardarBtn"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Guardar cambios</button>
+          </div>
+        </div>
+
+        <!-- Reels: vídeos verticales (Instagram, TikTok o YouTube Shorts) -->
+        <div class="ajustes-panel ajustes-section" data-panel="reels">
+          <div class="ajustes-section-head">
+            <span class="ajustes-section-icon" aria-hidden="true"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 9.5v5l4-2.5-4-2.5Z" fill="currentColor" stroke="none"/></svg></span>
+            <div>
+              <p class="ajustes-section-title">Reels</p>
+              <p class="ajustes-section-desc">Título y enlace de cada reel (Instagram, TikTok o YouTube Shorts). Toca el recuadro vertical para subir su portada: Instagram y TikTok no dejan sacarla sola del enlace (en YouTube Shorts sí, si no subes ninguna). Marca «Editado» y/o «Creado» según tu papel.</p>
+              <p class="ajustes-where">En la web: la página «Mis reels» (botón «Reels», al lado de «YouTube»).</p>
+            </div>
+          </div>
+          <div class="cat-editor-list" id="reelsEditorList"></div>
+          <input type="file" id="reelsEditorFileInput" accept="image/*" style="display:none;">
+          <p class="cat-editor-empty" id="reelsEditorEmpty" style="display:none;">No hay ningún reel. Añade el primero.</p>
+          <div class="ajustes-actions">
+            <button type="button" class="cuenta-btn cuenta-btn--ghost" id="reelsAddBtn"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12.75 9C12.75 8.58579 12.4142 8.25 12 8.25C11.5858 8.25 11.25 8.58579 11.25 9L11.25 11.25H9C8.58579 11.25 8.25 11.5858 8.25 12C8.25 12.4142 8.58579 12.75 9 12.75H11.25V15C11.25 15.4142 11.5858 15.75 12 15.75C12.4142 15.75 12.75 15.4142 12.75 15L12.75 12.75H15C15.4142 12.75 15.75 12.4142 15.75 12C15.75 11.5858 15.4142 11.25 15 11.25H12.75V9Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12Z" fill="currentColor"/></svg>Añadir reel</button>
+            <p class="cuenta-msg" id="reelsMsg"></p>
+            <button type="button" class="cuenta-btn cuenta-btn--quiet" id="reelsResetBtn" title="Volver a los originales"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>Restablecer</button>
+            <button type="button" class="cuenta-btn cuenta-btn--primary" id="reelsGuardarBtn"><svg class="cuenta-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Guardar cambios</button>
           </div>
         </div>
 
@@ -768,7 +822,7 @@
 
 <script defer src="js/scroll-engine.js"></script>
 
-<script defer src="js/view-navigation.js?v=2"></script>
+<script defer src="js/view-navigation.js?v=3"></script>
 
 <!-- ---------- Menú horizontal de pestañas dentro de Ajustes ---------- -->
 <script defer src="js/settings-tabs.js"></script>
@@ -811,6 +865,7 @@
      pantalla completa, la galería de fotos de esa categoría. ---------- -->
 <script defer src="js/project-categories.js"></script>
 <script defer src="js/youtube-videos.js"></script>
+<script defer src="js/reels.js"></script>
 
 
 <!-- ---------- Panel "Cuenta": historial, contraseña y copia de seguridad ---------- -->

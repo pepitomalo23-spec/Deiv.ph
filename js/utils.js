@@ -36,6 +36,20 @@ function flashMsg(el, text, ok, duration = 2600) {
 }
 
 /**
+ * Fila de botones "YouTube" + "Reels" (entre "Ediciones" y "Proyectos",
+ * ver #proyectosMediaRow en index.html): youtube-videos.js y reels.js
+ * ocultan cada uno su propio botón cuando no tienen nada guardado. Si
+ * se quedan ocultos los dos, se oculta también la fila, para que no
+ * deje su margen vacío entre "Ediciones" y "Proyectos".
+ */
+function syncProyectosMediaRow() {
+  const row = document.getElementById('proyectosMediaRow');
+  if (!row) return;
+  const anyVisible = Array.from(row.children).some(el => el.style.display !== 'none');
+  row.style.display = anyVisible ? '' : 'none';
+}
+
+/**
  * Si la URL es una foto de Cloudinary, le añade una transformación "al
  * vuelo" (mismo servidor, misma foto, sin subir nada de nuevo) para que
  * el navegador descargue una versión mucho más ligera en vez del

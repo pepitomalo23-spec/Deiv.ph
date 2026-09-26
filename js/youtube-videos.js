@@ -1,7 +1,8 @@
 // ---------- "Proyectos en YouTube" ----------
-// Un único punto de entrada público: el botón #proyectosYtBtn, situado
-// entre "Ediciones" y "Proyectos" (ver index.html), que lleva a la
-// página #view-mis-videos con la cuadrícula completa. Cada entrada es
+// Un único punto de entrada público: el botón "YouTube" (#proyectosYtBtn),
+// situado entre "Ediciones" y "Proyectos" al lado del de "Reels" (ver
+// index.html y reels.js), que lleva a la página #view-mis-videos con la
+// cuadrícula completa. Cada entrada es
 // { id, title, url }: la miniatura se saca automáticamente del propio
 // enlace de YouTube (getYoutubeThumb), no hace falta subir ninguna foto.
 // Al tocar una tarjeta de la cuadrícula se abre el vídeo real en
@@ -71,6 +72,7 @@
     // guardados); solo se oculta del todo una vez confirmado que, de
     // verdad, no hay ninguno.
     if (proyectosYtBtn) proyectosYtBtn.style.display = (!cloudLoaded || currentVideos.length) ? '' : 'none';
+    syncProyectosMediaRow();
     if (!cloudLoaded || !currentVideos.length){
       if (proyectosYtBtnThumb) proyectosYtBtnThumb.style.backgroundImage = '';
       if (gridFullEl) gridFullEl.innerHTML = '';
@@ -110,7 +112,7 @@
     }
   }
 
-  // Botón "Vídeos de YouTube" (entre "Ediciones" y "Proyectos"): lleva a
+  // Botón "YouTube" (entre "Ediciones" y "Proyectos"): lleva a
   // la página propia con la cuadrícula completa (#view-mis-videos),
   // usando el mismo sistema de navegación entre vistas que "Sobre mí"/
   // "Ajustes" (ver goToView en view-navigation.js).
