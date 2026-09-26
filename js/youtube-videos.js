@@ -46,6 +46,8 @@
     return id ? ('https://img.youtube.com/vi/' + id + '/hqdefault.jpg') : null;
   }
   window.getYoutubeThumb = getYoutubeThumb;
+  // También lo usa reels.js, para ver los YouTube Shorts dentro de la web.
+  window.getYoutubeId = getYoutubeId;
 
   // ================= Vista pública =================
   let currentVideos = [];
