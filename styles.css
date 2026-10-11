@@ -1095,6 +1095,36 @@
     padding:0 0 80px;
   }
   .subview.active{ display:block; }
+  /* Flecha de "volver" (páginas de YouTube y Reels): fija arriba a la
+     izquierda, simétrica a la hamburguesa (arriba a la derecha). */
+  .subview-back{
+    position:fixed;
+    top:22px;
+    left:22px;
+    z-index:160;
+    width:44px;
+    height:44px;
+    border:none;
+    border-radius:50%;
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#111111;
+    background:rgba(255,255,255,0.92);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    box-shadow:0 4px 14px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.08);
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .subview-back:hover{ transform:translateX(-2px); }
+  .subview-back:active{ transform:scale(0.94); box-shadow:0 2px 6px rgba(0,0,0,0.12); }
+  @media (min-width:901px){
+    .subview-back{ top:26px; left:28px; width:52px; height:52px; }
+    .subview-back svg{ width:22px; height:22px; }
+  }
   .subview-inner{
     max-width:720px;
     margin:0 auto;

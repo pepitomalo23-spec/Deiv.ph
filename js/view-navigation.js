@@ -164,6 +164,12 @@
 
   window.goToView = goToView;
 
+  // Flechas de "volver" de las páginas de YouTube y Reels: llevan de
+  // vuelta a la entrada, que es desde donde se abren esas páginas.
+  document.querySelectorAll('[data-back-to]').forEach(btn => {
+    btn.addEventListener('click', () => goToView(btn.dataset.backTo));
+  });
+
   menuItems.forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
