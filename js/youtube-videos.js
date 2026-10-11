@@ -1,6 +1,6 @@
 // ---------- "Proyectos en YouTube" ----------
 // Un único punto de entrada público: el botón "YouTube" (#proyectosYtBtn),
-// situado entre "Ediciones" y "Proyectos" al lado del de "Reels" (ver
+// situado en la entrada (antes de deslizar) al lado del de "Reels" (ver
 // index.html y reels.js), que lleva a la página #view-mis-videos con la
 // cuadrícula completa. Cada entrada es
 // { id, title, url }: la miniatura se saca automáticamente del propio
@@ -58,8 +58,8 @@
   let cloudLoaded = false;
 
   // Cuadrícula completa: vive en su propia página (#view-mis-videos), a
-  // la que lleva el botón "Vídeos de YouTube" de entre "Ediciones" y
-  // "Proyectos" (ver #proyectosYtBtn en index.html). Ya NO hay ninguna
+  // la que lleva el botón "YouTube" de la entrada, antes de deslizar
+  // (ver #proyectosYtBtn en index.html). Ya NO hay ninguna
   // portada/botón bajo "Mis ediciones" -se quitó por duplicar ese mismo
   // punto de entrada-.
   const gridFullEl = document.getElementById('youtubeGridFull');

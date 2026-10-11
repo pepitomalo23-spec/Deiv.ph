@@ -1,7 +1,7 @@
 // ---------- "Reels" (vídeos verticales) ----------
 // Mismo planteamiento que "Proyectos en YouTube" (youtube-videos.js):
-// un botón "Reels" (#proyectosReelsBtn), al lado del de YouTube entre
-// "Ediciones" y "Proyectos", que lleva a la página #view-mis-reels con
+// un botón "Reels" (#proyectosReelsBtn), al lado del de YouTube en la
+// entrada (antes de deslizar), que lleva a la página #view-mis-reels con
 // la cuadrícula completa. Cada tarjeta es vertical (9:16).
 // A diferencia del de YouTube, este botón se ve SIEMPRE, aunque todavía
 // no haya ningún reel guardado: así el apartado existe desde el primer

@@ -754,7 +754,7 @@
     align-items:center;
     justify-content:center;
     z-index:100;
-    transition:opacity .5s ease;
+    transition:opacity .35s ease;
   }
   .loader-bar{
     width:160px;
@@ -814,7 +814,7 @@
        Así, si el arranque tarda una fracción de segundo, el usuario ve
        un fundido limpio en vez de un primer fotograma congelado. */
     opacity:0;
-    transition:opacity .45s ease;
+    transition:opacity .25s ease;
   }
   .loader-video-wrap.is-playing{ opacity:1; }
   .loader-video{
@@ -3615,7 +3615,10 @@
     pointer-events:none; /* reactivado solo cuando el ancestro está "visible", igual que .as-cat-top/.as-expand */
     transition:box-shadow .18s ease, transform .18s ease;
   }
-  .proyectos-header.visible .proyectos-yt-btn{ pointer-events:auto; }
+  /* En la entrada (#entryMedia) el contenedor ya recibe su
+     pointer-events por JS durante el fundido (igual que #socialIcons):
+     los botones simplemente lo heredan. */
+  .entry-media .proyectos-yt-btn{ pointer-events:inherit; }
   .proyectos-yt-btn:hover{ transform:translateY(-1px); }
   .proyectos-yt-btn:active{
     transform:translateY(0) scale(0.98);
@@ -3681,7 +3684,32 @@
   @media (max-width:400px){
     .proyectos-yt-btn-sub{ white-space:normal; }
   }
+  /* ---------- Contenedor de YouTube/Reels en la ENTRADA (1ª posición,
+     antes de deslizar) ----------
+     Mismo comportamiento que .social-icons (opacidad a 0 por defecto,
+     controlada por JS, sin transition). En móvil: fila centrada justo
+     por encima de "desliza" y de correo/Instagram. En escritorio: abajo
+     a la derecha, simétrico a correo/Instagram (abajo a la izquierda). */
+  .entry-media{
+    position:fixed;
+    left:22px;
+    right:22px;
+    bottom:calc(max(22px, env(safe-area-inset-bottom)) + 54px);
+    z-index:200;
+    display:flex;
+    justify-content:center;
+    opacity:0;
+    pointer-events:none;
+  }
+  .entry-media.visible{ opacity:1; pointer-events:auto; }
+  .entry-media .proyectos-media-row{ margin:0; }
   @media (min-width:901px){
+    .entry-media{
+      left:auto;
+      right:28px;
+      bottom:max(28px, env(safe-area-inset-bottom));
+      width:min(460px, 40vw);
+    }
     .proyectos-media-row{ max-width:min(460px, 40vw); gap:12px; }
   }
 

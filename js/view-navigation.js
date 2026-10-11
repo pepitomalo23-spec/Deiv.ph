@@ -41,6 +41,7 @@
   // bloque junto con el resto de la escena.
   const sceneOverlayEls = [
     document.getElementById('socialIcons'),
+    document.getElementById('entryMedia'),
     document.getElementById('equipoHeader'),
     document.getElementById('proyectosHeader'),
     document.getElementById('afterStoryHeader'),
