@@ -140,8 +140,8 @@
   // termina, o si algo falla, no bloquea más de unos segundos ----
   //
   // IMPORTANTE: esto YA NO es un <video>. Es una secuencia de 95
-  // fotogramas (assets/loader-frames/f001.jpg ... f095.jpg, a 40fps,
-  // ~2.4s; antes iba a 24fps, ~4s, y se hacía lenta) que se pintan a
+  // fotogramas (assets/loader-frames/f001.jpg ... f095.jpg, a 56fps,
+  // ~1.7s; antes iba a 24fps, ~4s, y se hacía lenta) que se pintan a
   // mano en un <canvas> con
   // requestAnimationFrame, exactamente igual que la secuencia principal
   // de fotos de más abajo (loadAll/render).
@@ -156,12 +156,12 @@
   // el modo de energía, el navegador o el dispositivo.
   const loaderCanvas = document.getElementById('loaderCanvas');
   const LOADER_FRAME_COUNT = 95;
-  const LOADER_FPS = 40;
+  const LOADER_FPS = 56;
   // Empieza a reproducirse en cuanto haya esta parte de los fotogramas
   // cargados (no hace falta esperar a los 95): si al avanzar alguno
   // todavía no ha llegado, la animación espera en el último pintado en
   // vez de saltárselo (ver step en playSequence).
-  const LOADER_START_AFTER = 30;
+  const LOADER_START_AFTER = 20;
   function waitForLoaderVideo(){
     return new Promise((resolve) => {
       if (!loaderCanvas){ resolve(); return; }
