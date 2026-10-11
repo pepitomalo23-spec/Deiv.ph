@@ -754,7 +754,7 @@
     align-items:center;
     justify-content:center;
     z-index:100;
-    transition:opacity .5s ease;
+    transition:opacity .35s ease;
   }
   .loader-bar{
     width:160px;
@@ -814,7 +814,7 @@
        Así, si el arranque tarda una fracción de segundo, el usuario ve
        un fundido limpio en vez de un primer fotograma congelado. */
     opacity:0;
-    transition:opacity .45s ease;
+    transition:opacity .25s ease;
   }
   .loader-video-wrap.is-playing{ opacity:1; }
   .loader-video{
@@ -3615,7 +3615,10 @@
     pointer-events:none; /* reactivado solo cuando el ancestro está "visible", igual que .as-cat-top/.as-expand */
     transition:box-shadow .18s ease, transform .18s ease;
   }
-  .proyectos-header.visible .proyectos-yt-btn{ pointer-events:auto; }
+  /* En la entrada (#entryMedia) el contenedor ya recibe su
+     pointer-events por JS durante el fundido (igual que #socialIcons):
+     los botones simplemente lo heredan. */
+  .entry-media .proyectos-yt-btn{ pointer-events:inherit; }
   .proyectos-yt-btn:hover{ transform:translateY(-1px); }
   .proyectos-yt-btn:active{
     transform:translateY(0) scale(0.98);
@@ -3681,8 +3684,138 @@
   @media (max-width:400px){
     .proyectos-yt-btn-sub{ white-space:normal; }
   }
-  @media (min-width:901px){
-    .proyectos-media-row{ max-width:min(460px, 40vw); gap:12px; }
+  /* ---------- YouTube/Reels en la ENTRADA (1ª posición, antes de
+     deslizar) ----------
+     Mismo comportamiento que .social-icons (opacidad a 0 por defecto,
+     controlada por JS, sin transition en opacity). Son dos tarjetas
+     grandes con la portada del primer vídeo/reel a sangre (la pone el
+     JS como background-image en .proyectos-yt-btn-thumb), un degradado
+     oscuro abajo para leer el texto en blanco y un botón de play con el
+     color de cada red. En móvil: fila centrada, flotando por encima de
+     "desliza" y de correo/Instagram. En escritorio: columna derecha,
+     debajo del título "this is deiv.ph" y con su mismo ancho. */
+  .entry-media{
+    position:fixed;
+    left:20px;
+    right:20px;
+    bottom:calc(max(22px, env(safe-area-inset-bottom)) + clamp(64px, 10vh, 110px));
+    z-index:200;
+    display:flex;
+    justify-content:center;
+    opacity:0;
+    pointer-events:none;
+  }
+  .entry-media.visible{ opacity:1; pointer-events:auto; }
+  .entry-media .proyectos-media-row{
+    margin:0;
+    max-width:420px;
+    gap:12px;
+  }
+  .entry-media .proyectos-yt-btn{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    align-items:flex-start;
+    gap:0;
+    aspect-ratio:5/4;
+    padding:12px 12px 12px 14px;
+    border-radius:20px;
+    overflow:hidden;
+    isolation:isolate;
+    background:linear-gradient(145deg, #2a2d31, #0f1012);
+    border:1px solid rgba(255,255,255,0.22);
+    box-shadow:0 14px 34px rgba(0,0,0,0.28), 0 3px 8px rgba(0,0,0,0.18);
+    color:#ffffff;
+    transition:transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease;
+  }
+  .entry-media.visible .proyectos-yt-btn{
+    animation:entryCardIn .7s cubic-bezier(.2,.8,.2,1) both;
+  }
+  .entry-media.visible .proyectos-yt-btn + .proyectos-yt-btn{ animation-delay:.08s; }
+  @keyframes entryCardIn{
+    from{ transform:translateY(18px) scale(0.96); }
+    to{ transform:none; }
+  }
+  .entry-media .proyectos-yt-btn:hover{
+    transform:translateY(-3px);
+    box-shadow:0 20px 40px rgba(0,0,0,0.32), 0 4px 10px rgba(0,0,0,0.2);
+  }
+  .entry-media .proyectos-yt-btn:active{
+    transform:scale(0.97);
+    box-shadow:0 8px 20px rgba(0,0,0,0.25);
+  }
+  /* Portada a sangre, por debajo de todo. */
+  .entry-media .proyectos-yt-btn-thumb{
+    position:absolute;
+    inset:0;
+    width:auto;
+    height:auto;
+    border-radius:0;
+    background-color:transparent;
+    color:rgba(255,255,255,0.55);
+    z-index:-2;
+    transition:transform .6s cubic-bezier(.2,.8,.2,1);
+  }
+  .entry-media .proyectos-yt-btn-thumb svg{ width:34px; height:34px; margin-bottom:22%; }
+  .entry-media .proyectos-yt-btn:hover .proyectos-yt-btn-thumb{ transform:scale(1.06); }
+  /* Degradado para que el texto blanco se lea sobre cualquier portada. */
+  .entry-media .proyectos-yt-btn::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    z-index:-1;
+    background:linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0) 75%);
+  }
+  .entry-media .proyectos-yt-btn-text{ flex:none; width:100%; padding-right:40px; }
+  .entry-media .proyectos-yt-btn-title{
+    font-size:1.12rem;
+    color:#ffffff;
+    letter-spacing:0.01em;
+  }
+  .entry-media .proyectos-yt-btn-sub{
+    font-size:0.74rem;
+    color:rgba(255,255,255,0.78);
+    white-space:nowrap;
+  }
+  /* La flecha pasa a ser un botón de play redondo, abajo a la derecha,
+     con el color de cada red (rojo YouTube / degradado Instagram). */
+  .entry-media .proyectos-yt-btn-arrow{
+    display:block;
+    position:absolute;
+    right:12px;
+    bottom:12px;
+    width:32px;
+    height:32px;
+    padding:9px 8px 9px 10px;
+    border-radius:50%;
+    color:#ffffff;
+    background:#ff0033;
+    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+  }
+  .entry-media #proyectosReelsBtn .proyectos-yt-btn-arrow{
+    background:linear-gradient(45deg, #feda75, #fa7e1e 30%, #d62976 60%, #962fbf 85%, #4f5bd5);
+  }
+  .entry-media .proyectos-yt-btn:hover .proyectos-yt-btn-arrow{ transform:translateX(2px); }
+  @media (max-width:360px){
+    .entry-media .proyectos-yt-btn-title{ font-size:1rem; }
+    .entry-media .proyectos-yt-btn-arrow{ width:28px; height:28px; padding:8px 7px 8px 9px; }
+  }
+  @media (min-width:768px){
+    .entry-media{
+      left:auto;
+      right:3vw;
+      bottom:calc(max(28px, env(safe-area-inset-bottom)) + 64px); /* por encima de "desliza" en tablets en vertical */
+      width:min(50vw, 50vh, 780px);
+    }
+    .entry-media .proyectos-media-row{ max-width:none; gap:16px; }
+    .entry-media .proyectos-yt-btn{ aspect-ratio:16/10; border-radius:24px; padding:16px 16px 16px 18px; }
+    .entry-media .proyectos-yt-btn-title{ font-size:1.35rem; }
+    .entry-media .proyectos-yt-btn-sub{ font-size:0.82rem; }
+    .entry-media .proyectos-yt-btn-arrow{ width:38px; height:38px; padding:11px 10px 11px 12px; right:16px; bottom:16px; }
+  }
+  @media (min-width:1200px){
+    .entry-media{ width:min(34vw, 55vh, 600px); bottom:max(48px, 7vh); }
   }
 
   /* ---------- Botones de categorías de "Proyectos" (Deportes, Fiestas...)

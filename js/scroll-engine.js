@@ -22,6 +22,9 @@
   const proyectosHeaderEl = document.getElementById('proyectosHeader');
   const menuToggleBtn = document.getElementById('menuToggle');
   const socialIconsEl = document.getElementById('socialIcons');
+  // Botones YouTube/Reels de la entrada: se muestran y se funden
+  // exactamente igual que correo/Instagram (ver setEntryUi más abajo).
+  const entryMediaEl = document.getElementById('entryMedia');
   const sceneProgress = document.getElementById('sceneProgress');
   const themeColorMeta = document.getElementById('themeColorMeta');
   const sceneTitle = document.getElementById('sceneTitle');
@@ -137,8 +140,9 @@
   // termina, o si algo falla, no bloquea más de unos segundos ----
   //
   // IMPORTANTE: esto YA NO es un <video>. Es una secuencia de 95
-  // fotogramas (assets/loader-frames/f001.jpg ... f095.jpg, a 24fps,
-  // ~3.9s) que se precargan y se pintan a mano en un <canvas> con
+  // fotogramas (assets/loader-frames/f001.jpg ... f095.jpg, a 40fps,
+  // ~2.4s; antes iba a 24fps, ~4s, y se hacía lenta) que se pintan a
+  // mano en un <canvas> con
   // requestAnimationFrame, exactamente igual que la secuencia principal
   // de fotos de más abajo (loadAll/render).
   //
@@ -152,7 +156,12 @@
   // el modo de energía, el navegador o el dispositivo.
   const loaderCanvas = document.getElementById('loaderCanvas');
   const LOADER_FRAME_COUNT = 95;
-  const LOADER_FPS = 24;
+  const LOADER_FPS = 40;
+  // Empieza a reproducirse en cuanto haya esta parte de los fotogramas
+  // cargados (no hace falta esperar a los 95): si al avanzar alguno
+  // todavía no ha llegado, la animación espera en el último pintado en
+  // vez de saltárselo (ver step en playSequence).
+  const LOADER_START_AFTER = 30;
   function waitForLoaderVideo(){
     return new Promise((resolve) => {
       if (!loaderCanvas){ resolve(); return; }
@@ -169,7 +178,7 @@
 
       // Salvaguarda: si algo va mal cargando los fotogramas, nunca
       // dejamos al usuario esperando de más ni con nada roto en pantalla.
-      const safety = setTimeout(finish, 6000);
+      const safety = setTimeout(finish, 4500);
 
       function drawFrame(i){
         const img = loaderImages[i];
@@ -180,10 +189,20 @@
 
       function playSequence(){
         reveal();
-        const startTime = performance.now();
+        let startTime = performance.now();
         function step(now){
           const elapsed = (now - startTime) / 1000;
           let frameIndex = Math.floor(elapsed * LOADER_FPS);
+          // Fotograma aún sin descargar: se retrasa el reloj para
+          // esperarlo en vez de saltárselo (la animación nunca da saltos).
+          let firstMissing = loaderImages.findIndex(img => !img);
+          if (firstMissing !== -1 && frameIndex >= firstMissing){
+            startTime = now - (firstMissing / LOADER_FPS) * 1000;
+            frameIndex = Math.max(0, firstMissing - 1);
+            drawFrame(frameIndex);
+            requestAnimationFrame(step);
+            return;
+          }
           if (frameIndex >= LOADER_FRAME_COUNT){
             drawFrame(LOADER_FRAME_COUNT - 1);
             clearTimeout(safety);
@@ -196,13 +215,17 @@
         requestAnimationFrame(step);
       }
 
+      let started = false;
       for (let i = 0; i < LOADER_FRAME_COUNT; i++){
         const img = new Image();
         const idx = i;
         const onDone = () => {
           loaderImages[idx] = img;
           loaderLoadedCount++;
-          if (loaderLoadedCount === LOADER_FRAME_COUNT) playSequence();
+          if (!started && loaderImages[0] && loaderLoadedCount >= LOADER_START_AFTER){
+            started = true;
+            playSequence();
+          }
         };
         img.onload = onDone;
         img.onerror = onDone; // si falta un fotograma, no bloquea la intro
@@ -1411,9 +1434,7 @@
           // arrastre anterior podía sobrevivir en paradas donde el correo
           // e Instagram ya estaban invisibles (opacity 0) pero seguían
           // siendo clicables. Se fuerza aquí también, igual que opacity.
-          socialIconsEl.classList.toggle('visible', stepIndex === 0); // Correo/Instagram solo en la 1ª posición
-          socialIconsEl.style.opacity = stepIndex === 0 ? '1' : '0';
-          socialIconsEl.style.pointerEvents = stepIndex === 0 ? 'auto' : 'none';
+          setEntryUi(stepIndex === 0); // Correo/Instagram y YouTube/Reels solo en la 1ª posición
         }
         updateEndOfPathUI();
 
@@ -1528,8 +1549,21 @@
     const raw = 1 - (1 - amount) / PROYECTOS_FADE_WINDOW;
     const t = Math.max(0, Math.min(1, raw));
     const smooth = t * t * (3 - 2 * t);
-    socialIconsEl.style.opacity = String(smooth);
-    socialIconsEl.style.pointerEvents = smooth > 0.05 ? 'auto' : 'none';
+    for (const el of [socialIconsEl, entryMediaEl]){
+      if (!el) continue;
+      el.style.opacity = String(smooth);
+      el.style.pointerEvents = smooth > 0.05 ? 'auto' : 'none';
+    }
+  }
+  // Estado ya asentado (al aterrizar en una parada o al acabar la intro)
+  // de correo/Instagram y de los botones YouTube/Reels de la entrada.
+  function setEntryUi(visible){
+    for (const el of [socialIconsEl, entryMediaEl]){
+      if (!el) continue;
+      el.classList.toggle('visible', visible);
+      el.style.opacity = visible ? '1' : '0';
+      el.style.pointerEvents = visible ? 'auto' : 'none';
+    }
   }
 
   function applySegmentProgress(fromStep, toStep, p){
@@ -1627,9 +1661,7 @@
           // arrastre anterior podía sobrevivir en paradas donde el correo
           // e Instagram ya estaban invisibles (opacity 0) pero seguían
           // siendo clicables. Se fuerza aquí también, igual que opacity.
-          socialIconsEl.classList.toggle('visible', stepIndex === 0); // Correo/Instagram solo en la 1ª posición
-          socialIconsEl.style.opacity = stepIndex === 0 ? '1' : '0';
-          socialIconsEl.style.pointerEvents = stepIndex === 0 ? 'auto' : 'none';
+          setEntryUi(stepIndex === 0); // Correo/Instagram y YouTube/Reels solo en la 1ª posición
         }
         updateEndOfPathUI();
         if (pendingDir !== 0){
@@ -2164,9 +2196,8 @@
       // fotogramas, y quedan visibles de inmediato porque stepIndex sigue
       // siendo 0 (la 1ª posición) en este instante.
       introFinished = true;
-      if (socialIconsEl) socialIconsEl.classList.toggle('visible', stepIndex === 0);
-      updateSocialFade(stepIndex === 0 ? 1 : 0);
-      setTimeout(() => { loader.style.display = 'none'; }, 500);
+      setEntryUi(stepIndex === 0);
+      setTimeout(() => { loader.style.display = 'none'; }, 350);
     });
   });
 

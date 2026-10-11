@@ -240,6 +240,45 @@
     </a>
   </div>
 
+  <!-- ---------- Botones "YouTube" y "Reels" en la ENTRADA ----------
+       Igual que correo/Instagram (#socialIcons, justo arriba): visibles
+       SOLO en la 1ª posición (stepIndex === 0, antes de deslizar) y nunca
+       antes de que termine la intro; el fundido lo controla el mismo JS
+       (setEntryUi en scroll-engine.js). En móvil van en una fila centrada
+       justo encima de "desliza" y de correo/Instagram; en escritorio,
+       abajo a la derecha (ver .entry-media en styles.css).
+       - "YouTube" lleva a la cuadrícula completa de "Proyectos en
+         YouTube" (#view-mis-videos, ver youtube-videos.js). Su
+         miniatura se saca automáticamente del primer vídeo de la lista.
+       - "Reels" lleva a la cuadrícula de vídeos verticales
+         (#view-mis-reels, ver reels.js). Su miniatura es la portada
+         del primer reel de la lista. Se ve siempre, aunque todavía no
+         haya ningún reel. -->
+  <div class="entry-media" id="entryMedia">
+    <div class="proyectos-media-row" id="proyectosMediaRow">
+      <button type="button" class="proyectos-yt-btn" id="proyectosYtBtn">
+        <span class="proyectos-yt-btn-thumb" id="proyectosYtBtnThumb" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        </span>
+        <span class="proyectos-yt-btn-text">
+          <span class="proyectos-yt-btn-title">YouTube</span>
+          <span class="proyectos-yt-btn-sub">Vídeos largos</span>
+        </span>
+        <svg class="proyectos-yt-btn-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <button type="button" class="proyectos-yt-btn" id="proyectosReelsBtn">
+        <span class="proyectos-yt-btn-thumb" id="proyectosReelsBtnThumb" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 9.5v5l4-2.5-4-2.5Z" fill="currentColor" stroke="none"/></svg>
+        </span>
+        <span class="proyectos-yt-btn-text">
+          <span class="proyectos-yt-btn-title">Reels</span>
+          <span class="proyectos-yt-btn-sub">Vídeos cortos</span>
+        </span>
+        <svg class="proyectos-yt-btn-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
   <!-- ---------- Menú (3 rayitas) ---------- -->
   <button class="menu-toggle intro-hidden" id="menuToggle" aria-label="Abrir menú" aria-expanded="false">
     <span></span><span></span><span></span>
@@ -292,54 +331,8 @@
          deslizamiento vertical mueve la historia (ver
          SCENE_DRAG_EXCLUDE_SELECTOR en scroll-engine.js). -->
     <div class="as-cat-top" id="asCatTop">
-      <p class="as-cat-top-title" id="asCatTopTitle">Ediciones</p>
+      <p class="as-cat-top-title" id="asCatTopTitle">Fotos</p>
       <div class="as-cat-buttons" id="asCatButtons"></div>
-    </div>
-
-    <!-- ---------- Botones "YouTube" y "Reels" (uno al lado del otro) ----------
-         Viven aquí a propósito, entre "Ediciones" (as-cat-top, arriba) y
-         "Proyectos" (proyectos-body, abajo): en escritorio quedan
-         apilados entre ambos bloques dentro de la misma columna de
-         #proyectosHeader (ver @media min-width:901px en styles.css). En
-         móvil, al no ser ni fixed ni display:contents, caen dentro del
-         flujo normal de #proyectosHeader (que en móvil es el bloque
-         fijo abajo-izquierda) justo antes del título "Proyectos" -lo
-         más parecido a "entre medias" que permite tener a la vez
-         "Ediciones" fijo arriba y "Proyectos" fijo abajo en pantallas
-         pequeñas.
-         Van en una fila de dos columnas (.proyectos-media-row), cada
-         botón en su mitad: si el de YouTube se oculta porque no tiene
-         ningún vídeo guardado, el de Reels se queda en su mitad (no se
-         estira a todo el ancho).
-         - "YouTube" lleva a la cuadrícula completa de "Proyectos en
-           YouTube" (#view-mis-videos, ver youtube-videos.js). Su
-           miniatura se saca automáticamente del primer vídeo de la lista.
-         - "Reels" lleva a la cuadrícula de vídeos verticales
-           (#view-mis-reels, ver reels.js). Su miniatura es la portada
-           del primer reel de la lista. Se ve siempre, aunque todavía no
-           haya ningún reel: su página avisa de que llegarán pronto y
-           enlaza al Instagram. -->
-    <div class="proyectos-media-row" id="proyectosMediaRow">
-      <button type="button" class="proyectos-yt-btn" id="proyectosYtBtn">
-        <span class="proyectos-yt-btn-thumb" id="proyectosYtBtnThumb" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-        </span>
-        <span class="proyectos-yt-btn-text">
-          <span class="proyectos-yt-btn-title">YouTube</span>
-          <span class="proyectos-yt-btn-sub">Vídeos largos</span>
-        </span>
-        <svg class="proyectos-yt-btn-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-      <button type="button" class="proyectos-yt-btn" id="proyectosReelsBtn">
-        <span class="proyectos-yt-btn-thumb" id="proyectosReelsBtnThumb" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 9.5v5l4-2.5-4-2.5Z" fill="currentColor" stroke="none"/></svg>
-        </span>
-        <span class="proyectos-yt-btn-text">
-          <span class="proyectos-yt-btn-title">Reels</span>
-          <span class="proyectos-yt-btn-sub">Vídeos cortos</span>
-        </span>
-        <svg class="proyectos-yt-btn-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
     </div>
 
     <!-- Título "Proyectos" + galería: agrupados en su propio contenedor
@@ -562,7 +555,7 @@
 
       <div class="ajustes-layout">
         <nav class="ajustes-tabs" id="ajustesTabs" role="tablist" aria-label="Secciones de ajustes">
-          <button class="ajustes-tab active" type="button" role="tab" aria-selected="true" data-tab="proyectos"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="7" height="5" rx="1.3"/><rect x="14" y="6" width="7" height="5" rx="1.3"/><rect x="3" y="15" width="7" height="5" rx="1.3"/><rect x="14" y="15" width="7" height="5" rx="1.3"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Ediciones</span><span class="ajustes-tab-sub">Categorías y sus fotos</span></span></button>
+          <button class="ajustes-tab active" type="button" role="tab" aria-selected="true" data-tab="proyectos"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="7" height="5" rx="1.3"/><rect x="14" y="6" width="7" height="5" rx="1.3"/><rect x="3" y="15" width="7" height="5" rx="1.3"/><rect x="14" y="15" width="7" height="5" rx="1.3"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Fotos</span><span class="ajustes-tab-sub">Categorías y sus fotos</span></span></button>
           <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="galeria"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="4" height="14" rx="1.3"/><rect x="9" y="5" width="12" height="14" rx="1.6"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Proyectos</span><span class="ajustes-tab-sub">Tarjetas que se abren</span></span></button>
           <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="youtube"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3.5"/><path d="M10.5 9.5v5l4.5-2.5-4.5-2.5Z" fill="currentColor" stroke="none"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Vídeos</span><span class="ajustes-tab-sub">Enlaces de YouTube</span></span></button>
           <button class="ajustes-tab" type="button" role="tab" aria-selected="false" data-tab="reels"><svg class="ajustes-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 9.5v5l4-2.5-4-2.5Z" fill="currentColor" stroke="none"/></svg><span class="ajustes-tab-text"><span class="ajustes-tab-label">Reels</span><span class="ajustes-tab-sub">Vídeos verticales</span></span></button>
@@ -581,9 +574,9 @@
           <div class="ajustes-section-head">
             <span class="ajustes-section-icon" aria-hidden="true"><svg class="" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="7" height="5" rx="1.3"/><rect x="14" y="6" width="7" height="5" rx="1.3"/><rect x="3" y="15" width="7" height="5" rx="1.3"/><rect x="14" y="15" width="7" height="5" rx="1.3"/></svg></span>
             <div>
-              <p class="ajustes-section-title">Categorías de «Ediciones»</p>
+              <p class="ajustes-section-title">Categorías de «Fotos»</p>
               <p class="ajustes-section-desc">Cada categoría es un botón que abre su galería a pantalla completa. Toca <strong>+</strong> para subir fotos. El enlace de Drive es opcional: añade el botón «Ver más imágenes».</p>
-              <p class="ajustes-where">En la web: los botones bajo el título «Ediciones» (2ª pantalla).</p>
+              <p class="ajustes-where">En la web: los botones bajo el título «Fotos» (2ª pantalla).</p>
             </div>
           </div>
           <div class="cat-editor-list" id="catEditorList"></div>

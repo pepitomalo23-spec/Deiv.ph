@@ -36,11 +36,10 @@ function flashMsg(el, text, ok, duration = 2600) {
 }
 
 /**
- * Fila de botones "YouTube" + "Reels" (entre "Ediciones" y "Proyectos",
- * ver #proyectosMediaRow en index.html): youtube-videos.js y reels.js
- * ocultan cada uno su propio botón cuando no tienen nada guardado. Si
- * se quedan ocultos los dos, se oculta también la fila, para que no
- * deje su margen vacío entre "Ediciones" y "Proyectos".
+ * Fila de botones "YouTube" + "Reels" (en la entrada, antes de deslizar,
+ * ver #entryMedia / #proyectosMediaRow en index.html): youtube-videos.js
+ * y reels.js ocultan cada uno su propio botón cuando no tienen nada
+ * guardado. Si se quedan ocultos los dos, se oculta también la fila.
  */
 function syncProyectosMediaRow() {
   const row = document.getElementById('proyectosMediaRow');
