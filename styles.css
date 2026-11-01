@@ -143,10 +143,11 @@
   }
 
   /* Difuminado hacia el fondo (blanco, o el gris hacia el que va virando
-     var(--bg) al deslizar más allá del final) en los bordes SUPERIOR e
-     INFERIOR de la escena, para que la foto se disuelva suavemente en el
-     fondo en vez de cortarse de golpe -en cualquier posición (1ª, 2ª o
-     3ª), no solo cerca del final-. IMPORTANTE: el alto va en % (relativo
+     var(--bg) al deslizar más allá del final) en el borde INFERIOR de la
+     escena, para que la foto se disuelva suavemente en el fondo en vez de
+     cortarse de golpe -en cualquier posición (1ª, 2ª o 3ª)-. Arriba ya NO
+     hay difuminado (se quitó a petición de David: se veía una neblina en
+     la parte de arriba de la web). IMPORTANTE: el alto va en % (relativo
      al alto real de .scene-pin) y NO en vh, porque vh en móvil no siempre
      coincide con el alto real visible del contenedor sticky; en % siempre
      queda pegado al borde de lo que de verdad se ve en pantalla.
@@ -165,7 +166,6 @@
      las 3 posiciones. Lo único que cambia según la posición es el propio
      valor de var(--bg) (casi blanco en la 1ª y 2ª, virando a gris cámara
      en la 3ª), así que el matiz de la mezcla ya se adapta solo. */
-  .scene-pin::before,
   .scene-pin::after{
     content:"";
     position:absolute;
@@ -174,27 +174,6 @@
     height:30%;
     pointer-events:none;
     z-index:5;
-  }
-  .scene-pin::before{
-    top:0;
-    background:linear-gradient(to top,
-      color-mix(in srgb, var(--bg) 0%, transparent) 0%,
-      color-mix(in srgb, var(--bg) 1%, transparent) 8%,
-      color-mix(in srgb, var(--bg) 3%, transparent) 16%,
-      color-mix(in srgb, var(--bg) 6%, transparent) 24%,
-      color-mix(in srgb, var(--bg) 11%, transparent) 32%,
-      color-mix(in srgb, var(--bg) 18%, transparent) 40%,
-      color-mix(in srgb, var(--bg) 27%, transparent) 48%,
-      color-mix(in srgb, var(--bg) 38%, transparent) 55%,
-      color-mix(in srgb, var(--bg) 50%, transparent) 62%,
-      color-mix(in srgb, var(--bg) 63%, transparent) 69%,
-      color-mix(in srgb, var(--bg) 75%, transparent) 75%,
-      color-mix(in srgb, var(--bg) 85%, transparent) 81%,
-      color-mix(in srgb, var(--bg) 92%, transparent) 87%,
-      color-mix(in srgb, var(--bg) 97%, transparent) 93%,
-      var(--bg) 100%);
-  }
-  .scene-pin::after{
     bottom:0;
     background:linear-gradient(to bottom,
       color-mix(in srgb, var(--bg) 0%, transparent) 0%,
