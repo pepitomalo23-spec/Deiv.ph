@@ -364,7 +364,7 @@
   // lógico" de imagen.
   const REFERENCE_ASPECT = 900 / 1125; // ancho/alto de referencia (salto 1)
 
-  function drawCover(img, alpha, shrinkScale){
+  function drawCover(img, alpha, shrinkT){
     if (!img || !img.complete || img.naturalWidth === 0) return;
     const iw = img.naturalWidth, ih = img.naturalHeight;
 
@@ -420,11 +420,28 @@
     // canvas y la volvemos a anclar al borde inferior. El canvas en sí
     // nunca cambia de tamaño ni deja huecos: solo la foto dibujada dentro
     // se hace más pequeña, siempre pegada abajo y centrada.
-    if (shrinkScale && shrinkScale !== 1){
-      dw *= shrinkScale;
-      dh *= shrinkScale;
+    if (shrinkT > 0){
+      // FIX "cámaras cortadas en móvil": con una escala final fija (0.72)
+      // las dos cámaras del último fotograma seguían siendo más anchas que
+      // la pantalla en la mayoría de móviles (360-430px): la Alpha 7 III se
+      // salía por la izquierda y la ZV-E10 por la derecha. Ahora la escala
+      // final es la menor entre 0.72 y la que hace que las dos cámaras
+      // quepan enteras con un pequeño margen a cada lado.
+      const baseW = dw, baseH = dh;
+      const fitScale = (cw - 2 * CAMERA_SIDE_MARGIN_PX) / (baseW * CAMERA_CONTENT_W_FRAC);
+      const endScale = Math.min(MOBILE_SHRINK_END_SCALE, fitScale);
+      const oldScale = 1 - shrinkT * (1 - MOBILE_SHRINK_END_SCALE);
+      const scale = 1 - shrinkT * (1 - endScale);
+      // Al encoger más, si la foto siguiera pegada abajo las cámaras
+      // bajarían y se acercarían al carrusel de objetivos. Se mantiene el
+      // centro vertical de las cámaras exactamente donde quedaba con la
+      // escala de antes (el fondo de la escena ya está teñido del mismo
+      // blanco que el de la foto, así que el hueco de abajo no se nota).
+      const camCenterY = (ch - baseH * oldScale) + baseH * oldScale * CAMERA_CONTENT_CY_FRAC;
+      dw = baseW * scale;
+      dh = baseH * scale;
       dx = (cw - dw) / 2;
-      dy = ch - dh;
+      dy = camCenterY - dh * CAMERA_CONTENT_CY_FRAC;
     }
     ctx.globalAlpha = alpha;
     ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
@@ -560,20 +577,26 @@
   // calculado. postEndMax() pasa a ser una simple lectura de variable, sin
   // ningún coste de layout, por muchas veces que se llame por segundo.
   let cachedHeaderHeight = 0;
-  if (afterStoryHeaderEl){
+  // Distancia del título "Mis ediciones" al borde superior del propio
+  // bloque (ver postEndMax: sirve para que el título nunca suba por
+  // encima del borde de la pantalla). Se cachea junto con la altura, por
+  // el mismo motivo de rendimiento.
+  const afterStoryTitleEl = document.getElementById('afterStoryTitle');
+  let cachedTitleOffset = 0;
+  function measureAfterStoryHeader(){
     cachedHeaderHeight = afterStoryHeaderEl.scrollHeight;
+    cachedTitleOffset = afterStoryTitleEl ? afterStoryTitleEl.offsetTop : 0;
+  }
+  if (afterStoryHeaderEl){
+    measureAfterStoryHeader();
     if (typeof ResizeObserver === 'function'){
-      const headerResizeObserver = new ResizeObserver(() => {
-        cachedHeaderHeight = afterStoryHeaderEl.scrollHeight;
-      });
+      const headerResizeObserver = new ResizeObserver(measureAfterStoryHeader);
       headerResizeObserver.observe(afterStoryHeaderEl);
     } else {
       // Sin ResizeObserver (navegador muy antiguo): al menos se
       // actualiza al redimensionar la ventana, aunque no ante cambios de
       // contenido (p.ej. la galería cargando fotos de la nube).
-      window.addEventListener('resize', () => {
-        cachedHeaderHeight = afterStoryHeaderEl.scrollHeight;
-      });
+      window.addEventListener('resize', measureAfterStoryHeader);
     }
   }
 
@@ -603,7 +626,17 @@
       const headerHeight = cachedHeaderHeight;
       const startTop = vh * 1.05;   // 105vh en px, ver .after-story-header
       const bottomMargin = vh * 0.04; // pequeño respiro bajo la galería
-      const requiredOffset = (startTop + headerHeight) - vh + bottomMargin;
+      let requiredOffset = (startTop + headerHeight) - vh + bottomMargin;
+      // FIX "título cortado arriba": en pantallas de poca altura (portátiles
+      // de 1280-1536px, iPad en horizontal, iPhone SE) el bloque entero
+      // mide casi lo mismo que la pantalla, así que subirlo hasta que su
+      // margen inferior toque el borde de abajo empujaba el título "Mis
+      // ediciones" por encima del borde de arriba y se veía cortado. Tope:
+      // el bloque nunca sube más de lo necesario para dejar el título a
+      // topMargin del borde superior.
+      const topMargin = Math.max(24, vh * 0.04);
+      const maxOffsetForTitle = startTop + cachedTitleOffset - topMargin;
+      if (requiredOffset > maxOffsetForTitle) requiredOffset = maxOffsetForTitle;
       if (requiredOffset > need) need = requiredOffset;
     }
     return need;
@@ -1041,7 +1074,6 @@
     // Encogido del plano de "solo cámara": SOLO en móvil (en iPad/escritorio
     // la imagen no se achica, se queda a tamaño "contain" normal).
     const shrinkT = computeMobileShrinkT(currentFrameExact);
-    const shrinkScale = 1 - shrinkT * (1 - MOBILE_SHRINK_END_SCALE);
 
     // Tinte de fondo: a diferencia del achicado, esto tiene que aplicar en
     // CUALQUIER pantalla (móvil, iPad, escritorio). El "contain" pegado a la
@@ -1065,8 +1097,8 @@
     ctx.fillRect(0, 0, cw, ch);
 
     // crossfade the two nearest frames so individual frames are never "seen" popping in
-    drawCover(a, 1, shrinkScale);
-    if (frac > 0.001) drawCover(b, frac, shrinkScale);
+    drawCover(a, 1, shrinkT);
+    if (frac > 0.001) drawCover(b, frac, shrinkT);
 
     // Aclarado del fotograma en la 2ª posición: en vez de ctx.filter (poco
     // fiable en iOS/Safari -en muchos dispositivos no hace absolutamente
@@ -1117,6 +1149,14 @@
   // de quedarse pegado a los bordes de la pantalla igual que el resto.
   const CAMERA_ONLY_START_FRAME = 94; // recalculado proporcionalmente tras ampliar el tramo de la continuacion a 105 fotogramas
   const MOBILE_SHRINK_END_SCALE = 0.72; // escala final en el último frame: hace falta para que en móvil no se corte la imagen
+  // Hueco que ocupan las dos cámaras dentro del último fotograma (medido
+  // sobre frame135.jpg, ya recortado a REFERENCE_ASPECT): de 46 a 837 px de
+  // ancho sobre 900 -> 0.88 del ancho- y su centro vertical a 0.484 del
+  // alto. Ver drawCover: con estos números la escala final en móvil se
+  // ajusta para que las dos cámaras quepan enteras en la pantalla.
+  const CAMERA_CONTENT_W_FRAC = 0.88;
+  const CAMERA_CONTENT_CY_FRAC = 0.484;
+  const CAMERA_SIDE_MARGIN_PX = 12;
   // El fondo de la foto en los frames de "solo cámara" no es blanco puro,
   // así que al achicar el encuadre se veía un rectángulo alrededor con el
   // blanco puro del fondo de la página. Mientras se achica, fundimos el

@@ -2091,7 +2091,11 @@
      (buscar "proyectosHeaderEl" en ese archivo). */
   .proyectos-header{
     position:fixed;
-    bottom:6%;
+    /* max(..., 56px): el aviso "desliza" (#sceneHint) vive a 26px del
+       borde inferior y mide ~15px de alto; con solo un 4-6% de margen, en
+       la mayoría de móviles la tarjeta de Proyectos quedaba encima y lo
+       tapaba a medias. 56px deja siempre el aviso entero a la vista. */
+    bottom:max(6%, 56px);
     left:6%;
     z-index:20;
     width:min(88vw, 700px);
@@ -2131,7 +2135,7 @@
     text-align:left;
   }
   @media (max-width:480px){
-    .proyectos-header{ bottom:4%; left:5%; width:90vw; }
+    .proyectos-header{ bottom:max(4%, 56px); left:5%; width:90vw; }
     .proyectos-title{ font-size:clamp(1rem, 4.6vw, 1.3rem); }
   }
   /* ---------- Escritorio / iPad horizontal (≥901px): TODO el bloque
@@ -2501,6 +2505,14 @@
        si algún día cambia este valor, en vez de tener que acordarse de
        actualizarlo en dos sitios. */
     --as-ba-frame-max-h: clamp(260px, 66vh, 680px);
+  }
+  /* Pantallas anchas pero bajas (portátiles de 720-800px de alto, iPad en
+     horizontal): con 66vh el bloque "Mis ediciones" (título + frase +
+     comparador + etiquetas) medía casi lo mismo que la pantalla y no
+     cabía entero con aire arriba y abajo. Un poco menos de alto para la
+     foto y el bloque completo entra con margen. */
+  @media (min-width:481px) and (max-height:820px){
+    .as-ba-gallery{ --as-ba-frame-max-h: clamp(260px, 62vh, 680px); }
   }
   .as-ba-gallery .ba-card-frame{
     /* Proporción de repuesto: se usa solo mientras no hay ninguna foto
@@ -3554,7 +3566,11 @@
   .as-cat-top{
     position:fixed;
     top:44px;
-    left:22px;
+    /* Mismo margen izquierdo que #proyectosHeader (left:6%, ver arriba):
+       con 22px fijos, en tablets en vertical (481-900px) "Fotos" quedaba
+       unos 28px más a la izquierda que "Proyectos". En móvil (≤480px) y
+       escritorio (≥901px) tiene sus propias reglas más abajo. */
+    left:6%;
     z-index:25;
     display:flex;
     flex-direction:column;
@@ -3981,8 +3997,12 @@
      columna quedaba desalineada. Se ensancha al mismo ancho que el botón
      manteniendo la MISMA proporción (360x160 = 9/4), así el encuadre de
      cada foto (ajustado desde Ajustes) no cambia, solo se ve más grande. */
+  /* El bloque empieza en left:60%, así que solo quedan 40vw hasta el borde
+     derecho: con width:40vw la galería llegaba justo al borde (en iPad en
+     horizontal, 1024-1180px, la última tarjeta se veía cortada). Se deja
+     siempre un margen de 32px hasta el borde de la pantalla. */
   @media (min-width:901px){
-    .proyectos-header .as-expand{ width:min(460px, 40vw); }
+    .proyectos-header .as-expand{ width:min(460px, calc(40vw - 32px)); }
     .proyectos-header .as-expand-grid{ height:auto; aspect-ratio:9/4; }
   }
   .as-expand-card{
